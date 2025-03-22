@@ -2,12 +2,12 @@
 export interface Track {
   id: string;
   title: string;
-  duration: string; // e.g., "3:45"
-  file: string; // Raw GitHub URL for the song
+  duration: string;
+  file: string;
 }
 
 export interface Album {
-  id: string;
+  id: string; // Custom ID as a string
   title: string;
   cover_image: string;
   release_date: string;

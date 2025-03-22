@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Album, Track } from "@/lib/types";
 
 export default function UploadForm() {
+  const [id, setId] = useState(""); // New state for custom ID
   const [title, setTitle] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [releaseDate, setReleaseDate] = useState("");
@@ -30,18 +31,26 @@ export default function UploadForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const albumData: Omit<Album, "id"> = {
+    const albumData: Album = {
+      // Include id in the data
+      id, // Custom ID
       title,
       cover_image: coverImage,
       release_date: releaseDate,
       tracks,
     };
-    const { error } = await supabase.from("albums").insert([albumData]);
+    const { error, data } = await supabase
+      .from("albums")
+      .insert([albumData])
+      .select()
+      .single();
     if (error) {
       console.error("Error uploading album:", error);
-      alert("Failed to upload album");
+      alert("Failed to upload album: " + error.message);
     } else {
+      console.log("Uploaded album:", data);
       alert("Album uploaded successfully!");
+      setId(""); // Reset ID field
       setTitle("");
       setCoverImage("");
       setReleaseDate("");
@@ -51,6 +60,19 @@ export default function UploadForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Album ID (Custom)
+        </label>
+        <input
+          type="text"
+          value={id}
+          onChange={(e) => setId(e.target.value)}
+          className="w-full p-2 border rounded"
+          required
+          placeholder="e.g., nectar-001"
+        />
+      </div>
       <div>
         <label className="block text-sm font-medium text-gray-700">
           Album Title
