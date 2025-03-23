@@ -8,34 +8,12 @@ export default async function AlbumPage({
 }: {
   params: { albumId: string };
 }) {
-  console.log("Album ID from URL:", params.albumId);
-
-  if (!params.albumId || params.albumId === "undefined") {
-    return (
-      <div>
-        Invalid album ID
-        <p>Debug Info: The album ID is missing or invalid.</p>
-      </div>
-    );
-  }
-
   const { data: album, error } = await supabase
     .from("albums")
     .select("*")
     .eq("id", params.albumId)
     .single();
-  console.log("Supabase Response - Album:", album, "Error:", error);
-
-  if (error || !album) {
-    return (
-      <div>
-        Album not found
-        <p>Debug Info:</p>
-        <pre>ID: {params.albumId}</pre>
-        <pre>Error: {JSON.stringify(error, null, 2)}</pre>
-      </div>
-    );
-  }
+  if (error || !album) return <div>Album not found</div>;
 
   return (
     <div className="container mx-auto py-8">

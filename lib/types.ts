@@ -1,4 +1,3 @@
-// lib/types.ts
 export interface Track {
   id: string;
   title: string;
@@ -7,7 +6,7 @@ export interface Track {
 }
 
 export interface Album {
-  id: string; // Custom ID as a string
+  id: string;
   title: string;
   cover_image: string;
   release_date: string;

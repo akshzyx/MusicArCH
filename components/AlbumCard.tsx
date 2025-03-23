@@ -7,12 +7,6 @@ interface AlbumCardProps {
 }
 
 export default function AlbumCard({ album }: AlbumCardProps) {
-  console.log("AlbumCard album:", album);
-  if (!album.id) {
-    console.error("Missing album ID:", album);
-    return <div>Error: Album missing ID</div>;
-  }
-
   return (
     <Link href={`/albums/${album.id}`} className="block">
       <div className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition">
