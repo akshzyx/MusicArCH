@@ -154,6 +154,22 @@ export default function UploadForm() {
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
+          Release Category
+        </label>
+        <select
+          value={releaseCategory}
+          onChange={(e) =>
+            setReleaseCategory(e.target.value as typeof releaseCategory)
+          }
+          className="w-full p-2 border rounded"
+        >
+          <option value="released">Released</option>
+          <option value="unreleased">Unreleased</option>
+          <option value="og">OG</option>
+          <option value="stems">Stems</option>
+          <option value="sessions">Sessions</option>
+        </select>
+        {/* <label className="block text-sm font-medium text-gray-700">
           Select Release
         </label>
         <select
@@ -167,7 +183,7 @@ export default function UploadForm() {
               {release.title} ({release.category} - {release.id})
             </option>
           ))}
-        </select>
+        </select> */}
       </div>
 
       {selectedReleaseId === "new" && (
@@ -209,24 +225,7 @@ export default function UploadForm() {
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Release Category
-            </label>
-            <select
-              value={releaseCategory}
-              onChange={(e) =>
-                setReleaseCategory(e.target.value as typeof releaseCategory)
-              }
-              className="w-full p-2 border rounded"
-            >
-              <option value="released">Released</option>
-              <option value="unreleased">Unreleased</option>
-              <option value="og">OG</option>
-              <option value="stems">Stems</option>
-              <option value="sessions">Sessions</option>
-            </select>
-          </div>
+          <div></div>
           {releaseCategory === "released" && (
             <div>
               <label className="block text-sm font-medium text-gray-700">
