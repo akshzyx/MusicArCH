@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Release, Track, Era } from "@/lib/types";
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
@@ -21,6 +22,8 @@ export default function UploadForm() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertDescription, setAlertDescription] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,6 +99,7 @@ export default function UploadForm() {
       selectedEraId,
       trackTitle,
       trackFile,
+      releaseCategory,
     });
 
     if (!selectedEraId) {
@@ -133,7 +137,7 @@ export default function UploadForm() {
 
     const releaseData: Omit<Release, "id"> = {
       era_id: selectedEraId,
-      title: trackTitle, // Using trackTitle as the release title
+      title: trackTitle,
       cover_image: coverImage.trimEnd(),
       release_date: releaseDate || undefined,
       category: releaseCategory,
@@ -169,6 +173,10 @@ export default function UploadForm() {
     } else {
       console.log("Created release and added track:", newRelease.id);
       showAlert("Success", "New release created and track added!");
+      const submittedCategory = releaseCategory;
+      const redirectTo = `/eras/${selectedEraId}#${submittedCategory}`;
+      console.log("Setting redirect to:", redirectTo); // Debug redirect URL
+      setRedirectUrl(redirectTo);
       setCoverImage("");
       setReleaseDate("");
       setReleaseCategory("released");
@@ -177,6 +185,15 @@ export default function UploadForm() {
     setTrackTitle("");
     setTrackDuration("");
     setTrackFile("");
+  };
+
+  const handleAlertClose = (open: boolean) => {
+    setAlertOpen(open);
+    if (!open && redirectUrl) {
+      console.log("Redirecting to:", redirectUrl); // Debug before redirect
+      router.push(redirectUrl);
+      setRedirectUrl(null);
+    }
   };
 
   return (
@@ -280,7 +297,7 @@ export default function UploadForm() {
 
       <CustomAlertDialog
         isOpen={alertOpen}
-        onOpenChange={setAlertOpen}
+        onOpenChange={handleAlertClose}
         title={alertTitle}
         description={alertDescription}
       />
