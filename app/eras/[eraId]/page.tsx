@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 import TrackList from "@/components/TrackList";
 import { Era, Release, Track } from "@/lib/types";
+import Navbar from "@/components/Navbar";
 
 export default async function EraPage({
   params,
@@ -48,58 +49,61 @@ export default async function EraPage({
   };
 
   return (
-    <div className="container mx-auto py-8 text-foreground">
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <Image
-          src={era.cover_image.trimEnd()}
-          alt={era.title}
-          width={400}
-          height={400}
-          className="rounded"
-        />
-        <div>
-          <h1 className="text-4xl font-bold">{era.title}</h1>
-          {era.description && (
+    <>
+      <Navbar />
+      <div className="container mx-auto py-8 text-foreground">
+        <div className="flex flex-col md:flex-row gap-8 mb-8">
+          <Image
+            src={era.cover_image.trimEnd()}
+            alt={era.title}
+            width={400}
+            height={400}
+            className="rounded"
+          />
+          <div>
+            <h1 className="text-4xl font-bold">{era.title}</h1>
+            {era.description && (
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                {era.description}
+              </p>
+            )}
+            {/* {(era.start_date || era.end_date) && (
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              {era.description}
+            {era.start_date} - {era.end_date || "Present"}
             </p>
-          )}
-          {/* {(era.start_date || era.end_date) && (
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              {era.start_date} - {era.end_date || "Present"}
-            </p>
-          )} */}
+            )} */}
+          </div>
         </div>
-      </div>
 
-      <div className="space-y-8">
-        {Object.entries(categories).map(
-          ([category, releases]) =>
-            releases.length > 0 && (
-              <div key={category}>
-                <h2 className="text-2xl font-semibold capitalize mb-4">
-                  {category}
-                </h2>
-                <div className="grid grid-cols-1 gap-6">
-                  {releases.map((release) => (
-                    <div
-                      key={release.id}
-                      className="border rounded-lg p-4 bg-background"
-                    >
-                      {/* <h3 className="text-xl font-medium">{release.title}</h3>
+        <div className="space-y-8">
+          {Object.entries(categories).map(
+            ([category, releases]) =>
+              releases.length > 0 && (
+                <div key={category}>
+                  <h2 className="text-2xl font-semibold capitalize mb-4">
+                    {category}
+                  </h2>
+                  <div className="grid grid-cols-1 gap-6">
+                    {releases.map((release) => (
+                      <div
+                        key={release.id}
+                        className="border rounded-lg p-4 bg-background"
+                      >
+                        {/* <h3 className="text-xl font-medium">{release.title}</h3>
                       {release.release_date && (
                         <p className="text-gray-600 dark:text-gray-400 mt-2">
-                          Released: {release.release_date}
+                        Released: {release.release_date}
                         </p>
-                      )} */}
-                      <TrackList initialTracks={release.tracks} />
-                    </div>
-                  ))}
+                        )} */}
+                        <TrackList initialTracks={release.tracks} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )
-        )}
+              )
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

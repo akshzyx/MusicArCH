@@ -29,45 +29,57 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       if (audio) {
         audio.pause();
         audio.currentTime = 0;
+        setAudio(null);
       }
     };
   }, [audio]);
 
-  const playTrack = (track: Track) => {
+  const playTrack = async (track: Track) => {
     if (currentTrack?.id === track.id) {
-      if (isPlaying) {
-        audio?.pause();
+      if (isPlaying && audio) {
+        audio.pause();
         setIsPlaying(false);
-      } else {
-        audio?.play().catch((error) => {
+      } else if (audio) {
+        try {
+          await audio.play();
+          setIsPlaying(true);
+        } catch (error) {
           console.error("Error playing audio:", error);
-          alert("Failed to play track: " + error.message);
-        });
-        setIsPlaying(true);
+          alert("Failed to play track: " + (error as Error).message);
+        }
       }
     } else {
       if (audio) {
         audio.pause();
         audio.currentTime = 0;
+        setAudio(null); // Clear old audio instance
       }
+
       const newAudio = new Audio(track.file.trimEnd());
-      newAudio.play().catch((error) => {
-        console.error("Error playing audio:", error);
-        alert("Failed to play track: " + error.message);
-      });
       setAudio(newAudio);
       setCurrentTrack(track);
       setIsPlaying(true);
 
+      try {
+        await newAudio.play();
+      } catch (error) {
+        console.error("Error playing audio:", error);
+        alert("Failed to play track: " + (error as Error).message);
+        setIsPlaying(false);
+        setCurrentTrack(null);
+        setAudio(null);
+      }
+
       newAudio.onended = () => {
         setIsPlaying(false);
         setCurrentTrack(null);
+        setAudio(null);
       };
     }
   };
 
   const pauseTrack = () => {
-    if (audio) {
+    if (audio && isPlaying) {
       audio.pause();
       setIsPlaying(false);
     }

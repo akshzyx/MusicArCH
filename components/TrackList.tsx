@@ -15,14 +15,17 @@ export default function TrackList({
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
   const [trackFile, setTrackFile] = useState("");
-  const { currentTrack, isPlaying, playTrack, pauseTrack } = useAudio();
+  const { currentTrack, isPlaying, playTrack, pauseTrack, stopTrack } =
+    useAudio();
 
   useEffect(() => {
     setTracks(initialTracks);
   }, [initialTracks]);
 
   const handleEdit = (track: Track) => {
-    pauseTrack();
+    if (currentTrack?.id === track.id && isPlaying) {
+      pauseTrack(); // Pause only if this track is playing
+    }
     setEditingTrack(track);
     setTrackTitle(track.title);
     setTrackDuration(track.duration);
@@ -55,12 +58,30 @@ export default function TrackList({
         tracks.map((t) => (t.id === editingTrack.id ? updatedTrack : t))
       );
       if (currentTrack?.id === editingTrack.id) {
-        playTrack(updatedTrack);
+        playTrack(updatedTrack); // Resume with updated track
       }
       setEditingTrack(null);
       setTrackTitle("");
       setTrackDuration("");
       setTrackFile("");
+    }
+  };
+
+  const handleDelete = async (track: Track) => {
+    if (!confirm(`Are you sure you want to delete "${track.title}"?`)) return;
+
+    const { error } = await supabase.from("tracks").delete().eq("id", track.id);
+
+    if (error) {
+      console.error("Error deleting track:", error);
+      alert("Failed to delete track: " + error.message);
+    } else {
+      console.log("Track deleted:", track.id);
+      alert("Track deleted successfully!");
+      setTracks(tracks.filter((t) => t.id !== track.id));
+      if (currentTrack?.id === track.id) {
+        stopTrack();
+      }
     }
   };
 
@@ -97,12 +118,20 @@ export default function TrackList({
                 {track.title} ({track.duration})
               </span>
             </div>
-            <button
-              onClick={() => handleEdit(track)}
-              className="text-blue-500 hover:underline"
-            >
-              Edit
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleEdit(track)}
+                className="text-blue-500 hover:underline"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(track)}
+                className="text-red-500 hover:underline"
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>
