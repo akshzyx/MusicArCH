@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Track } from "@/lib/types";
 import { useAudio } from "@/lib/AudioContext";
+import { CustomAlertDialog } from "@/components/CustomAlertDialog";
 
 export default function TrackList({
   initialTracks,
@@ -17,14 +18,36 @@ export default function TrackList({
   const [trackFile, setTrackFile] = useState("");
   const { currentTrack, isPlaying, playTrack, pauseTrack, stopTrack } =
     useAudio();
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertDescription, setAlertDescription] = useState("");
+  const [alertVariant, setAlertVariant] = useState<"default" | "destructive">(
+    "default"
+  );
+  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
+    null
+  );
 
   useEffect(() => {
     setTracks(initialTracks);
   }, [initialTracks]);
 
+  const showAlert = (
+    title: string,
+    description: string,
+    variant: "default" | "destructive" = "default",
+    confirmAction?: () => void
+  ) => {
+    setAlertTitle(title);
+    setAlertDescription(description);
+    setAlertVariant(variant);
+    setOnConfirmAction(() => confirmAction || null);
+    setAlertOpen(true);
+  };
+
   const handleEdit = (track: Track) => {
     if (currentTrack?.id === track.id && isPlaying) {
-      pauseTrack(); // Pause only if this track is playing
+      pauseTrack();
     }
     setEditingTrack(track);
     setTrackTitle(track.title);
@@ -50,15 +73,15 @@ export default function TrackList({
 
     if (error) {
       console.error("Error updating track:", error);
-      alert("Failed to update track: " + error.message);
+      showAlert("Update Failed", "Failed to update track: " + error.message);
     } else {
       console.log("Track updated:", editingTrack.id);
-      alert("Track updated successfully!");
+      showAlert("Success", "Track updated successfully!");
       setTracks(
         tracks.map((t) => (t.id === editingTrack.id ? updatedTrack : t))
       );
       if (currentTrack?.id === editingTrack.id) {
-        playTrack(updatedTrack); // Resume with updated track
+        playTrack(updatedTrack);
       }
       setEditingTrack(null);
       setTrackTitle("");
@@ -68,21 +91,32 @@ export default function TrackList({
   };
 
   const handleDelete = async (track: Track) => {
-    if (!confirm(`Are you sure you want to delete "${track.title}"?`)) return;
+    showAlert(
+      "Confirm Deletion",
+      `Are you sure you want to delete "${track.title}"?`,
+      "destructive",
+      async () => {
+        const { error } = await supabase
+          .from("tracks")
+          .delete()
+          .eq("id", track.id);
 
-    const { error } = await supabase.from("tracks").delete().eq("id", track.id);
-
-    if (error) {
-      console.error("Error deleting track:", error);
-      alert("Failed to delete track: " + error.message);
-    } else {
-      console.log("Track deleted:", track.id);
-      alert("Track deleted successfully!");
-      setTracks(tracks.filter((t) => t.id !== track.id));
-      if (currentTrack?.id === track.id) {
-        stopTrack();
+        if (error) {
+          console.error("Error deleting track:", error);
+          showAlert(
+            "Deletion Failed",
+            "Failed to delete track: " + error.message
+          );
+        } else {
+          console.log("Track deleted:", track.id);
+          showAlert("Success", "Track deleted successfully!");
+          setTracks(tracks.filter((t) => t.id !== track.id));
+          if (currentTrack?.id === track.id) {
+            stopTrack();
+          }
+        }
       }
-    }
+    );
   };
 
   const handleCancel = () => {
@@ -198,6 +232,17 @@ export default function TrackList({
           </div>
         </div>
       )}
+
+      <CustomAlertDialog
+        isOpen={alertOpen}
+        onOpenChange={setAlertOpen}
+        title={alertTitle}
+        description={alertDescription}
+        confirmText={onConfirmAction ? "Confirm" : "OK"}
+        cancelText={onConfirmAction ? "Cancel" : undefined}
+        onConfirm={onConfirmAction ? () => onConfirmAction() : undefined}
+        variant={alertVariant}
+      />
     </>
   );
 }

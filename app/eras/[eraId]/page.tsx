@@ -2,7 +2,30 @@ import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 import TrackList from "@/components/TrackList";
 import { Era, Release, Track } from "@/lib/types";
-import Navbar from "@/components/Navbar";
+import { Metadata } from "next";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { eraId: string };
+}): Promise<Metadata> {
+  const { data: era, error } = await supabase
+    .from("eras")
+    .select("title")
+    .eq("id", params.eraId)
+    .single();
+
+  if (error || !era) {
+    return {
+      title: "Era Not Found - Music Archive",
+    };
+  }
+
+  return {
+    title: `${era.title} - Music Archive`,
+  };
+}
 
 export default async function EraPage({
   params,
@@ -41,69 +64,77 @@ export default async function EraPage({
   }));
 
   const categories = {
-    released: releasesWithTracks.filter((r) => r.category === "released"),
-    unreleased: releasesWithTracks.filter((r) => r.category === "unreleased"),
-    og: releasesWithTracks.filter((r) => r.category === "og"),
-    stems: releasesWithTracks.filter((r) => r.category === "stems"),
-    sessions: releasesWithTracks.filter((r) => r.category === "sessions"),
+    released: releasesWithTracks
+      .filter((r) => r.category === "released")
+      .flatMap((r) => r.tracks),
+    unreleased: releasesWithTracks
+      .filter((r) => r.category === "unreleased")
+      .flatMap((r) => r.tracks),
+    og: releasesWithTracks
+      .filter((r) => r.category === "og")
+      .flatMap((r) => r.tracks),
+    stems: releasesWithTracks
+      .filter((r) => r.category === "stems")
+      .flatMap((r) => r.tracks),
+    sessions: releasesWithTracks
+      .filter((r) => r.category === "sessions")
+      .flatMap((r) => r.tracks),
   };
 
-  return (
-    <>
-      <Navbar />
-      <div className="container mx-auto py-8 text-foreground">
-        <div className="flex flex-col md:flex-row gap-8 mb-8">
-          <Image
-            src={era.cover_image.trimEnd()}
-            alt={era.title}
-            width={400}
-            height={400}
-            className="rounded"
-          />
-          <div>
-            <h1 className="text-4xl font-bold">{era.title}</h1>
-            {era.description && (
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                {era.description}
-              </p>
-            )}
-            {/* {(era.start_date || era.end_date) && (
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-            {era.start_date} - {era.end_date || "Present"}
-            </p>
-            )} */}
-          </div>
-        </div>
+  // Define tab order and find the first category with tracks
+  const tabOrder = ["released", "unreleased", "og", "stems", "sessions"];
+  const firstTabWithTracks =
+    tabOrder.find((category) => categories[category].length > 0) || "released"; // Fallback to "released" if no tracks (shouldn’t happen with data)
 
-        <div className="space-y-8">
-          {Object.entries(categories).map(
-            ([category, releases]) =>
-              releases.length > 0 && (
-                <div key={category}>
-                  <h2 className="text-2xl font-semibold capitalize mb-4">
-                    {category}
-                  </h2>
-                  <div className="grid grid-cols-1 gap-6">
-                    {releases.map((release) => (
-                      <div
-                        key={release.id}
-                        className="border rounded-lg p-4 bg-background"
-                      >
-                        {/* <h3 className="text-xl font-medium">{release.title}</h3>
-                      {release.release_date && (
-                        <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        Released: {release.release_date}
-                        </p>
-                        )} */}
-                        <TrackList initialTracks={release.tracks} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
+  return (
+    <div className="container mx-auto py-8 text-foreground">
+      <div className="flex flex-col md:flex-row gap-8 mb-8">
+        <Image
+          src={era.cover_image.trimEnd()}
+          alt={era.title}
+          width={400}
+          height={400}
+          className="rounded"
+        />
+        <div>
+          <h1 className="text-4xl font-bold">{era.title}</h1>
+          {era.description && (
+            <p className="text-foreground mt-2">{era.description}</p>
+          )}
+          {(era.start_date || era.end_date) && (
+            <p className="text-foreground mt-2">
+              {era.start_date} - {era.end_date || "Present"}
+            </p>
           )}
         </div>
       </div>
-    </>
+
+      <Tabs defaultValue={firstTabWithTracks} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5 bg-background">
+          {tabOrder.map(
+            (category) =>
+              categories[category].length > 0 && (
+                <TabsTrigger
+                  key={category}
+                  value={category}
+                  className="capitalize text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background"
+                >
+                  {category}
+                </TabsTrigger>
+              )
+          )}
+        </TabsList>
+        {tabOrder.map(
+          (category) =>
+            categories[category].length > 0 && (
+              <TabsContent key={category} value={category}>
+                <div className="border rounded-lg p-4 bg-background">
+                  <TrackList initialTracks={categories[category]} />
+                </div>
+              </TabsContent>
+            )
+        )}
+      </Tabs>
+    </div>
   );
 }
