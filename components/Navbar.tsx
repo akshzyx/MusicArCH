@@ -1,16 +1,23 @@
+"use client";
+
 import Link from "next/link";
 
-export default function Navbar() {
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from "@heroui/react";
+
+export default function App() {
   return (
-    <nav className="bg-gray-800 p-4">
-      <ul className="flex space-x-4 text-white">
-        <li>
-          <Link href="/">Home</Link>
-        </li>
-        <li>
-          <Link href="/upload">Upload</Link>
-        </li>
-      </ul>
-    </nav>
+    <div className="container mx-auto py-4">
+      <Navbar>
+        <Link href="/" className="font-bold text-inherit">
+          <NavbarBrand>JojiArCH</NavbarBrand>
+        </Link>
+
+        <NavbarContent justify="end">
+          <Link href="/upload" className="font-bold text-inherit">
+            <NavbarItem>Upload</NavbarItem>
+          </Link>
+        </NavbarContent>
+      </Navbar>
+    </div>
   );
 }

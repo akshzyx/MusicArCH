@@ -17,8 +17,10 @@ import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 export default function TrackList({
   initialTracks,
+  sectionTracks, // Add sectionTracks prop
 }: {
   initialTracks: Track[];
+  sectionTracks: Track[];
 }) {
   const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [editingTrack, setEditingTrack] = useState<Track | null>(null);
@@ -90,7 +92,7 @@ export default function TrackList({
         tracks.map((t) => (t.id === editingTrack.id ? updatedTrack : t))
       );
       if (currentTrack?.id === editingTrack.id) {
-        playTrack(updatedTrack);
+        playTrack(updatedTrack, sectionTracks); // Update with sectionTracks
       }
       setEditingTrack(null);
       setTrackTitle("");
@@ -135,6 +137,14 @@ export default function TrackList({
     setTrackFile("");
   };
 
+  const handlePlayPause = (track: Track) => {
+    if (currentTrack?.id === track.id && isPlaying) {
+      pauseTrack();
+    } else {
+      playTrack(track, sectionTracks); // Pass sectionTracks here
+    }
+  };
+
   return (
     <>
       <ul className="mt-2 space-y-2">
@@ -142,11 +152,7 @@ export default function TrackList({
           <li key={track.id} className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <button
-                onClick={() =>
-                  currentTrack?.id === track.id && isPlaying
-                    ? pauseTrack()
-                    : playTrack(track)
-                }
+                onClick={() => handlePlayPause(track)}
                 className={`text-green-500 hover:text-green-700 ${
                   currentTrack?.id === track.id && isPlaying
                     ? "text-yellow-500"

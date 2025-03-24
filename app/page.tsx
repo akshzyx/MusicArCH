@@ -1,7 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import Image from "next/image";
-// import { era } from "@/lib/types";
 import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Era } from "@/lib/types";
 
@@ -15,11 +14,24 @@ export default async function Home() {
     return <div>No eras available</div>;
   }
 
+  // Sort eras by album_rank in ascending order (1, 2, 3, 4, etc.)
+  const sortedEras = eras.sort((a, b) => a.album_rank - b.album_rank);
+
+  // // In TrackList or similar component
+  // const { playTrack } = useAudio();
+
+  // const handlePlay = (track: Track) => {
+  //   playTrack(
+  //     track,
+  //     releases.find((r) => r.id === track.release_id)?.tracks || []
+  //   );
+  // };
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-4xl font-bold mb-6">Eras</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {eras.map((era: Era) => (
+        {sortedEras.map((era: Era) => (
           <Link key={era.id} href={`/eras/${era.id}`} className="block">
             <Card className="py-4">
               <CardBody className="overflow-visible py-2">
@@ -27,7 +39,7 @@ export default async function Home() {
                   alt={era.title}
                   className="object-cover rounded-xl"
                   src={era.cover_image || "/default-image.jpg"}
-                  width={270}
+                  width={170}
                   height={180}
                 />
               </CardBody>

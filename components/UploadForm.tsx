@@ -9,8 +9,6 @@ export default function UploadForm() {
   const [eras, setEras] = useState<Era[]>([]);
   const [releases, setReleases] = useState<Release[]>([]);
   const [selectedEraId, setSelectedEraId] = useState<string>("");
-  const [selectedReleaseId, setSelectedReleaseId] = useState<string>("new");
-  const [title, setTitle] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [releaseDate, setReleaseDate] = useState("");
   const [releaseCategory, setReleaseCategory] = useState<
@@ -93,6 +91,13 @@ export default function UploadForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting with:", {
+      coverImage,
+      selectedEraId,
+      trackTitle,
+      trackFile,
+    });
+
     if (!selectedEraId) {
       showAlert("Missing Era", "Please select an era.");
       return;
@@ -111,6 +116,13 @@ export default function UploadForm() {
       );
       return;
     }
+    if (!coverImage) {
+      showAlert(
+        "Incomplete Release Details",
+        "Please fill in the cover image URL."
+      );
+      return;
+    }
 
     const newTrack: Omit<Track, "id"> = {
       release_id: 0,
@@ -119,81 +131,53 @@ export default function UploadForm() {
       file: trackFile.trimEnd(),
     };
 
-    if (selectedReleaseId === "new") {
-      if (!title || !coverImage) {
-        showAlert(
-          "Incomplete Release Details",
-          "Please fill in all new release details."
-        );
-        return;
-      }
+    const releaseData: Omit<Release, "id"> = {
+      era_id: selectedEraId,
+      title: trackTitle, // Using trackTitle as the release title
+      cover_image: coverImage.trimEnd(),
+      release_date: releaseDate || undefined,
+      category: releaseCategory,
+    };
 
-      const releaseData: Omit<Release, "id"> = {
-        era_id: selectedEraId,
-        title,
-        cover_image: coverImage.trimEnd(),
-        release_date: releaseDate || undefined,
-        category: releaseCategory,
-      };
+    const { data: newRelease, error: releaseError } = await supabase
+      .from("releases")
+      .insert([releaseData])
+      .select()
+      .single();
 
-      const { data: newRelease, error: releaseError } = await supabase
-        .from("releases")
-        .insert([releaseData])
-        .select()
-        .single();
+    if (releaseError || !newRelease) {
+      console.error("Error creating release:", releaseError);
+      showAlert(
+        "Release Creation Failed",
+        "Failed to create release: " +
+          (releaseError?.message || "Unknown error")
+      );
+      return;
+    }
 
-      if (releaseError || !newRelease) {
-        console.error("Error creating release:", releaseError);
-        showAlert(
-          "Release Creation Failed",
-          "Failed to create release: " +
-            (releaseError?.message || "Unknown error")
-        );
-        return;
-      }
+    newTrack.release_id = newRelease.id;
 
-      newTrack.release_id = newRelease.id;
-
-      const { error: trackError } = await supabase
-        .from("tracks")
-        .insert([newTrack]);
-      if (trackError) {
-        console.error("Error adding track:", trackError);
-        showAlert(
-          "Track Addition Failed",
-          "Failed to add track: " + trackError.message
-        );
-      } else {
-        console.log("Created release and added track:", newRelease.id);
-        showAlert("Success", "New release created and track added!");
-        setTitle("");
-        setCoverImage("");
-        setReleaseDate("");
-        setReleaseCategory("released");
-      }
+    const { error: trackError } = await supabase
+      .from("tracks")
+      .insert([newTrack]);
+    if (trackError) {
+      console.error("Error adding track:", trackError);
+      showAlert(
+        "Track Addition Failed",
+        "Failed to add track: " + trackError.message
+      );
     } else {
-      newTrack.release_id = Number(selectedReleaseId);
-      const { error } = await supabase.from("tracks").insert([newTrack]);
-      if (error) {
-        console.error("Error adding track:", error);
-        showAlert(
-          "Track Addition Failed",
-          "Failed to add track: " + error.message
-        );
-      } else {
-        console.log("Track added to release:", selectedReleaseId);
-        showAlert("Success", "Track added successfully!");
-      }
+      console.log("Created release and added track:", newRelease.id);
+      showAlert("Success", "New release created and track added!");
+      setCoverImage("");
+      setReleaseDate("");
+      setReleaseCategory("released");
     }
 
     setTrackTitle("");
     setTrackDuration("");
     setTrackFile("");
   };
-
-  const filteredReleases = releases.filter(
-    (release) => release.era_id === selectedEraId
-  );
 
   return (
     <>
@@ -234,34 +218,31 @@ export default function UploadForm() {
           </select>
         </div>
 
-        {selectedReleaseId === "new" && (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-foreground">
-                Cover Image URL (GitHub)
-              </label>
-              <input
-                type="url"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="w-full p-2 border rounded bg-background text-foreground"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground">
-                Release Date
-              </label>
-              <input
-                type="date"
-                value={releaseDate}
-                onChange={(e) => setReleaseDate(e.target.value)}
-                className="w-full p-2 border rounded bg-background text-foreground"
-                required
-              />
-            </div>
-          </>
-        )}
+        <div>
+          <label className="block text-sm font-medium text-foreground">
+            Cover Image URL (GitHub)
+          </label>
+          <input
+            type="url"
+            value={coverImage}
+            onChange={(e) => setCoverImage(e.target.value)}
+            className="w-full p-2 border rounded bg-background text-foreground"
+            placeholder="Enter cover image URL"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-foreground">
+            Release Date
+          </label>
+          <input
+            type="date"
+            value={releaseDate}
+            onChange={(e) => setReleaseDate(e.target.value)}
+            className="w-full p-2 border rounded bg-background text-foreground"
+            required
+          />
+        </div>
 
         <div className="space-y-2">
           <h3 className="font-semibold text-foreground">Add Track</h3>
@@ -293,9 +274,7 @@ export default function UploadForm() {
           className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           disabled={isLoadingDuration}
         >
-          {selectedReleaseId === "new"
-            ? "Create Release and Add Track"
-            : "Add Track to Release"}
+          Create Release and Add Track
         </button>
       </form>
 

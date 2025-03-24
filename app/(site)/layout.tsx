@@ -1,10 +1,16 @@
-import Navbar from "@/components/Navbar";
+// import Navbar from "@/components/Navbar";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <Navbar />
-      {children}
-    </>
-  );
-}
+// import { AudioProvider } from "@/lib/AudioContext";
+
+// export default function RootLayout({ children }: { children: ReactNode }) {
+//   return (
+//     <html lang="en">
+//       <body>
+//         <AudioProvider>
+//           <Navbar />
+//           <main>{children}</main>
+//         </AudioProvider>
+//       </body>
+//     </html>
+//   );
+// }

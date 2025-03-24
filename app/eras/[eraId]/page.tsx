@@ -85,11 +85,10 @@ export default async function EraPage({
   // Define tab order and find the first category with tracks
   const tabOrder = ["released", "unreleased", "og", "stems", "sessions"];
   const firstTabWithTracks =
-    tabOrder.find((category) => categories[category].length > 0) || "released"; // Fallback to "released" if no tracks (shouldn’t happen with data)
+    tabOrder.find((category) => categories[category].length > 0) || "released";
 
   return (
     <>
-      <Navbar />
       <div className="container mx-auto py-8 text-foreground">
         <div className="flex flex-col md:flex-row gap-8 mb-8">
           <Image
@@ -105,9 +104,9 @@ export default async function EraPage({
               <p className="text-foreground mt-2">{era.description}</p>
             )}
             {/* {(era.start_date || era.end_date) && (
-            <p className="text-foreground mt-2">
-            {era.start_date} - {era.end_date || "Present"}
-            </p>
+              <p className="text-foreground mt-2">
+                {era.start_date} - {era.end_date || "Present"}
+              </p>
             )} */}
           </div>
         </div>
@@ -132,7 +131,10 @@ export default async function EraPage({
               categories[category].length > 0 && (
                 <TabsContent key={category} value={category}>
                   <div className="border rounded-lg p-4 bg-background">
-                    <TrackList initialTracks={categories[category]} />
+                    <TrackList
+                      initialTracks={categories[category]}
+                      sectionTracks={categories[category]} // Pass category tracks as sectionTracks
+                    />
                   </div>
                 </TabsContent>
               )
