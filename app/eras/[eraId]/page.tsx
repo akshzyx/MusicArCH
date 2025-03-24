@@ -85,19 +85,19 @@ export default async function EraPage({
                 <div className="grid grid-cols-1 gap-6">
                   {releases.map((release) => (
                     <div key={release.id} className="border rounded-lg p-4">
-                      <h3 className="text-xl font-medium">{release.title}</h3>
-                      <Image
+                      {/* <h3 className="text-xl font-medium">{release.title}</h3> */}
+                      {/* <Image
                         src={release.cover_image.trimEnd()}
                         alt={release.title}
                         width={200}
                         height={200}
                         className="rounded mt-2"
-                      />
-                      {release.release_date && (
+                      /> */}
+                      {/* {release.release_date && (
                         <p className="text-gray-600 mt-2">
                           Released: {release.release_date}
                         </p>
-                      )}
+                      )} */}
                       <TrackList tracks={release.tracks} />
                     </div>
                   ))}
