@@ -5,6 +5,13 @@ import { supabase } from "@/lib/supabase";
 import { Track } from "@/lib/types";
 import { useAudio } from "@/lib/AudioContext";
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function TrackList({
   initialTracks,
@@ -170,68 +177,69 @@ export default function TrackList({
         ))}
       </ul>
 
-      {editingTrack && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-background p-6 rounded-lg w-full max-w-md shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 text-foreground">
-              Edit Track
-            </h3>
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Track Title
-                </label>
-                <input
-                  type="text"
-                  value={trackTitle}
-                  onChange={(e) => setTrackTitle(e.target.value)}
-                  className="w-full p-2 border rounded bg-background text-foreground"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Duration
-                </label>
-                <input
-                  type="text"
-                  value={trackDuration}
-                  onChange={(e) => setTrackDuration(e.target.value)}
-                  className="w-full p-2 border rounded bg-background text-foreground"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Track URL (GitHub)
-                </label>
-                <input
-                  type="url"
-                  value={trackFile}
-                  onChange={(e) => setTrackFile(e.target.value)}
-                  className="w-full p-2 border rounded bg-background text-foreground"
-                  required
-                />
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  type="submit"
-                  className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Update Track
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="flex-1 p-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <Dialog
+        open={!!editingTrack}
+        onOpenChange={(open) => !open && handleCancel()}
+      >
+        <DialogContent className="sm:max-w-[425px] bg-background text-foreground">
+          <DialogHeader>
+            <DialogTitle>Edit Track</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdate} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground">
+                Track Title
+              </label>
+              <input
+                type="text"
+                value={trackTitle}
+                onChange={(e) => setTrackTitle(e.target.value)}
+                className="w-full p-2 border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground">
+                Duration
+              </label>
+              <input
+                type="text"
+                value={trackDuration}
+                onChange={(e) => setTrackDuration(e.target.value)}
+                className="w-full p-2 border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground">
+                Track URL (GitHub)
+              </label>
+              <input
+                type="url"
+                value={trackFile}
+                onChange={(e) => setTrackFile(e.target.value)}
+                className="w-full p-2 border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Update Track
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <CustomAlertDialog
         isOpen={alertOpen}

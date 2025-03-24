@@ -4,6 +4,7 @@ import TrackList from "@/components/TrackList";
 import { Era, Release, Track } from "@/lib/types";
 import { Metadata } from "next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Navbar from "@/components/Navbar";
 
 export async function generateMetadata({
   params,
@@ -87,54 +88,57 @@ export default async function EraPage({
     tabOrder.find((category) => categories[category].length > 0) || "released"; // Fallback to "released" if no tracks (shouldn’t happen with data)
 
   return (
-    <div className="container mx-auto py-8 text-foreground">
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <Image
-          src={era.cover_image.trimEnd()}
-          alt={era.title}
-          width={400}
-          height={400}
-          className="rounded"
-        />
-        <div>
-          <h1 className="text-4xl font-bold">{era.title}</h1>
-          {era.description && (
-            <p className="text-foreground mt-2">{era.description}</p>
-          )}
-          {(era.start_date || era.end_date) && (
+    <>
+      <Navbar />
+      <div className="container mx-auto py-8 text-foreground">
+        <div className="flex flex-col md:flex-row gap-8 mb-8">
+          <Image
+            src={era.cover_image.trimEnd()}
+            alt={era.title}
+            width={400}
+            height={400}
+            className="rounded"
+          />
+          <div>
+            <h1 className="text-4xl font-bold">{era.title}</h1>
+            {era.description && (
+              <p className="text-foreground mt-2">{era.description}</p>
+            )}
+            {/* {(era.start_date || era.end_date) && (
             <p className="text-foreground mt-2">
-              {era.start_date} - {era.end_date || "Present"}
+            {era.start_date} - {era.end_date || "Present"}
             </p>
-          )}
+            )} */}
+          </div>
         </div>
-      </div>
 
-      <Tabs defaultValue={firstTabWithTracks} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5 bg-background">
+        <Tabs defaultValue={firstTabWithTracks} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-5 bg-background">
+            {tabOrder.map(
+              (category) =>
+                categories[category].length > 0 && (
+                  <TabsTrigger
+                    key={category}
+                    value={category}
+                    className="capitalize text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background"
+                  >
+                    {category}
+                  </TabsTrigger>
+                )
+            )}
+          </TabsList>
           {tabOrder.map(
             (category) =>
               categories[category].length > 0 && (
-                <TabsTrigger
-                  key={category}
-                  value={category}
-                  className="capitalize text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background"
-                >
-                  {category}
-                </TabsTrigger>
+                <TabsContent key={category} value={category}>
+                  <div className="border rounded-lg p-4 bg-background">
+                    <TrackList initialTracks={categories[category]} />
+                  </div>
+                </TabsContent>
               )
           )}
-        </TabsList>
-        {tabOrder.map(
-          (category) =>
-            categories[category].length > 0 && (
-              <TabsContent key={category} value={category}>
-                <div className="border rounded-lg p-4 bg-background">
-                  <TrackList initialTracks={categories[category]} />
-                </div>
-              </TabsContent>
-            )
-        )}
-      </Tabs>
-    </div>
+        </Tabs>
+      </div>
+    </>
   );
 }
