@@ -43,6 +43,8 @@
 }
 
 :root {
+  --font-sans: var(--font-ibm-plex-thai);
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -116,6 +118,7 @@
     @apply border-border outline-ring/50;
   }
   body {
+    font-family: var(--font-sans);
     @apply bg-background text-foreground;
   }
 }
