@@ -12,6 +12,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 export default function TrackList({
   initialTracks,
@@ -151,9 +153,7 @@ export default function TrackList({
                     : ""
                 }`}
               >
-                {currentTrack?.id === track.id && isPlaying
-                  ? "❚❚ Pause"
-                  : "▶ Play"}
+                {currentTrack?.id === track.id && isPlaying ? "❚❚" : "▶"}
               </button>
               <span className="text-foreground">
                 {track.title} ({track.duration})
@@ -162,15 +162,17 @@ export default function TrackList({
             <div className="flex space-x-2">
               <button
                 onClick={() => handleEdit(track)}
-                className="text-blue-500 hover:underline"
+                className="text-blue-500 hover:text-blue-700"
+                title="Edit Track"
               >
-                Edit
+                <FontAwesomeIcon icon={faPencil} />
               </button>
               <button
                 onClick={() => handleDelete(track)}
-                className="text-red-500 hover:underline"
+                className="text-red-500 hover:text-red-700"
+                title="Delete Track"
               >
-                Delete
+                <FontAwesomeIcon icon={faTrash} />
               </button>
             </div>
           </li>
