@@ -1,9 +1,9 @@
 import "./globals.css";
 import { Metadata } from "next";
 import { IBM_Plex_Sans_Thai_Looped } from "next/font/google";
-import ClientWrapper from "@/components/ClientWrapper"; // Import the new ClientWrapper
-import { ReactNode } from "react";
+import ClientWrapper from "@/components/ClientWrapper";
 import Navbar from "@/components/Navbar";
+import { ReactNode } from "react";
 
 // Metadata
 export const metadata: Metadata = {
@@ -26,7 +26,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${ibmPlexSansThaiLooped.variable} bg-background text-foreground font-sans`}
       >
-        <Navbar />
+        <div className="sticky top-0 w-full z-50 bg-black">
+          <Navbar />
+        </div>
         <ClientWrapper>{children}</ClientWrapper>
       </body>
     </html>

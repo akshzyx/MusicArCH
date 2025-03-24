@@ -11,6 +11,7 @@ import {
   faRepeat,
   faShuffle,
 } from "@fortawesome/free-solid-svg-icons";
+import { useEffect } from "react";
 
 export default function AudioPlayer() {
   const {
@@ -39,6 +40,19 @@ export default function AudioPlayer() {
       playTrack(currentTrack, sectionTracks);
     }
   };
+
+  // Spacebar Play/Pause
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === " " || e.key === "Spacebar") {
+        e.preventDefault(); // Prevent scrolling
+        handlePlayPause();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentTrack, isPlaying, sectionTracks]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!duration) return;

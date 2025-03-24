@@ -6,7 +6,7 @@ import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from "@heroui/react";
 
 export default function App() {
   return (
-    <div className="container mx-auto py-4">
+    <div className="container mx-auto py-4 bg-black text-white">
       <Navbar>
         <Link href="/" className="font-bold text-inherit">
           <NavbarBrand>JojiArCH</NavbarBrand>

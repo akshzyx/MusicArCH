@@ -47,9 +47,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleEnded = () => {
+      console.log("Track ended, isRepeat:", isRepeat); // Debug log
       if (isRepeat) {
-        audio.currentTime = 0; // Reset to start for repeat
-        audio.play();
+        audio.currentTime = 0;
+        setCurrentTime(0);
+        setIsPlaying(true); // Ensure playing state is true
+        audio.play().catch((err) => console.error("Repeat play error:", err));
       } else {
         nextTrack();
       }
@@ -65,7 +68,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, []); // Only run once to initialize audio element
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -73,7 +76,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
     if (currentTrack.file !== audio.src) {
       audio.src = currentTrack.file;
-      audio.load(); // Ensure new track is loaded
+      audio.load();
+      audio.currentTime = currentTime;
     }
 
     if (isPlaying) {
@@ -81,13 +85,17 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     } else {
       audio.pause();
     }
-  }, [currentTrack, isPlaying]); // Sync audio with track and play state
+  }, [currentTrack, isPlaying]);
 
   const playTrack = (track: Track, tracks: Track[] = []) => {
-    setCurrentTrack(track);
-    setSectionTracks(tracks.length > 0 ? tracks : [track]);
-    setIsPlaying(true);
-    setCurrentTime(0); // Reset progress for new track
+    if (currentTrack?.id === track.id && isPlaying) {
+      pauseTrack();
+    } else {
+      setCurrentTrack(track);
+      setSectionTracks(tracks.length > 0 ? tracks : [track]);
+      setIsPlaying(true);
+      setCurrentTime(0);
+    }
   };
 
   const pauseTrack = () => {
