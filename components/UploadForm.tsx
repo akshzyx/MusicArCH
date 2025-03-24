@@ -7,9 +7,9 @@ import { Release, Track, Era } from "@/lib/types";
 export default function UploadForm() {
   const [eras, setEras] = useState<Era[]>([]);
   const [releases, setReleases] = useState<Release[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
   const [selectedEraId, setSelectedEraId] = useState<string>("");
   const [selectedReleaseId, setSelectedReleaseId] = useState<string>("new");
-  const [customId, setCustomId] = useState("");
   const [title, setTitle] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [releaseDate, setReleaseDate] = useState("");
@@ -19,6 +19,7 @@ export default function UploadForm() {
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
   const [trackFile, setTrackFile] = useState("");
+  const [editingTrack, setEditingTrack] = useState<Track | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,11 +29,18 @@ export default function UploadForm() {
       const { data: releasesData, error: releasesError } = await supabase
         .from("releases")
         .select("*");
-      if (erasError || releasesError) {
-        console.error("Error fetching data:", erasError || releasesError);
+      const { data: tracksData, error: tracksError } = await supabase
+        .from("tracks")
+        .select("*");
+      if (erasError || releasesError || tracksError) {
+        console.error(
+          "Error fetching data:",
+          erasError || releasesError || tracksError
+        );
       } else {
         setEras(erasData || []);
         setReleases(releasesData || []);
+        setTracks(tracksData || []);
         if (erasData && erasData.length > 0) setSelectedEraId(erasData[0].id);
       }
     };
@@ -51,87 +59,141 @@ export default function UploadForm() {
     }
 
     const newTrack: Track = {
-      id: Date.now().toString(),
-      release_id: selectedReleaseId === "new" ? customId : selectedReleaseId,
+      id: editingTrack ? editingTrack.id : Date.now().toString(),
+      release_id: 0, // Placeholder, updated below
       title: trackTitle,
       duration: trackDuration,
       file: trackFile.trimEnd(),
     };
 
     if (selectedReleaseId === "new") {
-      if (!customId || !title || !coverImage) {
+      if (!title || !coverImage) {
         alert("Please fill in all new release details.");
         return;
       }
 
-      const releaseData: Release = {
-        id: customId,
+      const releaseData: Omit<Release, "id"> = {
         era_id: selectedEraId,
         title,
         cover_image: coverImage.trimEnd(),
-        release_date: releaseCategory === "released" ? releaseDate : undefined,
+        release_date: releaseDate || undefined,
         category: releaseCategory,
       };
 
-      const { data: existingRelease, error: checkError } = await supabase
+      const { data: newRelease, error: releaseError } = await supabase
         .from("releases")
-        .select("id")
-        .eq("id", customId)
+        .insert([releaseData])
+        .select()
         .single();
 
-      if (existingRelease) {
-        alert("Error: This Release ID already exists. Please use a unique ID.");
-        return;
-      }
-      if (checkError && checkError.code !== "PGRST116") {
-        console.error("Error checking ID:", checkError);
-        alert("Failed to check ID: " + checkError.message);
-        return;
-      }
-
-      const { error: releaseError } = await supabase
-        .from("releases")
-        .insert([releaseData]);
-      if (releaseError) {
+      if (releaseError || !newRelease) {
         console.error("Error creating release:", releaseError);
-        alert("Failed to create release: " + releaseError.message);
+        alert(
+          "Failed to create release: " +
+            (releaseError?.message || "Unknown error")
+        );
         return;
       }
 
-      const { error: trackError } = await supabase
-        .from("tracks")
-        .insert([newTrack]);
+      newTrack.release_id = newRelease.id;
+
+      const { error: trackError } = editingTrack
+        ? await supabase
+            .from("tracks")
+            .update(newTrack)
+            .eq("id", editingTrack.id)
+        : await supabase.from("tracks").insert([newTrack]);
+
       if (trackError) {
-        console.error("Error adding track:", trackError);
-        alert("Failed to add track: " + trackError.message);
+        console.error(
+          `Error ${editingTrack ? "updating" : "adding"} track:`,
+          trackError
+        );
+        alert(
+          `Failed to ${editingTrack ? "update" : "add"} track: ` +
+            trackError.message
+        );
       } else {
-        console.log("Created release and added track:", customId);
-        alert("New release created and track added!");
-        setCustomId("");
+        console.log(
+          `Created release and ${editingTrack ? "updated" : "added"} track:`,
+          newRelease.id
+        );
+        alert(
+          `New release created and track ${editingTrack ? "updated" : "added"}!`
+        );
         setTitle("");
         setCoverImage("");
         setReleaseDate("");
         setReleaseCategory("released");
       }
     } else {
-      const { error } = await supabase.from("tracks").insert([newTrack]);
-      if (error) {
-        console.error("Error adding track:", error);
-        alert("Failed to add track: " + error.message);
+      newTrack.release_id = Number(selectedReleaseId);
+      const { error: trackError } = editingTrack
+        ? await supabase
+            .from("tracks")
+            .update(newTrack)
+            .eq("id", editingTrack.id)
+        : await supabase.from("tracks").insert([newTrack]);
+
+      if (trackError) {
+        console.error(
+          `Error ${editingTrack ? "updating" : "adding"} track:`,
+          trackError
+        );
+        alert(
+          `Failed to ${editingTrack ? "update" : "add"} track: ` +
+            trackError.message
+        );
       } else {
-        console.log("Track added to release:", selectedReleaseId);
-        alert("Track added successfully!");
+        console.log(
+          `Track ${editingTrack ? "updated" : "added"} to release:`,
+          selectedReleaseId
+        );
+        alert(`Track ${editingTrack ? "updated" : "added"} successfully!`);
       }
     }
+
+    // Refresh tracks after CRUD operation
+    const { data: updatedTracks } = await supabase.from("tracks").select("*");
+    setTracks(updatedTracks || []);
 
     setTrackTitle("");
     setTrackDuration("");
     setTrackFile("");
+    setEditingTrack(null);
+  };
+
+  const handleEdit = (track: Track) => {
+    setEditingTrack(track);
+    setTrackTitle(track.title);
+    setTrackDuration(track.duration);
+    setTrackFile(track.file);
+    setSelectedReleaseId(track.release_id.toString());
+  };
+
+  const handleDelete = async (trackId: string) => {
+    if (!confirm("Are you sure you want to delete this track?")) return;
+
+    const { error } = await supabase.from("tracks").delete().eq("id", trackId);
+    if (error) {
+      console.error("Error deleting track:", error);
+      alert("Failed to delete track: " + error.message);
+    } else {
+      console.log("Track deleted:", trackId);
+      alert("Track deleted successfully!");
+      setTracks(tracks.filter((t) => t.id !== trackId));
+    }
   };
 
   const filteredReleases = releases.filter(
     (release) => release.era_id === selectedEraId
   );
+  const filteredTracks =
+    selectedReleaseId === "new"
+      ? tracks
+      : tracks.filter(
+          (track) => track.release_id === Number(selectedReleaseId)
+        );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-4">
@@ -190,19 +252,6 @@ export default function UploadForm() {
         <>
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Release ID (Custom)
-            </label>
-            <input
-              type="text"
-              value={customId}
-              onChange={(e) => setCustomId(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="e.g., nectar-002"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
               Release Title
             </label>
             <input
@@ -226,25 +275,25 @@ export default function UploadForm() {
             />
           </div>
           <div></div>
-          {releaseCategory === "released" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Release Date
-              </label>
-              <input
-                type="date"
-                value={releaseDate}
-                onChange={(e) => setReleaseDate(e.target.value)}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Release Date
+            </label>
+            <input
+              type="date"
+              value={releaseDate}
+              onChange={(e) => setReleaseDate(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
         </>
       )}
 
       <div className="space-y-2">
-        <h3 className="font-semibold">Add Track</h3>
+        <h3 className="font-semibold">
+          {editingTrack ? "Edit Track" : "Add Track"}
+        </h3>
         <div className="flex gap-2">
           <input
             type="text"
@@ -277,10 +326,52 @@ export default function UploadForm() {
         type="submit"
         className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       >
-        {selectedReleaseId === "new"
+        {editingTrack
+          ? "Update Track"
+          : selectedReleaseId === "new"
           ? "Create Release and Add Track"
           : "Add Track to Release"}
       </button>
+
+      {/* Track List with CRUD Options */}
+      <div className="mt-8">
+        <h3 className="font-semibold text-lg">Existing Tracks</h3>
+        {filteredTracks.length === 0 ? (
+          <p className="text-gray-600">No tracks found.</p>
+        ) : (
+          <ul className="space-y-2 mt-2">
+            {filteredTracks.map((track) => (
+              <li
+                key={track.id}
+                className="flex justify-between items-center border p-2 rounded"
+              >
+                <div>
+                  <span className="font-medium">{track.title}</span> -{" "}
+                  {track.duration}
+                  <br />
+                  <span className="text-sm text-gray-600">{track.file}</span>
+                </div>
+                <div className="space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleEdit(track)}
+                    className="text-blue-500 hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(track.id)}
+                    className="text-red-500 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </form>
   );
 }

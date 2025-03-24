@@ -1,13 +1,13 @@
 export interface Track {
   id: string;
-  release_id: string;
+  release_id: number; // Changed to number for SERIAL
   title: string;
   duration: string;
   file: string;
 }
 
 export interface Release {
-  id: string;
+  id: number; // Changed to number for SERIAL
   era_id: string;
   title: string;
   cover_image: string;

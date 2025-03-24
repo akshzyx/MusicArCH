@@ -1,46 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Howl } from "howler";
+import { useAudio } from "@/lib/AudioContext";
 
-interface AudioPlayerProps {
-  src: string;
-}
+export default function AudioPlayer() {
+  const { currentTrack, isPlaying, playTrack, pauseTrack, stopTrack } =
+    useAudio();
 
-export default function AudioPlayer({ src }: AudioPlayerProps) {
-  const [sound, setSound] = useState<Howl | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  useEffect(() => {
-    const howl = new Howl({
-      src: [src],
-      html5: true,
-      onload: () => console.log("Loaded:", src),
-      onloaderror: (id, error) => console.error("Load error:", error),
-    });
-    setSound(howl);
-
-    return () => {
-      howl.unload();
-    };
-  }, [src]);
-
-  const togglePlay = () => {
-    if (!sound) return;
-    if (isPlaying) {
-      sound.pause();
-    } else {
-      sound.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
+  if (!currentTrack) return null;
 
   return (
-    <button
-      onClick={togglePlay}
-      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-    >
-      {isPlaying ? "Pause" : "Play"}
-    </button>
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 flex items-center justify-between shadow-lg">
+      <div className="flex items-center space-x-4">
+        <button
+          onClick={() => (isPlaying ? pauseTrack() : playTrack(currentTrack))}
+          className="text-green-500 hover:text-green-700 text-lg"
+        >
+          {isPlaying ? "❚❚ Pause" : "▶ Play"}
+        </button>
+        <span className="text-foreground">
+          Now Playing: {currentTrack.title} ({currentTrack.duration})
+        </span>
+      </div>
+      <button
+        onClick={stopTrack}
+        className="text-red-500 hover:text-red-700 text-lg"
+      >
+        Stop
+      </button>
+    </div>
   );
 }
