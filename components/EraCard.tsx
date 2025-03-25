@@ -4,29 +4,36 @@ import Image from "next/image";
 import { Card, CardHeader } from "@heroui/card";
 import { supabase } from "@/lib/supabase";
 import { Era } from "@/lib/types";
+import { cache } from "react"; // Add caching
 
 interface EraCardProps {
   era: Era;
 }
 
-export default async function EraCard({ era }: EraCardProps) {
-  // Fetch releases for this specific era
-  const { data: releases, error: releasesError } = await supabase
+// Cache Supabase queries
+const fetchReleases = cache(async (eraId: string) => {
+  const { data, error } = await supabase
     .from("releases")
     .select("*")
-    .eq("era_id", era.id);
+    .eq("era_id", eraId);
+  if (error) throw error;
+  return data || [];
+});
 
-  // Fetch all tracks (could optimize with a join or filter later)
-  const { data: tracks, error: tracksError } = await supabase
-    .from("tracks")
-    .select("*");
+const fetchTracks = cache(async () => {
+  const { data, error } = await supabase.from("tracks").select("*");
+  if (error) throw error;
+  return data || [];
+});
 
-  // Handle errors
-  if (releasesError || tracksError) {
-    console.log(
-      "Supabase fetch error in EraCard:",
-      releasesError || tracksError
-    );
+export default async function EraCard({ era }: EraCardProps) {
+  // Fetch releases and tracks with caching
+  let releases, tracks;
+  try {
+    releases = await fetchReleases(era.id);
+    tracks = await fetchTracks();
+  } catch (error) {
+    console.log("Supabase fetch error in EraCard:", error);
     return (
       <Card className="p-10 w-full flex flex-row gap-10 rounded-xl shadow-md">
         <Link href={`/eras/${era.id}`} className="flex flex-row gap-4 w-full">
@@ -55,7 +62,6 @@ export default async function EraCard({ era }: EraCardProps) {
   return (
     <Card className="p-10 w-full flex flex-row gap-10 rounded-xl shadow-md">
       <Link href={`/eras/${era.id}`} className="flex flex-row gap-4 w-full">
-        {/* Image on the left - Fixed size */}
         <Image
           alt={era.title}
           className="object-cover rounded-xl"
@@ -63,8 +69,6 @@ export default async function EraCard({ era }: EraCardProps) {
           width={150}
           height={150}
         />
-
-        {/* Title and track count on the right - Aligned to top */}
         <CardHeader className="pb-0 pt-2 px-4 flex-col items-start justify-start">
           <h4 className="font-bold text-large">{era.title}</h4>
           <small className="text-default-500">{trackCount} Tracks</small>
