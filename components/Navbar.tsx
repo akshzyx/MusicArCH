@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSkull, faSearch } from "@fortawesome/free-solid-svg-icons"; // Added faSearch
+import { faSkull, faSearch } from "@fortawesome/free-solid-svg-icons";
 
 const navItems = ["Nexus", "About", "Contact"];
 
@@ -11,9 +11,11 @@ const NavBar = () => {
   const navContainerRef = useRef(null);
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [searchQuery, setSearchQuery] = useState(""); // State for search input
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isMounted, setIsMounted] = useState(false); // Track hydration
 
   useEffect(() => {
+    setIsMounted(true); // Set after client-side mount
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY) {
@@ -28,11 +30,14 @@ const NavBar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    // Add search logic here if needed (e.g., redirect or filter)
   };
+
+  // Don’t render until mounted to avoid FOUC
+  if (!isMounted) {
+    return null; // Or a minimal placeholder
+  }
 
   return (
     <div
@@ -43,19 +48,15 @@ const NavBar = () => {
     >
       <header className="absolute top-1/2 w-full -translate-y-1/2">
         <nav className="flex size-full items-center justify-between p-4 bg-black rounded-lg shadow-lg">
-          {/* Logo and Title */}
           <Link href="/" prefetch className="flex items-center gap-7">
             <FontAwesomeIcon icon={faSkull} size="2x" color="white" />
             <p className="font-bold text-white">JojiArCH</p>
           </Link>
-
-          {/* Navigation Links and Upload Button */}
           <div className="flex h-full items-center">
-            {/* Search Input */}
             <div className="flex items-center mx-4 flex-1 max-w-md relative">
               <FontAwesomeIcon
                 icon={faSearch}
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" // Set explicit size
               />
               <input
                 type="text"
@@ -65,7 +66,6 @@ const NavBar = () => {
                 className="w-full pl-10 pr-3 py-1 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
-
             <div className="hidden md:block">
               {navItems.map((item, index) => (
                 <a
@@ -77,8 +77,6 @@ const NavBar = () => {
                 </a>
               ))}
             </div>
-
-            {/* Upload Button */}
             <Link
               href="/upload"
               prefetch
