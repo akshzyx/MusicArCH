@@ -87,7 +87,7 @@ export default async function EraPage({
 
   return (
     <>
-      <div className="p-4 sm:p-12 md:p-12 max-w-7xl mx-auto">
+      <div className="pt-12 p-4 sm:p-12 md:p-12 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row gap-8 mb-8 items-center md:items-start">
           <Image
             src={era.cover_image.trimEnd()}

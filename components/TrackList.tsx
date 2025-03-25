@@ -189,7 +189,7 @@ export default function TrackList({
         open={!!editingTrack}
         onOpenChange={(open) => !open && handleCancel()}
       >
-        <DialogContent className="sm:max-w-[425px] bg-background text-foreground">
+        <DialogContent className="sm:max-w-[425px] bg-amber-200 text-foreground">
           <DialogHeader>
             <DialogTitle>Edit Track</DialogTitle>
           </DialogHeader>

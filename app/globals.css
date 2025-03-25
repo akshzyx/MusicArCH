@@ -3,14 +3,19 @@
 :root {
   --font-sans: var(--font-ibm-plex-thai);
   --radius: 0.625rem;
-  --background: oklch(1 0 0); /* White */
-  --foreground: oklch(0.145 0 0); /* Dark gray */
-  --primary: oklch(0.205 0 0); /* Darker gray */
-  --primary-foreground: oklch(0.985 0 0); /* Near white */
+  /* Dark mode only palette with updated background */
+  --background: oklch(0.252 0 0); /* #2C2C2C - New charcoal black */
+  --foreground: oklch(0.878 0 0); /* #E0E0E0 - Light gray (Primary Text) */
+  --primary: oklch(0.561 0 0); /* #888888 - Soft gray (Accent) */
+  --primary-foreground: oklch(
+    0.878 0 0
+  ); /* #E0E0E0 - Light gray (for text on primary) */
+  --secondary: oklch(0.718 0 0); /* #B0B0B0 - Medium gray (Secondary Text) */
+  --border: oklch(0.298 0 0); /* #444444 - Dark gray (Borders/Dividers) */
 }
 
 .dark {
-  --background: oklch(0.145 0 0); /* Dark gray */
+  --background: oklch(0.252 0 0); /* #2C2C2C - New charcoal black */
   --foreground: oklch(0.985 0 0); /* Near white */
   --primary: oklch(0.922 0 0); /* Light gray */
   --primary-foreground: oklch(0.205 0 0); /* Darker gray */
@@ -18,5 +23,7 @@
 
 @layer base {
   body {
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
