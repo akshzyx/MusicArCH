@@ -7,11 +7,10 @@ import {
   faPause,
   faForward,
   faBackward,
-  faStop,
   faRepeat,
   faShuffle,
 } from "@fortawesome/free-solid-svg-icons";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function AudioPlayer() {
   const {
@@ -24,13 +23,14 @@ export default function AudioPlayer() {
     duration,
     playTrack,
     pauseTrack,
-    stopTrack,
     nextTrack,
     prevTrack,
     toggleRepeat,
     toggleShuffle,
     setAudioTime,
   } = useAudio();
+
+  const [showTimeLeft, setShowTimeLeft] = useState(false); // Track toggle state
 
   const handlePlayPause = () => {
     if (!currentTrack) return;
@@ -45,11 +45,10 @@ export default function AudioPlayer() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === " " || e.key === "Spacebar") {
-        e.preventDefault(); // Prevent scrolling
+        e.preventDefault();
         handlePlayPause();
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentTrack, isPlaying, sectionTracks]);
@@ -63,78 +62,95 @@ export default function AudioPlayer() {
     setAudioTime(newTime);
   };
 
+  // Format time (e.g., 2:30)
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  // Toggle duration ↔️ time left
+  const handleToggleDuration = () => {
+    setShowTimeLeft(!showTimeLeft);
+  };
 
   if (!currentTrack) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 flex items-center justify-between shadow-lg">
-      <div className="flex items-center space-x-4 w-full">
-        {/* Playback Controls */}
-        <div className="flex space-x-3">
-          <button
-            onClick={prevTrack}
-            className="text-gray-400 hover:text-white text-lg"
-            title="Previous"
-          >
-            <FontAwesomeIcon icon={faBackward} />
-          </button>
-          <button
-            onClick={handlePlayPause}
-            className="text-green-500 hover:text-green-700 text-lg"
-            title={isPlaying ? "Pause" : "Play"}
-          >
-            <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
-          </button>
-          <button
-            onClick={nextTrack}
-            className="text-gray-400 hover:text-white text-lg"
-            title="Next"
-          >
-            <FontAwesomeIcon icon={faForward} />
-          </button>
-          <button
-            onClick={stopTrack}
-            className="text-red-500 hover:text-red-700 text-lg"
-            title="Stop"
-          >
-            <FontAwesomeIcon icon={faStop} />
-          </button>
-          <button
-            onClick={toggleRepeat}
-            className={`text-lg ${
-              isRepeat ? "text-yellow-500" : "text-gray-400"
-            } hover:text-yellow-700`}
-            title="Repeat"
-          >
-            <FontAwesomeIcon icon={faRepeat} />
-          </button>
-          <button
-            onClick={toggleShuffle}
-            className={`text-lg ${
-              isShuffle ? "text-blue-500" : "text-gray-400"
-            } hover:text-blue-700`}
-            title="Shuffle"
-          >
-            <FontAwesomeIcon icon={faShuffle} />
-          </button>
-        </div>
+    <div className="gap-5 fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md text-white py-5 px-20 flex items-center justify-between shadow-lg border-t border-gray-800 z-50">
+      {/* Title Section */}
+      <div className="w-1/4 truncate text-left">
+        <span className="font-semibold text-base">{currentTrack.title}</span>
+      </div>
 
-        {/* Track Info and Progress */}
-        <div className="flex-1 flex flex-col space-y-2">
-          <span className="text-foreground">
-            Now Playing: {currentTrack.title} ({currentTrack.duration})
-          </span>
+      {/* Playback Controls */}
+      <div className="w-full flex items-center justify-center space-x-5">
+        <button
+          onClick={toggleShuffle}
+          className={`text-sm ${
+            isShuffle ? "text-green-400" : "text-gray-400"
+          } hover:text-green-300 transition-colors`}
+          title="Shuffle"
+        >
+          <FontAwesomeIcon icon={faShuffle} size="sm" />
+        </button>
+        <button
+          onClick={prevTrack}
+          className="text-gray-400 hover:text-white transition-colors"
+          title="Previous"
+        >
+          <FontAwesomeIcon icon={faBackward} size="sm" />
+        </button>
+        <button
+          onClick={handlePlayPause}
+          className="text-white hover:text-gray-300 transition-colors"
+          title={isPlaying ? "Pause" : "Play"}
+        >
+          <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} size="lg" />
+        </button>
+        <button
+          onClick={nextTrack}
+          className="text-gray-400 hover:text-white transition-colors"
+          title="Next"
+        >
+          <FontAwesomeIcon icon={faForward} size="sm" />
+        </button>
+        <button
+          onClick={toggleRepeat}
+          className={`text-sm ${
+            isRepeat ? "text-green-400" : "text-gray-400"
+          } hover:text-green-300 transition-colors`}
+          title="Repeat"
+        >
+          <FontAwesomeIcon icon={faRepeat} size="sm" />
+        </button>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full flex items-center space-x-2">
+        <span className="text-xs text-gray-400">{formatTime(currentTime)}</span>
+        <div
+          className="flex-1 bg-gray-700 rounded-full h-1 cursor-pointer relative group"
+          onClick={handleProgressClick}
+        >
           <div
-            className="w-full bg-gray-700 rounded-full h-2 cursor-pointer"
-            onClick={handleProgressClick}
+            className="bg-green-500 h-1 rounded-full transition-all duration-100 relative"
+            style={{ width: `${progress}%` }}
           >
-            <div
-              className="bg-green-500 h-2 rounded-full transition-all duration-100"
-              style={{ width: `${progress}%` }}
-            />
+            <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
+        {/* Clickable duration/time-left toggle */}
+        <span
+          className="text-xs text-gray-400 cursor-pointer"
+          onClick={handleToggleDuration}
+        >
+          {showTimeLeft
+            ? `-${formatTime(duration - currentTime)}`
+            : formatTime(duration)}
+        </span>
       </div>
     </div>
   );

@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import EraCard from "@/components/EraCard";
 import { Era } from "@/lib/types";
 import { getCachedData } from "@/lib/dataCache"; // Removed refetchData import
-// import { faGear } from "@fortawesome/free-solid-svg-icons";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function Home() {
   const [data, setData] = useState<{ eras: Era[] }>({ eras: [] });

@@ -53,7 +53,8 @@ const NavBar = () => {
             <p className="font-bold text-white">JojiArCH</p>
           </Link>
           <div className="flex h-full items-center">
-            <div className="flex items-center mx-4 flex-1 max-w-md relative">
+            {/* SEARCH BAR */}
+            {/* <div className="flex items-center mx-4 flex-1 max-w-md relative">
               <FontAwesomeIcon
                 icon={faSearch}
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" // Set explicit size
@@ -65,7 +66,7 @@ const NavBar = () => {
                 placeholder="Search songs..."
                 className="w-full pl-10 pr-3 py-1 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
-            </div>
+            </div> */}
             <div className="hidden md:block">
               {navItems.map((item, index) => (
                 <a

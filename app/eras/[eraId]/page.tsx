@@ -5,6 +5,8 @@ import TrackList from "@/components/TrackList";
 import { Metadata } from "next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Suspense } from "react";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Metadata generation remains unchanged
 export async function generateMetadata({
@@ -25,7 +27,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${era.title} - Music Archive`,
+    title: `${era.title} - JojiArCH`,
   };
 }
 
@@ -143,7 +145,7 @@ export default function EraPage({ params }: { params: { eraId: string } }) {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen text-foreground">
-          Loading...
+          <FontAwesomeIcon icon={faSpinner} spinPulse />{" "}
         </div>
       }
     >
