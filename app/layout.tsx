@@ -6,8 +6,8 @@ import Navbar from "@/components/Navbar"; // Ensure this points to the right fil
 import { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Music Archive",
-  description: "A music archive organized by eras",
+  title: "JojiArCH",
+  description: "Complete Joji & his aliases discography",
 };
 
 const ibmPlexSansThaiLooped = IBM_Plex_Sans_Thai_Looped({
