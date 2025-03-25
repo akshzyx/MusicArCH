@@ -1,27 +1,36 @@
-// app/page.tsx
-import { supabase } from "@/lib/supabase";
+"use client";
+
+import { useEffect, useState } from "react";
 import EraCard from "@/components/EraCard";
 import { Era } from "@/lib/types";
+import { getCachedData } from "@/lib/dataCache"; // Removed refetchData import
 
-export const revalidate = 60; // ISR: Cache for 60 seconds
+export default function Home() {
+  const [data, setData] = useState<{ eras: Era[] }>({ eras: [] });
+  const [loading, setLoading] = useState(true);
 
-export default async function Home() {
-  const { data: eras, error } = await supabase
-    .from("eras")
-    .select("id, title, album_rank, cover_image")
-    .limit(50)
-    .order("album_rank", { ascending: true }); // Move sorting to query
+  useEffect(() => {
+    // Fetch or get cached data on mount
+    getCachedData()
+      .then((cachedData) => {
+        setData({ eras: cachedData.eras });
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log("Error loading cached data:", error);
+        setLoading(false);
+      });
+  }, []); // Empty dependency array, runs once on mount
 
-  if (error) {
-    console.log("Supabase fetch error:", error);
-    return <div className="p-8 text-foreground">Failed to load eras</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen"></div>
+    );
   }
-  if (!eras || eras.length === 0) {
+
+  if (!data.eras.length) {
     return <div className="p-8 text-foreground">No eras available</div>;
   }
-
-  // Sorting moved to Supabase query, so no need for JS sort
-  // const sortedEras = eras.sort((a, b) => a.album_rank - b.album_rank);
 
   return (
     <div className="p-8">
@@ -29,7 +38,7 @@ export default async function Home() {
         Eras
       </h1>
       <div className="grid gap-8 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 justify-items-center">
-        {eras.map((era: Era) => (
+        {data.eras.map((era: Era) => (
           <EraCard key={era.id} era={era} />
         ))}
       </div>

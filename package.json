@@ -14,6 +14,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@heroui/card": "^2.2.15",
     "@heroui/react": "^2.7.5",
+    "@heroui/spinner": "^2.2.13",
     "@heroui/system": "^2.4.12",
     "@heroui/theme": "^2.4.12",
     "@radix-ui/react-alert-dialog": "^1.1.6",

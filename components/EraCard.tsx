@@ -1,39 +1,35 @@
 // components/EraCard.tsx
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardHeader } from "@heroui/card";
-import { supabase } from "@/lib/supabase";
-import { Era } from "@/lib/types";
-import { cache } from "react"; // Add caching
+import { Era, Release, Track } from "@/lib/types";
+import { getCachedData } from "@/lib/dataCache";
+import { useEffect, useState } from "react";
 
 interface EraCardProps {
   era: Era;
 }
 
-// Cache Supabase queries
-const fetchReleases = cache(async (eraId: string) => {
-  const { data, error } = await supabase
-    .from("releases")
-    .select("*")
-    .eq("era_id", eraId);
-  if (error) throw error;
-  return data || [];
-});
+export default function EraCard({ era }: EraCardProps) {
+  const [releases, setReleases] = useState<Release[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-const fetchTracks = cache(async () => {
-  const { data, error } = await supabase.from("tracks").select("*");
-  if (error) throw error;
-  return data || [];
-});
+  useEffect(() => {
+    getCachedData()
+      .then((cachedData) => {
+        setReleases(cachedData.releases.filter((r) => r.era_id === era.id));
+        setTracks(cachedData.tracks);
+      })
+      .catch((err) => {
+        console.log("Supabase fetch error in EraCard:", err);
+        setError("Error loading tracks");
+      });
+  }, [era.id]);
 
-export default async function EraCard({ era }: EraCardProps) {
-  // Fetch releases and tracks with caching
-  let releases, tracks;
-  try {
-    releases = await fetchReleases(era.id);
-    tracks = await fetchTracks();
-  } catch (error) {
-    console.log("Supabase fetch error in EraCard:", error);
+  if (error) {
     return (
       <Card className="p-10 w-full flex flex-row gap-10 rounded-xl shadow-md">
         <Link href={`/eras/${era.id}`} className="flex flex-row gap-4 w-full">
@@ -53,7 +49,6 @@ export default async function EraCard({ era }: EraCardProps) {
     );
   }
 
-  // Calculate track count for this era
   const eraTracks = tracks.filter((track) =>
     releases.some((release) => release.id === track.release_id)
   );
