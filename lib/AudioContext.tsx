@@ -47,11 +47,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleEnded = () => {
-      console.log("Track ended, isRepeat:", isRepeat); // Debug log
       if (isRepeat) {
         audio.currentTime = 0;
         setCurrentTime(0);
-        setIsPlaying(true); // Ensure playing state is true
+        setIsPlaying(true);
         audio.play().catch((err) => console.error("Repeat play error:", err));
       } else {
         nextTrack();
@@ -74,27 +73,45 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
-    if (currentTrack.file !== audio.src) {
+    if (audio.src !== currentTrack.file) {
+      audio.pause(); // Fix: Prevent play() interruption
       audio.src = currentTrack.file;
       audio.load();
-      audio.currentTime = currentTime;
-    }
 
-    if (isPlaying) {
-      audio.play().catch((err) => console.error("Play error:", err));
+      audio.oncanplaythrough = () => {
+        if (isPlaying) {
+          audio.play().catch((err) => console.error("Play error:", err));
+        }
+      };
     } else {
-      audio.pause();
+      if (isPlaying) {
+        audio.play().catch((err) => console.error("Play error:", err));
+      } else {
+        audio.pause();
+      }
     }
   }, [currentTrack, isPlaying]);
 
   const playTrack = (track: Track, tracks: Track[] = []) => {
+    if (!audioRef.current) return;
+
+    const audio = audioRef.current;
+
     if (currentTrack?.id === track.id && isPlaying) {
       pauseTrack();
     } else {
+      audio.pause(); // Fix: Stop current playback before switching
       setCurrentTrack(track);
       setSectionTracks(tracks.length > 0 ? tracks : [track]);
       setIsPlaying(true);
       setCurrentTime(0);
+
+      audio.src = track.file;
+      audio.load();
+
+      audio.oncanplaythrough = () => {
+        audio.play().catch((err) => console.error("Playback failed:", err));
+      };
     }
   };
 
@@ -123,9 +140,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     let nextIndex = isShuffle
       ? Math.floor(Math.random() * sectionTracks.length)
       : (currentIndex + 1) % sectionTracks.length;
-    setCurrentTrack(sectionTracks[nextIndex]);
-    setIsPlaying(true);
-    setCurrentTime(0);
+    playTrack(sectionTracks[nextIndex], sectionTracks);
   };
 
   const prevTrack = () => {
@@ -136,9 +151,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     let prevIndex = isShuffle
       ? Math.floor(Math.random() * sectionTracks.length)
       : (currentIndex - 1 + sectionTracks.length) % sectionTracks.length;
-    setCurrentTrack(sectionTracks[prevIndex]);
-    setIsPlaying(true);
-    setCurrentTime(0);
+    playTrack(sectionTracks[prevIndex], sectionTracks);
   };
 
   const toggleRepeat = () => setIsRepeat((prev) => !prev);
