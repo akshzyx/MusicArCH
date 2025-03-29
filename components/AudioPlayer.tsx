@@ -37,7 +37,9 @@ export default function AudioPlayer() {
     if (isPlaying) {
       pauseTrack();
     } else {
+      // Resume from the current time instead of resetting
       playTrack(currentTrack, sectionTracks);
+      setAudioTime(currentTime); // Ensure the audio resumes from the paused position
     }
   };
 
