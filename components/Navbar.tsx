@@ -69,13 +69,13 @@ const NavBar = () => {
             </div> */}
             <div className="hidden md:block">
               {navItems.map((item, index) => (
-                <a
+                <Link
                   key={index}
                   href={`/${item.toLowerCase()}`}
                   className="text-white mx-3 font-medium hover:text-blue-400"
                 >
                   {item}
-                </a>
+                </Link>
               ))}
             </div>
             <Link
