@@ -7,7 +7,7 @@ export interface Release {
   cover_image: string;
   file_date?: string;
   leak_date?: string;
-  category: "released" | "unreleased" | "stems" | "og" | "sessions";
+  category: "released" | "unreleased" | "stems";
   type?: string;
   available?:
     | "Confirmed"

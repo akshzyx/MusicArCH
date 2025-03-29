@@ -38,7 +38,7 @@ export default function UploadForm() {
   const [eras, setEras] = useState<Era[]>([]);
   const [selectedEraId, setSelectedEraId] = useState<string>("");
   const [releaseCategory, setReleaseCategory] = useState<
-    "released" | "unreleased" | "og" | "stems" | "sessions"
+    "released" | "unreleased" | "stems"
   >("released");
   const [tracks, setTracks] = useState<TrackFormData[]>([
     {
@@ -318,9 +318,9 @@ export default function UploadForm() {
           >
             <option value="released">Released</option>
             <option value="unreleased">Unreleased</option>
-            <option value="og">OG</option>
+            {/* <option value="og">OG</option> */}
             <option value="stems">Stems</option>
-            <option value="sessions">Sessions</option>
+            {/* <option value="sessions">Sessions</option> */}
           </select>
         </div>
 
