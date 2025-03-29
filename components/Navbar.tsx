@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSkull, faSearch } from "@fortawesome/free-solid-svg-icons";
 
-const navItems = ["Nexus", "About", "Contact"];
+const navItems = ["About"];
 
 const NavBar = () => {
   const navContainerRef = useRef(null);

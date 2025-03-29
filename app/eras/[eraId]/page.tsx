@@ -95,7 +95,7 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen">
+    <div className="bg-gray-900 text-white min-h-screen pb-15">
       <div className="max-w-7xl mx-auto pt-12 px-4 sm:px-6 md:px-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row gap-6 mb-12 items-center md:items-start text-center md:text-left">
@@ -107,9 +107,6 @@ async function EraContent({ eraId }: { eraId: string }) {
             className="rounded-lg w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] md:w-[300px] md:h-[300px] object-cover shadow-lg"
           />
           <div className="flex-1">
-            {/* <p className="text-sm text-gray-400 uppercase tracking-wider mb-2">
-              Station
-            </p> */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
               {era.title}
             </h1>
@@ -118,14 +115,6 @@ async function EraContent({ eraId }: { eraId: string }) {
                 {era.description}
               </p>
             )}
-            {/* <div className="flex gap-4 justify-center md:justify-start">
-              <button className="bg-green-500 text-black rounded-full w-12 h-12 flex items-center justify-center hover:bg-green-400 transition-colors">
-                <FontAwesomeIcon icon={faPlay} size="lg" />
-              </button>
-              <button className="border border-gray-500 text-gray-300 rounded-full px-4 py-2 hover:border-gray-400 hover:text-white transition-colors flex items-center gap-2">
-                Follow <span className="text-xl">+</span>
-              </button>
-            </div> */}
           </div>
         </div>
 
@@ -150,7 +139,6 @@ async function EraContent({ eraId }: { eraId: string }) {
               categories[category].length > 0 && (
                 <TabsContent key={category} value={category}>
                   <div className="bg-gray-800 rounded-lg p-4">
-                    {/* <h2 className="text-xl font-semibold mb-4">Most Popular</h2> */}
                     <TrackList
                       initialTracks={categories[category].map(
                         (track, index) => ({

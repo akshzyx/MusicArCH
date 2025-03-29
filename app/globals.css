@@ -3,22 +3,22 @@
 :root {
   --font-sans: var(--font-ibm-plex-thai);
   --radius: 0.625rem;
-  /* Dark mode only palette with updated background */
-  --background: oklch(0.252 0 0); /* #2C2C2C - New charcoal black */
-  --foreground: oklch(0.878 0 0); /* #E0E0E0 - Light gray (Primary Text) */
-  --primary: oklch(0.561 0 0); /* #888888 - Soft gray (Accent) */
-  --primary-foreground: oklch(
-    0.878 0 0
-  ); /* #E0E0E0 - Light gray (for text on primary) */
-  --secondary: oklch(0.718 0 0); /* #B0B0B0 - Medium gray (Secondary Text) */
-  --border: oklch(0.298 0 0); /* #444444 - Dark gray (Borders/Dividers) */
+  /* Dark mode palette with #0C1521 as background */
+  --background: #0c1521; /* New background color */
+  --foreground: #f5f5f5; /* Near white for primary text */
+  --primary: #e5e5e5; /* Light gray for accents */
+  --primary-foreground: #333333; /* Darker gray for text on primary backgrounds */
+  --secondary: #b0b0b0; /* Medium gray for secondary text */
+  --border: #444444; /* Dark gray for borders/dividers */
 }
 
 .dark {
-  --background: oklch(0.252 0 0); /* #2C2C2C - New charcoal black */
-  --foreground: oklch(0.985 0 0); /* Near white */
-  --primary: oklch(0.922 0 0); /* Light gray */
-  --primary-foreground: oklch(0.205 0 0); /* Darker gray */
+  --background: #0c1521; /* Same background for dark mode */
+  --foreground: #f5f5f5; /* Near white */
+  --primary: #e5e5e5; /* Light gray */
+  --primary-foreground: #333333; /* Darker gray */
+  --secondary: #b0b0b0; /* Medium gray */
+  --border: #444444; /* Dark gray */
 }
 
 @layer base {

@@ -3,7 +3,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Card, CardHeader } from "@heroui/card";
 import { Era, Release, Track } from "@/lib/types";
 import { getCachedData } from "@/lib/dataCache";
 import { useEffect, useState } from "react";
@@ -31,21 +30,23 @@ export default function EraCard({ era }: EraCardProps) {
 
   if (error) {
     return (
-      <Card className="p-10 w-full flex flex-row gap-10 rounded-xl shadow-md">
+      <div className="bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-700/50">
         <Link href={`/eras/${era.id}`} className="flex flex-row gap-4 w-full">
           <Image
             alt={era.title}
-            className="object-cover rounded-xl"
+            className="object-cover rounded-lg w-20 h-20 sm:w-24 sm:h-24 shadow-md"
             src={era.cover_image || "/default-image.jpg"}
-            width={150}
-            height={150}
+            width={96}
+            height={96}
           />
-          <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-            <h4 className="font-bold text-large">{era.title}</h4>
-            <small className="text-default-500">Error loading tracks</small>
-          </CardHeader>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-lg font-semibold text-white truncate">
+              {era.title}
+            </h4>
+            <p className="text-gray-400 text-sm">Error loading tracks</p>
+          </div>
         </Link>
-      </Card>
+      </div>
     );
   }
 
@@ -55,22 +56,24 @@ export default function EraCard({ era }: EraCardProps) {
   const trackCount = eraTracks.length;
 
   return (
-    <Card className="p-10 w-full flex flex-row gap-10 rounded-xl shadow-md">
+    <div className="bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-700/50">
       <Link href={`/eras/${era.id}`} className="flex flex-row gap-4 w-full">
         <Image
           alt={era.title}
-          className="object-cover rounded-xl"
+          className="object-cover rounded-lg w-20 h-20 sm:w-24 sm:h-24 shadow-md"
           src={era.cover_image || "/default-image.jpg"}
-          width={150}
-          height={150}
+          width={96}
+          height={96}
         />
-        <CardHeader className="pb-0 pt-2 px-4 flex-col items-start justify-start">
-          <h4 className="font-bold text-large">{era.title}</h4>
-          <small className="text-default-500">{trackCount} Tracks</small>
-          {/* Uncomment if you want to add description later */}
-          {/* <p className="text-sm">{era.description}</p> */}
-        </CardHeader>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-lg font-semibold text-white truncate">
+            {era.title}
+          </h4>
+          <p className="text-gray-400 text-sm">
+            {trackCount} Track{trackCount !== 1 ? "s" : ""}
+          </p>
+        </div>
       </Link>
-    </Card>
+    </div>
   );
 }

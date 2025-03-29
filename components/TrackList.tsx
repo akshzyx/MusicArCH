@@ -178,7 +178,7 @@ export default function TrackList({
   };
 
   return (
-    <>
+    <div>
       <ul className="space-y-2">
         {tracks.map((track, index) => (
           <li
@@ -326,6 +326,6 @@ export default function TrackList({
         onConfirm={onConfirmAction ? () => onConfirmAction() : undefined}
         variant={alertVariant}
       />
-    </>
+    </div>
   );
 }

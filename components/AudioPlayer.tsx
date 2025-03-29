@@ -34,11 +34,7 @@ export default function AudioPlayer() {
 
   const handlePlayPause = () => {
     if (!currentTrack) return;
-    if (isPlaying) {
-      pauseTrack();
-    } else {
-      playTrack(currentTrack, sectionTracks);
-    }
+    isPlaying ? pauseTrack() : playTrack(currentTrack, sectionTracks);
   };
 
   useEffect(() => {
@@ -56,9 +52,7 @@ export default function AudioPlayer() {
     if (!duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
-    const width = rect.width;
-    const newTime = (clickX / width) * duration;
-    setAudioTime(newTime);
+    setAudioTime((clickX / rect.width) * duration);
   };
 
   const formatTime = (seconds: number) => {
@@ -69,80 +63,84 @@ export default function AudioPlayer() {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  const handleToggleDuration = () => {
-    setShowTimeLeft(!showTimeLeft);
-  };
+  const handleToggleDuration = () => setShowTimeLeft(!showTimeLeft);
 
   if (!currentTrack) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md text-white py-4  sm:px-6 md:px-8 flex items-center justify-between gap-4 sm:gap-6 md:gap-8 shadow-lg border-t border-gray-800 z-50">
-      {/* Title Section */}
-      <div className="w-1/4 min-w-0 truncate text-left">
-        <span className="font-semibold text-base">{currentTrack.title}</span>
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-11/12 sm:w-3/4 md:w-2/3 lg:w-1/2 bg-gray-900/60 backdrop-blur-xl text-white py-4 px-6 rounded-xl flex items-center justify-between gap-6 shadow-2xl border border-gray-700">
+      {/* Album Art & Title */}
+      <div className="flex items-center gap-4 w-auto min-w-0 truncate">
+        {/* <img
+          src={currentTrack.albumArt || "/default.jpg"}
+          alt="Album Art"
+          className="w-12 h-12 rounded-lg object-cover"
+        /> */}
+        <span className="font-semibold text-base truncate">
+          {currentTrack.title}
+        </span>
       </div>
 
       {/* Playback Controls */}
-      <div className="w-1/4 min-w-0 flex items-center justify-center space-x-4 sm:space-x-5">
+      <div className="w-1/4 flex items-center justify-center space-x-4">
         <button
           onClick={toggleShuffle}
-          className={`text-sm ${
-            isShuffle ? "text-green-400" : "text-gray-400"
-          } hover:text-green-300 transition-colors`}
+          className={`text-gray-400 hover:text-green-400 transition-colors ${
+            isShuffle ? "text-green-400" : ""
+          }`}
           title="Shuffle"
         >
-          <FontAwesomeIcon icon={faShuffle} size="sm" />
+          <FontAwesomeIcon icon={faShuffle} />
         </button>
         <button
           onClick={prevTrack}
           className="text-gray-400 hover:text-white transition-colors"
           title="Previous"
         >
-          <FontAwesomeIcon icon={faBackward} size="sm" />
+          <FontAwesomeIcon icon={faBackward} />
         </button>
         <button
           onClick={handlePlayPause}
-          className="text-white hover:text-gray-300 transition-colors"
+          className="text-gray-400 hover:text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all"
           title={isPlaying ? "Pause" : "Play"}
         >
-          <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} size="lg" />
+          <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
         </button>
         <button
           onClick={nextTrack}
           className="text-gray-400 hover:text-white transition-colors"
           title="Next"
         >
-          <FontAwesomeIcon icon={faForward} size="sm" />
+          <FontAwesomeIcon icon={faForward} />
         </button>
         <button
           onClick={toggleRepeat}
-          className={`text-sm ${
-            isRepeat ? "text-green-400" : "text-gray-400"
-          } hover:text-green-300 transition-colors`}
+          className={`text-gray-400 hover:text-green-400 transition-colors ${
+            isRepeat ? "text-green-400" : ""
+          }`}
           title="Repeat"
         >
-          <FontAwesomeIcon icon={faRepeat} size="sm" />
+          <FontAwesomeIcon icon={faRepeat} />
         </button>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-1/2 min-w-0 flex items-center space-x-2">
-        <span className="text-xs text-gray-400 whitespace-nowrap">
-          {formatTime(currentTime)}
-        </span>
+      <div className="w-1/2 flex items-center space-x-2">
+        <span className="text-xs text-gray-400">{formatTime(currentTime)}</span>
         <div
-          className="flex-1 bg-gray-700 rounded-full h-1 cursor-pointer relative group"
+          className="relative flex-1 bg-gray-600 rounded-full h-2 cursor-pointer group"
           onClick={handleProgressClick}
         >
+          {/* Waveform Bar Effect */}
           <div
-            className="bg-green-500 h-1 rounded-full transition-all duration-100 relative"
+            className="bg-green-400 h-2 rounded-full transition-all duration-100"
             style={{ width: `${progress}%` }}
-          >
-            <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
+          />
+          {/* Draggable Progress Indicator */}
+          <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
         <span
-          className="text-xs text-gray-400 cursor-pointer whitespace-nowrap"
+          className="text-xs text-gray-400 cursor-pointer"
           onClick={handleToggleDuration}
         >
           {showTimeLeft
