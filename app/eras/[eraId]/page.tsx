@@ -1,11 +1,10 @@
-// app/eras/[eraId]/page.tsx
 import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 import TrackList from "@/components/TrackList";
 import { Metadata } from "next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Suspense } from "react";
-import { faSpinner, faPlay } from "@fortawesome/free-solid-svg-icons";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Metadata generation remains unchanged
@@ -42,11 +41,8 @@ async function EraContent({ eraId }: { eraId: string }) {
     .from("releases")
     .select("*")
     .eq("era_id", eraId);
-  const { data: tracks, error: tracksError } = await supabase
-    .from("tracks")
-    .select("*");
 
-  if (eraError || releasesError || tracksError || !era) {
+  if (eraError || releasesError || !era) {
     return (
       <div className="container mx-auto py-8 text-white bg-gray-900 min-h-screen">
         Era not found
@@ -54,42 +50,24 @@ async function EraContent({ eraId }: { eraId: string }) {
         <pre>ID: {eraId}</pre>
         <pre>Era Error: {JSON.stringify(eraError, null, 2)}</pre>
         <pre>Releases Error: {JSON.stringify(releasesError, null, 2)}</pre>
-        <pre>Tracks Error: {JSON.stringify(tracksError, null, 2)}</pre>
       </div>
     );
   }
 
-  const releasesWithTracks = releases.map((release) => ({
-    ...release,
-    tracks: tracks.filter((track) => track.release_id === release.id),
-  }));
-
   const categories = {
-    released: releasesWithTracks
-      .filter((r) => r.category === "released")
-      .flatMap((r) => r.tracks),
-    unreleased: releasesWithTracks
-      .filter((r) => r.category === "unreleased")
-      .flatMap((r) => r.tracks),
-    og: releasesWithTracks
-      .filter((r) => r.category === "og")
-      .flatMap((r) => r.tracks),
-    stems: releasesWithTracks
-      .filter((r) => r.category === "stems")
-      .flatMap((r) => r.tracks),
-    sessions: releasesWithTracks
-      .filter((r) => r.category === "sessions")
-      .flatMap((r) => r.tracks),
+    released: releases.filter((r) => r.category === "released"),
+    unreleased: releases.filter((r) => r.category === "unreleased"),
+    stems: releases.filter((r) => r.category === "stems"),
   };
 
-  const tabOrder = ["released", "unreleased", "og", "stems", "sessions"];
+  const tabOrder = ["released", "unreleased", "stems"];
   const firstTabWithTracks =
     tabOrder.find((category) => categories[category].length > 0) || "released";
 
-  // Mock like counts since your schema doesn't have them
-  const tracksWithLikes = categories[firstTabWithTracks].map(
-    (track, index) => ({
-      ...track,
+  // Add mock likes to releases (since schema doesn't have them)
+  const releasesWithLikes = categories[firstTabWithTracks].map(
+    (release, index) => ({
+      ...release,
       likes: Math.floor(Math.random() * 5000) + 4000, // Random likes between 4k-9k
     })
   );
@@ -111,7 +89,7 @@ async function EraContent({ eraId }: { eraId: string }) {
               {era.title}
             </h1>
             {era.description && (
-              <p className="text-gray-300 text-base sm:text-lg mb-6">
+              <p className="text-gray-300 text-base sm:text-sm mb-6">
                 {era.description}
               </p>
             )}
@@ -127,7 +105,7 @@ async function EraContent({ eraId }: { eraId: string }) {
                   <TabsTrigger
                     key={category}
                     value={category}
-                    className="capitalize text-gray-300 flex-1 py-2 rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white transition-colors"
+                    className="uppercase text-gray-300 flex-1 py-2 rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white transition-colors"
                   >
                     {category}
                   </TabsTrigger>
@@ -141,8 +119,8 @@ async function EraContent({ eraId }: { eraId: string }) {
                   <div className="bg-gray-800 rounded-lg p-4">
                     <TrackList
                       initialTracks={categories[category].map(
-                        (track, index) => ({
-                          ...track,
+                        (release, index) => ({
+                          ...release,
                           likes: Math.floor(Math.random() * 5000) + 4000,
                         })
                       )}

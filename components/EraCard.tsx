@@ -1,9 +1,8 @@
-// components/EraCard.tsx
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
-import { Era, Release, Track } from "@/lib/types";
+import { Era, Release } from "@/lib/types";
 import { getCachedData } from "@/lib/dataCache";
 import { useEffect, useState } from "react";
 
@@ -13,14 +12,12 @@ interface EraCardProps {
 
 export default function EraCard({ era }: EraCardProps) {
   const [releases, setReleases] = useState<Release[]>([]);
-  const [tracks, setTracks] = useState<Track[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getCachedData()
       .then((cachedData) => {
         setReleases(cachedData.releases.filter((r) => r.era_id === era.id));
-        setTracks(cachedData.tracks);
       })
       .catch((err) => {
         console.log("Supabase fetch error in EraCard:", err);
@@ -50,10 +47,7 @@ export default function EraCard({ era }: EraCardProps) {
     );
   }
 
-  const eraTracks = tracks.filter((track) =>
-    releases.some((release) => release.id === track.release_id)
-  );
-  const trackCount = eraTracks.length;
+  const trackCount = releases.length;
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-700/50">

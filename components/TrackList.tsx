@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Track } from "@/lib/types";
+import { Release } from "@/lib/types"; // Changed from Track
 import { useAudio } from "@/lib/AudioContext";
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
 import {
@@ -21,26 +21,16 @@ import {
   faHeart,
 } from "@fortawesome/free-solid-svg-icons";
 
-// Fetch release titles for album names
-async function fetchReleaseTitle(releaseId: number) {
-  const { data } = await supabase
-    .from("releases")
-    .select("title")
-    .eq("id", releaseId)
-    .single();
-  return data?.title || "Unknown Album";
-}
-
 export default function TrackList({
   initialTracks,
   sectionTracks,
 }: {
-  initialTracks: (Track & { likes?: number })[];
-  sectionTracks: Track[];
+  initialTracks: (Release & { likes?: number })[];
+  sectionTracks: Release[];
 }) {
   const [tracks, setTracks] =
-    useState<(Track & { likes?: number })[]>(initialTracks);
-  const [editingTrack, setEditingTrack] = useState<Track | null>(null);
+    useState<(Release & { likes?: number })[]>(initialTracks);
+  const [editingTrack, setEditingTrack] = useState<Release | null>(null);
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
   const [trackFile, setTrackFile] = useState("");
@@ -55,24 +45,10 @@ export default function TrackList({
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
     null
   );
-  const [hoveredTrackId, setHoveredTrackId] = useState<string | null>(null);
-  const [releaseTitles, setReleaseTitles] = useState<{ [key: number]: string }>(
-    {}
-  );
+  const [hoveredTrackId, setHoveredTrackId] = useState<number | null>(null);
 
   useEffect(() => {
     setTracks(initialTracks);
-    // Fetch release titles for each track
-    const fetchTitles = async () => {
-      const titles: { [key: number]: string } = {};
-      for (const track of initialTracks) {
-        if (!titles[track.release_id]) {
-          titles[track.release_id] = await fetchReleaseTitle(track.release_id);
-        }
-      }
-      setReleaseTitles(titles);
-    };
-    fetchTitles();
   }, [initialTracks]);
 
   const showAlert = (
@@ -88,7 +64,7 @@ export default function TrackList({
     setAlertOpen(true);
   };
 
-  const handleEdit = (track: Track) => {
+  const handleEdit = (track: Release) => {
     if (currentTrack?.id === track.id && isPlaying) {
       pauseTrack();
     }
@@ -110,7 +86,7 @@ export default function TrackList({
     };
 
     const { error } = await supabase
-      .from("tracks")
+      .from("releases")
       .update(updatedTrack)
       .eq("id", editingTrack.id);
 
@@ -133,14 +109,14 @@ export default function TrackList({
     }
   };
 
-  const handleDelete = async (track: Track) => {
+  const handleDelete = async (track: Release) => {
     showAlert(
       "Confirm Deletion",
       `Are you sure you want to delete "${track.title}"?`,
       "destructive",
       async () => {
         const { error } = await supabase
-          .from("tracks")
+          .from("releases")
           .delete()
           .eq("id", track.id);
 
@@ -169,7 +145,7 @@ export default function TrackList({
     setTrackFile("");
   };
 
-  const handlePlayPause = (track: Track) => {
+  const handlePlayPause = (track: Release) => {
     if (currentTrack?.id === track.id && isPlaying) {
       pauseTrack();
     } else {
@@ -218,16 +194,9 @@ export default function TrackList({
                 <span className="text-white font-medium truncate block">
                   {track.title}
                 </span>
-                {/* <span className="text-gray-500 text-sm truncate block">
-                  {releaseTitles[track.release_id] || "Unknown Album"}
-                </span> */}
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              {/* <div className="flex items-center space-x-1 text-gray-400">
-                <FontAwesomeIcon icon={faHeart} size="sm" className="text-red-400" />
-                <span className="text-xs">{track.likes?.toLocaleString() || "0"}</span>
-              </div> */}
               <span className="text-gray-400 text-xs tabular-nums">
                 {track.duration}
               </span>

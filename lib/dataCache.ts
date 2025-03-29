@@ -1,13 +1,11 @@
-// lib/dataCache.ts
 "use client";
 
 import { supabase } from "@/lib/supabase";
-import { Era, Release, Track } from "@/lib/types";
+import { Era, Release } from "@/lib/types";
 
 interface CachedData {
   eras: Era[];
   releases: Release[];
-  tracks: Track[];
   timestamp: number;
 }
 
@@ -24,18 +22,14 @@ async function fetchAllData(): Promise<CachedData> {
   const { data: releases, error: releasesError } = await supabase
     .from("releases")
     .select("*");
-  const { data: tracks, error: tracksError } = await supabase
-    .from("tracks")
-    .select("*");
 
-  if (erasError || releasesError || tracksError) {
+  if (erasError || releasesError) {
     throw new Error("Failed to fetch data");
   }
 
   return {
     eras: eras || [],
     releases: releases || [],
-    tracks: tracks || [],
     timestamp: Date.now(),
   };
 }
@@ -47,7 +41,6 @@ export function getCachedData(): Promise<CachedData> {
     return Promise.resolve({
       eras: [],
       releases: [],
-      tracks: [],
       timestamp: 0,
     });
   }

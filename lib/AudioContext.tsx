@@ -8,17 +8,17 @@ import {
   useRef,
   ReactNode,
 } from "react";
-import { Track } from "@/lib/types";
+import { Release } from "@/lib/types"; // Changed from Track
 
 interface AudioContextType {
-  currentTrack: Track | null;
+  currentTrack: Release | null;
   isPlaying: boolean;
-  sectionTracks: Track[];
+  sectionTracks: Release[];
   isRepeat: boolean;
   isShuffle: boolean;
   currentTime: number;
   duration: number;
-  playTrack: (track: Track, tracks?: Track[]) => void;
+  playTrack: (track: Release, tracks?: Release[]) => void;
   pauseTrack: () => void;
   stopTrack: () => void;
   nextTrack: () => void;
@@ -31,9 +31,9 @@ interface AudioContextType {
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<Release | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [sectionTracks, setSectionTracks] = useState<Track[]>([]);
+  const [sectionTracks, setSectionTracks] = useState<Release[]>([]);
   const [isRepeat, setIsRepeat] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -96,7 +96,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, [currentTrack, isPlaying]);
 
-  const playTrack = (track: Track, tracks: Track[] = []) => {
+  const playTrack = (track: Release, tracks: Release[] = []) => {
     if (!audioRef.current) return;
 
     const audio = audioRef.current;
