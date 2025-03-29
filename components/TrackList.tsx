@@ -252,48 +252,49 @@ export default function TrackList({
         ))}
       </ul>
 
+      {/* Edit Dialog */}
       <Dialog
         open={!!editingTrack}
         onOpenChange={(open) => !open && handleCancel()}
       >
-        <DialogContent className="sm:max-w-[425px] bg-amber-200 text-foreground">
+        <DialogContent className="sm:max-w-[425px] bg-[#0C1521] text-white border border-gray-700">
           <DialogHeader>
-            <DialogTitle>Edit Track</DialogTitle>
+            <DialogTitle className="text-white">Edit Track</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdate} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground">
+              <label className="block text-sm font-medium text-gray-300">
                 Track Title
               </label>
               <input
                 type="text"
                 value={trackTitle}
                 onChange={(e) => setTrackTitle(e.target.value)}
-                className="w-full p-2 border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground">
+              <label className="block text-sm font-medium text-gray-300">
                 Duration
               </label>
               <input
                 type="text"
                 value={trackDuration}
                 onChange={(e) => setTrackDuration(e.target.value)}
-                className="w-full p-2 border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground">
+              <label className="block text-sm font-medium text-gray-300">
                 Track URL (GitHub)
               </label>
               <input
                 type="url"
                 value={trackFile}
                 onChange={(e) => setTrackFile(e.target.value)}
-                className="w-full p-2 border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
@@ -301,13 +302,13 @@ export default function TrackList({
               <button
                 type="button"
                 onClick={handleCancel}
-                className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
               >
                 Update Track
               </button>
@@ -316,6 +317,7 @@ export default function TrackList({
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <CustomAlertDialog
         isOpen={alertOpen}
         onOpenChange={setAlertOpen}
@@ -325,6 +327,7 @@ export default function TrackList({
         cancelText={onConfirmAction ? "Cancel" : undefined}
         onConfirm={onConfirmAction ? () => onConfirmAction() : undefined}
         variant={alertVariant}
+        className="bg-[#0C1521] text-white border border-gray-700"
       />
     </div>
   );
