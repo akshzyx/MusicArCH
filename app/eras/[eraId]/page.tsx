@@ -5,7 +5,7 @@ import TrackList from "@/components/TrackList";
 import { Metadata } from "next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Suspense } from "react";
-import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faSpinner, faPlay } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Metadata generation remains unchanged
@@ -48,7 +48,7 @@ async function EraContent({ eraId }: { eraId: string }) {
 
   if (eraError || releasesError || tracksError || !era) {
     return (
-      <div className="container mx-auto py-8 text-foreground">
+      <div className="container mx-auto py-8 text-white bg-gray-900 min-h-screen">
         Era not found
         <p>Debug Info:</p>
         <pre>ID: {eraId}</pre>
@@ -86,55 +86,86 @@ async function EraContent({ eraId }: { eraId: string }) {
   const firstTabWithTracks =
     tabOrder.find((category) => categories[category].length > 0) || "released";
 
-  return (
-    <div className="pt-12 p-4 sm:p-12 md:p-12 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row gap-8 mb-8 items-center md:items-start">
-        <Image
-          src={era.cover_image.trimEnd()}
-          alt={era.title}
-          width={300}
-          height={300}
-          className="rounded w-[300px] h-[300px] sm:w-[300px] sm:h-[300px] md:w-[300px] md:h-[300px] lg:w-[500px] lg:h-[300px] object-cover"
-        />
-        <div className="text-center md:text-left">
-          <h1 className="text-4xl font-bold">{era.title}</h1>
-          {era.description && (
-            <p className="text-foreground text-zinc-300 mt-2">
-              {era.description}
-            </p>
-          )}
-        </div>
-      </div>
+  // Mock like counts since your schema doesn't have them
+  const tracksWithLikes = categories[firstTabWithTracks].map(
+    (track, index) => ({
+      ...track,
+      likes: Math.floor(Math.random() * 5000) + 4000, // Random likes between 4k-9k
+    })
+  );
 
-      <Tabs defaultValue={firstTabWithTracks} className="space-y-4">
-        <TabsList className="flex w-full bg-background">
+  return (
+    <div className="bg-gray-900 text-white min-h-screen">
+      <div className="max-w-7xl mx-auto pt-12 px-4 sm:px-6 md:px-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row gap-6 mb-12 items-center md:items-start text-center md:text-left">
+          <Image
+            src={era.cover_image.trimEnd()}
+            alt={era.title}
+            width={300}
+            height={300}
+            className="rounded-lg w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] md:w-[300px] md:h-[300px] object-cover shadow-lg"
+          />
+          <div className="flex-1">
+            {/* <p className="text-sm text-gray-400 uppercase tracking-wider mb-2">
+              Station
+            </p> */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
+              {era.title}
+            </h1>
+            {era.description && (
+              <p className="text-gray-300 text-base sm:text-lg mb-6">
+                {era.description}
+              </p>
+            )}
+            {/* <div className="flex gap-4 justify-center md:justify-start">
+              <button className="bg-green-500 text-black rounded-full w-12 h-12 flex items-center justify-center hover:bg-green-400 transition-colors">
+                <FontAwesomeIcon icon={faPlay} size="lg" />
+              </button>
+              <button className="border border-gray-500 text-gray-300 rounded-full px-4 py-2 hover:border-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                Follow <span className="text-xl">+</span>
+              </button>
+            </div> */}
+          </div>
+        </div>
+
+        {/* Tabs Section */}
+        <Tabs defaultValue={firstTabWithTracks} className="space-y-6">
+          <TabsList className="flex w-full bg-gray-800 rounded-lg p-1">
+            {tabOrder.map(
+              (category) =>
+                categories[category].length > 0 && (
+                  <TabsTrigger
+                    key={category}
+                    value={category}
+                    className="capitalize text-gray-300 flex-1 py-2 rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white transition-colors"
+                  >
+                    {category}
+                  </TabsTrigger>
+                )
+            )}
+          </TabsList>
           {tabOrder.map(
             (category) =>
               categories[category].length > 0 && (
-                <TabsTrigger
-                  key={category}
-                  value={category}
-                  className="capitalize text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background"
-                >
-                  {category}
-                </TabsTrigger>
+                <TabsContent key={category} value={category}>
+                  <div className="bg-gray-800 rounded-lg p-4">
+                    {/* <h2 className="text-xl font-semibold mb-4">Most Popular</h2> */}
+                    <TrackList
+                      initialTracks={categories[category].map(
+                        (track, index) => ({
+                          ...track,
+                          likes: Math.floor(Math.random() * 5000) + 4000,
+                        })
+                      )}
+                      sectionTracks={categories[category]}
+                    />
+                  </div>
+                </TabsContent>
               )
           )}
-        </TabsList>
-        {tabOrder.map(
-          (category) =>
-            categories[category].length > 0 && (
-              <TabsContent key={category} value={category}>
-                <div className="border rounded-lg p-4 bg-background">
-                  <TrackList
-                    initialTracks={categories[category]}
-                    sectionTracks={categories[category]}
-                  />
-                </div>
-              </TabsContent>
-            )
-        )}
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }
@@ -144,7 +175,7 @@ export default function EraPage({ params }: { params: { eraId: string } }) {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen text-foreground">
+        <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">
           <FontAwesomeIcon icon={faSpinner} spinPulse />{" "}
         </div>
       }

@@ -30,20 +30,17 @@ export default function AudioPlayer() {
     setAudioTime,
   } = useAudio();
 
-  const [showTimeLeft, setShowTimeLeft] = useState(false); // Track toggle state
+  const [showTimeLeft, setShowTimeLeft] = useState(false);
 
   const handlePlayPause = () => {
     if (!currentTrack) return;
     if (isPlaying) {
       pauseTrack();
     } else {
-      // Resume from the current time instead of resetting
       playTrack(currentTrack, sectionTracks);
-      setAudioTime(currentTime); // Ensure the audio resumes from the paused position
     }
   };
 
-  // Spacebar Play/Pause
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === " " || e.key === "Spacebar") {
@@ -64,7 +61,6 @@ export default function AudioPlayer() {
     setAudioTime(newTime);
   };
 
-  // Format time (e.g., 2:30)
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -73,7 +69,6 @@ export default function AudioPlayer() {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  // Toggle duration ↔️ time left
   const handleToggleDuration = () => {
     setShowTimeLeft(!showTimeLeft);
   };
@@ -81,14 +76,14 @@ export default function AudioPlayer() {
   if (!currentTrack) return null;
 
   return (
-    <div className="gap-5 fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md text-white py-5 px-20 flex items-center justify-between shadow-lg border-t border-gray-800 z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md text-white py-4  sm:px-6 md:px-8 flex items-center justify-between gap-4 sm:gap-6 md:gap-8 shadow-lg border-t border-gray-800 z-50">
       {/* Title Section */}
-      <div className="w-1/4 truncate text-left">
+      <div className="w-1/4 min-w-0 truncate text-left">
         <span className="font-semibold text-base">{currentTrack.title}</span>
       </div>
 
       {/* Playback Controls */}
-      <div className="w-full flex items-center justify-center space-x-5">
+      <div className="w-1/4 min-w-0 flex items-center justify-center space-x-4 sm:space-x-5">
         <button
           onClick={toggleShuffle}
           className={`text-sm ${
@@ -131,8 +126,10 @@ export default function AudioPlayer() {
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full flex items-center space-x-2">
-        <span className="text-xs text-gray-400">{formatTime(currentTime)}</span>
+      <div className="w-1/2 min-w-0 flex items-center space-x-2">
+        <span className="text-xs text-gray-400 whitespace-nowrap">
+          {formatTime(currentTime)}
+        </span>
         <div
           className="flex-1 bg-gray-700 rounded-full h-1 cursor-pointer relative group"
           onClick={handleProgressClick}
@@ -144,9 +141,8 @@ export default function AudioPlayer() {
             <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
-        {/* Clickable duration/time-left toggle */}
         <span
-          className="text-xs text-gray-400 cursor-pointer"
+          className="text-xs text-gray-400 cursor-pointer whitespace-nowrap"
           onClick={handleToggleDuration}
         >
           {showTimeLeft

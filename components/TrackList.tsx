@@ -13,16 +13,33 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPencil,
+  faTrash,
+  faPlay,
+  faPause,
+  faHeart,
+} from "@fortawesome/free-solid-svg-icons";
+
+// Fetch release titles for album names
+async function fetchReleaseTitle(releaseId: number) {
+  const { data } = await supabase
+    .from("releases")
+    .select("title")
+    .eq("id", releaseId)
+    .single();
+  return data?.title || "Unknown Album";
+}
 
 export default function TrackList({
   initialTracks,
-  sectionTracks, // Add sectionTracks prop
+  sectionTracks,
 }: {
-  initialTracks: Track[];
+  initialTracks: (Track & { likes?: number })[];
   sectionTracks: Track[];
 }) {
-  const [tracks, setTracks] = useState<Track[]>(initialTracks);
+  const [tracks, setTracks] =
+    useState<(Track & { likes?: number })[]>(initialTracks);
   const [editingTrack, setEditingTrack] = useState<Track | null>(null);
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
@@ -38,9 +55,24 @@ export default function TrackList({
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
     null
   );
+  const [hoveredTrackId, setHoveredTrackId] = useState<string | null>(null);
+  const [releaseTitles, setReleaseTitles] = useState<{ [key: number]: string }>(
+    {}
+  );
 
   useEffect(() => {
     setTracks(initialTracks);
+    // Fetch release titles for each track
+    const fetchTitles = async () => {
+      const titles: { [key: number]: string } = {};
+      for (const track of initialTracks) {
+        if (!titles[track.release_id]) {
+          titles[track.release_id] = await fetchReleaseTitle(track.release_id);
+        }
+      }
+      setReleaseTitles(titles);
+    };
+    fetchTitles();
   }, [initialTracks]);
 
   const showAlert = (
@@ -92,7 +124,7 @@ export default function TrackList({
         tracks.map((t) => (t.id === editingTrack.id ? updatedTrack : t))
       );
       if (currentTrack?.id === editingTrack.id) {
-        playTrack(updatedTrack, sectionTracks); // Update with sectionTracks
+        playTrack(updatedTrack, sectionTracks);
       }
       setEditingTrack(null);
       setTrackTitle("");
@@ -141,45 +173,80 @@ export default function TrackList({
     if (currentTrack?.id === track.id && isPlaying) {
       pauseTrack();
     } else {
-      playTrack(track, sectionTracks); // Pass sectionTracks here
+      playTrack(track, sectionTracks);
     }
   };
 
   return (
     <>
-      <ul className="mt-2 space-y-2">
-        {tracks.map((track) => (
-          <li key={track.id} className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
+      <ul className="space-y-2">
+        {tracks.map((track, index) => (
+          <li
+            key={track.id}
+            className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
+              currentTrack?.id === track.id
+                ? "bg-gray-700/50 text-white"
+                : "hover:bg-gray-800/50 text-gray-300"
+            }`}
+            onMouseEnter={() => setHoveredTrackId(track.id)}
+            onMouseLeave={() => setHoveredTrackId(null)}
+          >
+            <div className="flex items-center space-x-4 flex-1 min-w-0">
               <button
                 onClick={() => handlePlayPause(track)}
-                className={`text-green-500 hover:text-green-700 ${
+                className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                   currentTrack?.id === track.id && isPlaying
-                    ? "text-yellow-500"
-                    : ""
+                    ? "text-green-400"
+                    : "text-gray-400 hover:text-green-400"
                 }`}
               >
-                {currentTrack?.id === track.id && isPlaying ? "❚❚" : "▶"}
+                {currentTrack?.id === track.id ? (
+                  isPlaying ? (
+                    <FontAwesomeIcon icon={faPause} size="xs" />
+                  ) : (
+                    <FontAwesomeIcon icon={faPlay} size="xs" />
+                  )
+                ) : hoveredTrackId === track.id ? (
+                  <FontAwesomeIcon icon={faPlay} size="xs" />
+                ) : (
+                  <span className="text-gray-400">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                )}
               </button>
-              <span className="text-foreground">
-                {track.title} ({track.duration})
-              </span>
+              <div className="flex-1 min-w-0">
+                <span className="text-white font-medium truncate block">
+                  {track.title}
+                </span>
+                {/* <span className="text-gray-500 text-sm truncate block">
+                  {releaseTitles[track.release_id] || "Unknown Album"}
+                </span> */}
+              </div>
             </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleEdit(track)}
-                className="text-blue-500 hover:text-blue-700"
-                title="Edit Track"
-              >
-                <FontAwesomeIcon icon={faPencil} />
-              </button>
-              <button
-                onClick={() => handleDelete(track)}
-                className="text-red-500 hover:text-red-700"
-                title="Delete Track"
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </button>
+            <div className="flex items-center space-x-4">
+              {/* <div className="flex items-center space-x-1 text-gray-400">
+                <FontAwesomeIcon icon={faHeart} size="sm" className="text-red-400" />
+                <span className="text-xs">{track.likes?.toLocaleString() || "0"}</span>
+              </div> */}
+              <span className="text-gray-400 text-xs tabular-nums">
+                {track.duration}
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleEdit(track)}
+                  className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+                  title="Edit Track"
+                >
+                  <FontAwesomeIcon icon={faPencil} size="sm" />
+                </button>
+                <button
+                  onClick={() => handleDelete(track)}
+                  className="text-red-400 hover:text-red-300 transition-colors p-1"
+                  title="Delete Track"
+                >
+                  <FontAwesomeIcon icon={faTrash} size="sm" />
+                </button>
+              </div>
             </div>
           </li>
         ))}
