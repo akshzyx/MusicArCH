@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Release } from "@/lib/types"; // Changed from Track
+import { Release } from "@/lib/types";
 import { useAudio } from "@/lib/AudioContext";
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
 import {
@@ -18,7 +18,6 @@ import {
   faTrash,
   faPlay,
   faPause,
-  faHeart,
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function TrackList({
@@ -34,6 +33,22 @@ export default function TrackList({
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
   const [trackFile, setTrackFile] = useState("");
+  const [trackType, setTrackType] = useState("");
+  const [trackAvailable, setTrackAvailable] = useState<
+    "Confirmed" | "Partial" | "Snippet" | "Full" | "Rumored" | "OG File" | ""
+  >("");
+  const [trackQuality, setTrackQuality] = useState<
+    | "Not Available"
+    | "High Quality"
+    | "Recording"
+    | "Lossless"
+    | "Low Quality"
+    | "CD Quality"
+    | ""
+  >("");
+  const [trackFileDate, setTrackFileDate] = useState("");
+  const [trackLeakDate, setTrackLeakDate] = useState("");
+  const [trackNotes, setTrackNotes] = useState("");
   const { currentTrack, isPlaying, playTrack, pauseTrack, stopTrack } =
     useAudio();
   const [alertOpen, setAlertOpen] = useState(false);
@@ -72,6 +87,12 @@ export default function TrackList({
     setTrackTitle(track.title);
     setTrackDuration(track.duration);
     setTrackFile(track.file);
+    setTrackType(track.type || "");
+    setTrackAvailable(track.available || "");
+    setTrackQuality(track.quality || "");
+    setTrackFileDate(track.file_date || "");
+    setTrackLeakDate(track.leak_date || "");
+    setTrackNotes(track.notes || "");
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -79,10 +100,19 @@ export default function TrackList({
     if (!editingTrack) return;
 
     const updatedTrack = {
-      ...editingTrack,
       title: trackTitle,
       duration: trackDuration,
       file: trackFile.trimEnd(),
+      type: trackType || undefined,
+      available:
+        editingTrack.category !== "released" ? trackAvailable : undefined,
+      quality: editingTrack.category !== "released" ? trackQuality : undefined,
+      file_date: trackFileDate || undefined,
+      leak_date: trackLeakDate || undefined,
+      notes: trackNotes || undefined,
+      era_id: editingTrack.era_id,
+      category: editingTrack.category,
+      cover_image: editingTrack.cover_image,
     };
 
     const { error } = await supabase
@@ -96,16 +126,29 @@ export default function TrackList({
     } else {
       console.log("Track updated:", editingTrack.id);
       showAlert("Success", "Track updated successfully!");
+      const updatedTrackWithLikes = {
+        ...editingTrack,
+        ...updatedTrack,
+        likes: tracks.find((t) => t.id === editingTrack.id)?.likes,
+      };
       setTracks(
-        tracks.map((t) => (t.id === editingTrack.id ? updatedTrack : t))
+        tracks.map((t) =>
+          t.id === editingTrack.id ? updatedTrackWithLikes : t
+        )
       );
       if (currentTrack?.id === editingTrack.id) {
-        playTrack(updatedTrack, sectionTracks);
+        playTrack(updatedTrackWithLikes, sectionTracks);
       }
       setEditingTrack(null);
       setTrackTitle("");
       setTrackDuration("");
       setTrackFile("");
+      setTrackType("");
+      setTrackAvailable("");
+      setTrackQuality("");
+      setTrackFileDate("");
+      setTrackLeakDate("");
+      setTrackNotes("");
     }
   };
 
@@ -143,6 +186,12 @@ export default function TrackList({
     setTrackTitle("");
     setTrackDuration("");
     setTrackFile("");
+    setTrackType("");
+    setTrackAvailable("");
+    setTrackQuality("");
+    setTrackFileDate("");
+    setTrackLeakDate("");
+    setTrackNotes("");
   };
 
   const handlePlayPause = (track: Release) => {
@@ -150,6 +199,54 @@ export default function TrackList({
       pauseTrack();
     } else {
       playTrack(track, sectionTracks);
+    }
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (e.key === " ") {
+      e.stopPropagation();
+    }
+  };
+
+  // Badge styling based on value
+  const getBadgeStyles = (field: string, value: string) => {
+    const baseStyles =
+      "px-1.5 py-0.5 text-[10px] rounded-full border border-gray-600";
+    switch (field) {
+      case "type":
+        return `${baseStyles} bg-gray-700 text-gray-200`;
+      case "available":
+        switch (value) {
+          case "Confirmed":
+          case "Full":
+          case "OG File":
+            return `${baseStyles} bg-green-900 text-green-300`;
+          case "Partial":
+          case "Snippet":
+            return `${baseStyles} bg-yellow-900 text-yellow-300`;
+          case "Rumored":
+            return `${baseStyles} bg-red-900 text-red-300`;
+          default:
+            return `${baseStyles} bg-gray-700 text-gray-200`;
+        }
+      case "quality":
+        switch (value) {
+          case "High Quality":
+          case "Lossless":
+          case "CD Quality":
+            return `${baseStyles} bg-green-900 text-green-300`;
+          case "Recording":
+          case "Low Quality":
+            return `${baseStyles} bg-yellow-900 text-yellow-300`;
+          case "Not Available":
+            return `${baseStyles} bg-red-900 text-red-300`;
+          default:
+            return `${baseStyles} bg-gray-700 text-gray-200`;
+        }
+      default:
+        return `${baseStyles} bg-gray-700 text-gray-200`;
     }
   };
 
@@ -196,8 +293,25 @@ export default function TrackList({
                 </span>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-400 text-xs tabular-nums">
+            <div className="flex items-center space-x-2">
+              {/* Badges for type, available, and quality (non-released only) */}
+              {track.type && (
+                <span className={getBadgeStyles("type", track.type)}>
+                  {track.type}
+                </span>
+              )}
+              {track.category !== "released" && track.available && (
+                <span className={getBadgeStyles("available", track.available)}>
+                  {track.available}
+                </span>
+              )}
+              {track.category !== "released" && track.quality && (
+                <span className={getBadgeStyles("quality", track.quality)}>
+                  {track.quality}
+                </span>
+              )}
+              {/* Add extra spacing before duration */}
+              <span className="ml-3 text-gray-400 text-xs tabular-nums">
                 {track.duration}
               </span>
               <div className="flex space-x-2">
@@ -226,7 +340,7 @@ export default function TrackList({
         open={!!editingTrack}
         onOpenChange={(open) => !open && handleCancel()}
       >
-        <DialogContent className="sm:max-w-[425px] bg-[#0C1521] text-white border border-gray-700">
+        <DialogContent className="sm:max-w-[425px] bg-[#0C1521] text-white border border-gray-700 max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Track</DialogTitle>
           </DialogHeader>
@@ -239,6 +353,7 @@ export default function TrackList({
                 type="text"
                 value={trackTitle}
                 onChange={(e) => setTrackTitle(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -251,6 +366,7 @@ export default function TrackList({
                 type="text"
                 value={trackDuration}
                 onChange={(e) => setTrackDuration(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -263,8 +379,125 @@ export default function TrackList({
                 type="url"
                 value={trackFile}
                 onChange={(e) => setTrackFile(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300">
+                Track Type
+              </label>
+              <input
+                type="text"
+                value={trackType}
+                onChange={(e) => setTrackType(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter track type"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300">
+                File Date
+              </label>
+              <input
+                type="date"
+                value={trackFileDate}
+                onChange={(e) => setTrackFileDate(e.target.value)}
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300">
+                Leak Date
+              </label>
+              <input
+                type="date"
+                value={trackLeakDate}
+                onChange={(e) => setTrackLeakDate(e.target.value)}
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            {editingTrack?.category !== "released" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300">
+                    Available
+                  </label>
+                  <select
+                    value={trackAvailable}
+                    onChange={(e) =>
+                      setTrackAvailable(
+                        e.target.value as
+                          | "Confirmed"
+                          | "Partial"
+                          | "Snippet"
+                          | "Full"
+                          | "Rumored"
+                          | "OG File"
+                          | ""
+                      )
+                    }
+                    className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="" disabled>
+                      Select availability
+                    </option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Partial">Partial</option>
+                    <option value="Snippet">Snippet</option>
+                    <option value="Full">Full</option>
+                    <option value="Rumored">Rumored</option>
+                    <option value="OG File">OG File</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300">
+                    Quality
+                  </label>
+                  <select
+                    value={trackQuality}
+                    onChange={(e) =>
+                      setTrackQuality(
+                        e.target.value as
+                          | "Not Available"
+                          | "High Quality"
+                          | "Recording"
+                          | "Lossless"
+                          | "Low Quality"
+                          | "CD Quality"
+                          | ""
+                      )
+                    }
+                    className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="" disabled>
+                      Select quality
+                    </option>
+                    <option value="Not Available">Not Available</option>
+                    <option value="High Quality">High Quality</option>
+                    <option value="Recording">Recording</option>
+                    <option value="Lossless">Lossless</option>
+                    <option value="Low Quality">Low Quality</option>
+                    <option value="CD Quality">CD Quality</option>
+                  </select>
+                </div>
+              </>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-300">
+                Notes
+              </label>
+              <textarea
+                value={trackNotes}
+                onChange={(e) => setTrackNotes(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter any notes"
+                rows={3}
               />
             </div>
             <DialogFooter>

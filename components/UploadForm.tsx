@@ -38,7 +38,7 @@ export default function UploadForm() {
   const [eras, setEras] = useState<Era[]>([]);
   const [selectedEraId, setSelectedEraId] = useState<string>("");
   const [releaseCategory, setReleaseCategory] = useState<
-    "released" | "unreleased" | "stems"
+    "released" | "unreleased" | "og" | "stems" | "sessions"
   >("released");
   const [tracks, setTracks] = useState<TrackFormData[]>([
     {
@@ -285,6 +285,15 @@ export default function UploadForm() {
     }
   };
 
+  // Prevent spacebar from triggering play/pause when typing in inputs
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (e.key === " ") {
+      e.stopPropagation();
+    }
+  };
+
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-4">
@@ -318,9 +327,9 @@ export default function UploadForm() {
           >
             <option value="released">Released</option>
             <option value="unreleased">Unreleased</option>
-            {/* <option value="og">OG</option> */}
+            <option value="og">OG</option>
             <option value="stems">Stems</option>
-            {/* <option value="sessions">Sessions</option> */}
+            <option value="sessions">Sessions</option>
           </select>
         </div>
 
@@ -351,6 +360,7 @@ export default function UploadForm() {
                   onChange={(e) =>
                     updateTrack(index, { ...track, title: e.target.value })
                   }
+                  onKeyDown={handleKeyDown}
                   className="p-2 border rounded flex-1 bg-background text-foreground"
                   required
                 />
@@ -361,6 +371,7 @@ export default function UploadForm() {
                   onChange={(e) =>
                     updateTrack(index, { ...track, file: e.target.value })
                   }
+                  onKeyDown={handleKeyDown}
                   className="p-2 border rounded flex-1 bg-background text-foreground"
                   required
                 />
@@ -380,6 +391,7 @@ export default function UploadForm() {
                   onChange={(e) =>
                     updateTrack(index, { ...track, coverImage: e.target.value })
                   }
+                  onKeyDown={handleKeyDown}
                   className="w-full p-2 border rounded bg-background text-foreground"
                   placeholder="Enter cover image URL"
                   required
@@ -421,6 +433,7 @@ export default function UploadForm() {
                   onChange={(e) =>
                     updateTrack(index, { ...track, type: e.target.value })
                   }
+                  onKeyDown={handleKeyDown}
                   className="w-full p-2 border rounded bg-background text-foreground"
                   placeholder="Enter track type"
                 />
@@ -491,6 +504,7 @@ export default function UploadForm() {
                   onChange={(e) =>
                     updateTrack(index, { ...track, notes: e.target.value })
                   }
+                  onKeyDown={handleKeyDown}
                   className="w-full p-2 border rounded bg-background text-foreground"
                   placeholder="Enter any notes"
                   rows={3}

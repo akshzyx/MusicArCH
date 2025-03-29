@@ -1,7 +1,7 @@
 // app/upload/page.tsx
 import { redirect } from "next/navigation";
-import { checkRole } from "@/utils/roles"; // Import role check utility
-import { auth } from "@clerk/nextjs/server"; // Import Clerk auth for server-side checks
+// import { checkRole } from "@/utils/roles"; // Import role check utility
+// import { auth } from "@clerk/nextjs/server"; // Import Clerk auth for server-side checks
 import UploadForm from "@/components/UploadForm";
 
 export default function UploadPage() {
