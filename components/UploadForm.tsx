@@ -38,7 +38,7 @@ export default function UploadForm() {
   const [eras, setEras] = useState<Era[]>([]);
   const [selectedEraId, setSelectedEraId] = useState<string>("");
   const [releaseCategory, setReleaseCategory] = useState<
-    "released" | "unreleased" | "og" | "stems" | "sessions"
+    "released" | "unreleased" | "stems"
   >("released");
   const [tracks, setTracks] = useState<TrackFormData[]>([
     {
@@ -228,8 +228,11 @@ export default function UploadForm() {
       duration: track.duration,
       file: track.file.trimEnd(),
       cover_image: track.coverImage.trimEnd(),
-      file_date: track.fileDate || undefined,
-      leak_date: track.leakDate || undefined,
+      file_date:
+        releaseCategory === "released"
+          ? track.leakDate
+          : track.fileDate || undefined,
+      leak_date: releaseCategory !== "released" ? track.leakDate : undefined,
       category: releaseCategory,
       type: track.type || undefined,
       available: releaseCategory !== "released" ? track.available : undefined,
@@ -285,7 +288,6 @@ export default function UploadForm() {
     }
   };
 
-  // Prevent spacebar from triggering play/pause when typing in inputs
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -297,6 +299,9 @@ export default function UploadForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-4">
+        <h2 className="text-2xl font-bold text-foreground text-center">
+          Upload New Track
+        </h2>
         <div>
           <label className="block text-sm font-medium text-foreground">
             Select Era
@@ -327,9 +332,7 @@ export default function UploadForm() {
           >
             <option value="released">Released</option>
             <option value="unreleased">Unreleased</option>
-            <option value="og">OG</option>
             <option value="stems">Stems</option>
-            <option value="sessions">Sessions</option>
           </select>
         </div>
 
@@ -397,22 +400,26 @@ export default function UploadForm() {
                   required
                 />
               </div>
+              {releaseCategory !== "released" && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    File Date
+                  </label>
+                  <input
+                    type="date"
+                    value={track.fileDate}
+                    onChange={(e) =>
+                      updateTrack(index, { ...track, fileDate: e.target.value })
+                    }
+                    className="w-full p-2 border rounded bg-background text-foreground"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-foreground">
-                  File Date
-                </label>
-                <input
-                  type="date"
-                  value={track.fileDate}
-                  onChange={(e) =>
-                    updateTrack(index, { ...track, fileDate: e.target.value })
-                  }
-                  className="w-full p-2 border rounded bg-background text-foreground"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Leak Date
+                  {releaseCategory === "released"
+                    ? "Release Date"
+                    : "Leak Date"}
                 </label>
                 <input
                   type="date"
