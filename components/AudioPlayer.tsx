@@ -10,7 +10,7 @@ import {
   faRepeat,
   faShuffle,
 } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 
 export default function AudioPlayer() {
@@ -33,14 +33,14 @@ export default function AudioPlayer() {
 
   const [showTimeLeft, setShowTimeLeft] = useState(false);
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     if (!currentTrack) return;
     if (isPlaying) {
       pauseTrack();
     } else {
       playTrack(currentTrack, sectionTracks);
     }
-  };
+  }, [currentTrack, isPlaying, pauseTrack, playTrack, sectionTracks]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

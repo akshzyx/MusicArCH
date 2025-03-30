@@ -65,7 +65,7 @@ async function EraContent({ eraId }: { eraId: string }) {
     tabOrder.find((category) => categories[category].length > 0) || "released";
 
   // Add mock likes to releases (since schema doesn't have them)
-  const releasesWithLikes = releases.map((release, index) => ({
+  const releasesWithLikes = releases.map((release) => ({
     ...release,
     likes: Math.floor(Math.random() * 5000) + 4000, // Random likes between 4k-9k
   }));
