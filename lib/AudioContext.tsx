@@ -164,7 +164,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    let nextIndex = isShuffle
+    const nextIndex = isShuffle
       ? Math.floor(Math.random() * sectionTracks.length)
       : (currentIndex + 1) % sectionTracks.length;
     console.log(
@@ -181,7 +181,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const currentIndex = getTrackIndex();
     if (currentIndex === -1) return;
 
-    let prevIndex = isShuffle
+    const prevIndex = isShuffle
       ? Math.floor(Math.random() * sectionTracks.length)
       : (currentIndex - 1 + sectionTracks.length) % sectionTracks.length;
     playTrack(sectionTracks[prevIndex], sectionTracks);

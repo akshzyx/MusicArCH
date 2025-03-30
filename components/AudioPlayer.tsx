@@ -11,6 +11,7 @@ import {
   faShuffle,
 } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function AudioPlayer() {
   const {
@@ -34,7 +35,11 @@ export default function AudioPlayer() {
 
   const handlePlayPause = () => {
     if (!currentTrack) return;
-    isPlaying ? pauseTrack() : playTrack(currentTrack, sectionTracks);
+    if (isPlaying) {
+      pauseTrack();
+    } else {
+      playTrack(currentTrack, sectionTracks);
+    }
   };
 
   useEffect(() => {
@@ -46,7 +51,7 @@ export default function AudioPlayer() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentTrack, isPlaying, sectionTracks]);
+  }, [currentTrack, isPlaying, sectionTracks, handlePlayPause]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!duration) return;
@@ -71,11 +76,15 @@ export default function AudioPlayer() {
     <div className="fixed bottom-2 left-1/2 transform -translate-x-1/2 w-11/12 sm:w-4/5 md:w-3/4 lg:w-3/4 bg-gray-900/60 backdrop-blur-xl text-white py-2 sm:py-3 md:py-4 px-4 sm:px-6 rounded-xl flex items-center justify-between gap-2 sm:gap-4 md:gap-6 shadow-2xl border border-gray-700">
       {/* Album Art & Title */}
       <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-auto min-w-0 truncate">
-        <img
+        <Image
           src={currentTrack.cover_image || "/default.jpg"}
           alt={`${currentTrack.title} Cover`}
           className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg object-cover"
-          onError={(e) => (e.currentTarget.src = "/default.jpg")}
+          width={48}
+          height={48}
+          onError={() => {
+            currentTrack.cover_image = "/default.jpg";
+          }}
         />
         <span className="font-semibold text-sm sm:text-base md:text-lg truncate">
           {currentTrack.title}

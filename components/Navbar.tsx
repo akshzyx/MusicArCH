@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSkull, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faSkull } from "@fortawesome/free-solid-svg-icons";
 
 const navItems = ["About"];
 
@@ -11,7 +11,7 @@ const NavBar = () => {
   const navContainerRef = useRef(null);
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
+  // const [searchQuery, setSearchQuery] = useState("");
   const [isMounted, setIsMounted] = useState(false); // Track hydration
 
   useEffect(() => {
@@ -30,9 +30,9 @@ const NavBar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setSearchQuery(e.target.value);
+  // };
 
   // Don’t render until mounted to avoid FOUC
   if (!isMounted) {
