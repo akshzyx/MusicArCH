@@ -79,13 +79,7 @@ async function EraContent({ eraId }: { eraId: string }) {
 }
 
 // Simplify the page component and use any to bypass the type issue temporarily
-interface EraPageProps {
-  params: {
-    eraId: string;
-  };
-}
-
-export default async function EraPage(props: EraPageProps) {
+export default async function EraPage(props: any) {
   const { params } = props as { params: { eraId: string } };
   return (
     <Suspense
