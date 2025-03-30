@@ -1,11 +1,11 @@
 import { supabase } from "@/lib/supabase";
 import Image from "next/image";
-import TrackList from "@/components/TrackList";
 import { Metadata } from "next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Suspense } from "react";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import EraContentClient from "@/components/EraContentClient"; // New client component
 
 // Metadata generation remains unchanged
 export async function generateMetadata({
@@ -30,7 +30,7 @@ export async function generateMetadata({
   };
 }
 
-// Separate data-fetching component
+// Server-side data-fetching component
 async function EraContent({ eraId }: { eraId: string }) {
   const { data: era, error: eraError } = await supabase
     .from("eras")
@@ -65,74 +65,20 @@ async function EraContent({ eraId }: { eraId: string }) {
     tabOrder.find((category) => categories[category].length > 0) || "released";
 
   // Add mock likes to releases (since schema doesn't have them)
-  const releasesWithLikes = categories[firstTabWithTracks].map(
-    (release, index) => ({
-      ...release,
-      likes: Math.floor(Math.random() * 5000) + 4000, // Random likes between 4k-9k
-    })
-  );
+  const releasesWithLikes = releases.map((release, index) => ({
+    ...release,
+    likes: Math.floor(Math.random() * 5000) + 4000, // Random likes between 4k-9k
+  }));
 
+  // Pass data to client component
   return (
-    <div className="bg-gray-900 text-white min-h-screen pb-15">
-      <div className="max-w-7xl mx-auto pt-12 px-4 sm:px-6 md:px-8">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row gap-6 mb-12 items-center md:items-start text-center md:text-left">
-          <Image
-            src={era.cover_image.trimEnd()}
-            alt={era.title}
-            width={300}
-            height={300}
-            className="rounded-lg w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] md:w-[300px] md:h-[300px] object-cover shadow-lg"
-          />
-          <div className="flex-1">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
-              {era.title}
-            </h1>
-            {era.description && (
-              <p className="text-gray-300 text-base sm:text-sm mb-6">
-                {era.description}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Tabs Section */}
-        <Tabs defaultValue={firstTabWithTracks} className="space-y-6">
-          <TabsList className="flex w-full bg-gray-800 rounded-lg p-1">
-            {tabOrder.map(
-              (category) =>
-                categories[category].length > 0 && (
-                  <TabsTrigger
-                    key={category}
-                    value={category}
-                    className="uppercase text-gray-300 flex-1 py-2 rounded-md data-[state=active]:bg-gray-700 data-[state=active]:text-white transition-colors"
-                  >
-                    {category}
-                  </TabsTrigger>
-                )
-            )}
-          </TabsList>
-          {tabOrder.map(
-            (category) =>
-              categories[category].length > 0 && (
-                <TabsContent key={category} value={category}>
-                  <div className="bg-gray-800 rounded-lg p-4">
-                    <TrackList
-                      initialTracks={categories[category].map(
-                        (release, index) => ({
-                          ...release,
-                          likes: Math.floor(Math.random() * 5000) + 4000,
-                        })
-                      )}
-                      sectionTracks={categories[category]}
-                    />
-                  </div>
-                </TabsContent>
-              )
-          )}
-        </Tabs>
-      </div>
-    </div>
+    <EraContentClient
+      era={era}
+      releasesWithLikes={releasesWithLikes}
+      categories={categories}
+      tabOrder={tabOrder}
+      firstTabWithTracks={firstTabWithTracks}
+    />
   );
 }
 

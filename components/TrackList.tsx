@@ -23,9 +23,11 @@ import {
 export default function TrackList({
   initialTracks,
   sectionTracks,
+  isCategorizedView = false, // New prop for toggle state
 }: {
   initialTracks: (Release & { likes?: number })[];
   sectionTracks: Release[];
+  isCategorizedView?: boolean;
 }) {
   const [tracks, setTracks] =
     useState<(Release & { likes?: number })[]>(initialTracks);
@@ -250,90 +252,238 @@ export default function TrackList({
     }
   };
 
+  // Categorized View Logic
+  const renderCategorizedView = () => {
+    // Define order for released track types
+    const releasedTypeOrder = [
+      "Single",
+      "Album Track",
+      "Loosie",
+      "Beat",
+      "Remix",
+      "Feature",
+      "Production",
+      "Demo",
+    ];
+
+    // Define order for unreleased/stems track types
+    const additionalTypeOrder = [
+      "Music",
+      "Features With",
+      "Features Without",
+      "Early Sessions",
+      "Instrumentals",
+      "Acapellas",
+      "Stems",
+      "Dolby Atmos",
+      "Sessions",
+      "TV Tracks",
+    ];
+
+    // Group tracks based on category
+    const groupedTracks =
+      sectionTracks[0]?.category === "released"
+        ? releasedTypeOrder
+            .map((type) => ({
+              type,
+              tracks: tracks.filter((t) => t.type === type),
+            }))
+            .filter((group) => group.tracks.length > 0)
+        : additionalTypeOrder
+            .map((type) => ({
+              type,
+              tracks: tracks.filter((t) => t.track_type === type),
+            }))
+            .filter((group) => group.tracks.length > 0);
+
+    return (
+      <div className="space-y-6">
+        {groupedTracks.map((group, groupIndex) => (
+          <div key={groupIndex}>
+            {/* Skip "Music" title for unreleased/stems */}
+            {sectionTracks[0]?.category === "released" ||
+            group.type !== "Music" ? (
+              <h3 className="text-lg font-semibold text-white mb-2">
+                {group.type}
+              </h3>
+            ) : null}
+            <ul className="space-y-2">
+              {group.tracks.map((track, index) => (
+                <li
+                  key={track.id}
+                  className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
+                    currentTrack?.id === track.id
+                      ? "bg-gray-700/50 text-white"
+                      : "hover:bg-gray-800/50 text-gray-300"
+                  }`}
+                  onMouseEnter={() => setHoveredTrackId(track.id)}
+                  onMouseLeave={() => setHoveredTrackId(null)}
+                >
+                  <div className="flex items-center space-x-4 flex-1 min-w-0">
+                    <button
+                      onClick={() => handlePlayPause(track)}
+                      className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
+                        currentTrack?.id === track.id && isPlaying
+                          ? "text-green-400"
+                          : "text-gray-400 hover:text-green-400"
+                      }`}
+                    >
+                      {currentTrack?.id === track.id ? (
+                        isPlaying ? (
+                          <FontAwesomeIcon icon={faPause} size="xs" />
+                        ) : (
+                          <FontAwesomeIcon icon={faPlay} size="xs" />
+                        )
+                      ) : hoveredTrackId === track.id ? (
+                        <FontAwesomeIcon icon={faPlay} size="xs" />
+                      ) : (
+                        <span className="text-gray-400">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                      )}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-white font-medium truncate block">
+                        {track.title}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {track.type && (
+                      <span className={getBadgeStyles("type", track.type)}>
+                        {track.type}
+                      </span>
+                    )}
+                    {track.category !== "released" && track.available && (
+                      <span
+                        className={getBadgeStyles("available", track.available)}
+                      >
+                        {track.available}
+                      </span>
+                    )}
+                    {track.category !== "released" && track.quality && (
+                      <span
+                        className={getBadgeStyles("quality", track.quality)}
+                      >
+                        {track.quality}
+                      </span>
+                    )}
+                    <span className="ml-3 text-gray-400 text-xs tabular-nums">
+                      {track.duration}
+                    </span>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEdit(track)}
+                        className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+                        title="Edit Track"
+                      >
+                        <FontAwesomeIcon icon={faPencil} size="sm" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(track)}
+                        className="text-red-400 hover:text-red-300 transition-colors p-1"
+                        title="Delete Track"
+                      >
+                        <FontAwesomeIcon icon={faTrash} size="sm" />
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Default View Logic (unchanged)
+  const renderDefaultView = () => (
+    <ul className="space-y-2">
+      {tracks.map((track, index) => (
+        <li
+          key={track.id}
+          className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
+            currentTrack?.id === track.id
+              ? "bg-gray-700/50 text-white"
+              : "hover:bg-gray-800/50 text-gray-300"
+          }`}
+          onMouseEnter={() => setHoveredTrackId(track.id)}
+          onMouseLeave={() => setHoveredTrackId(null)}
+        >
+          <div className="flex items-center space-x-4 flex-1 min-w-0">
+            <button
+              onClick={() => handlePlayPause(track)}
+              className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
+                currentTrack?.id === track.id && isPlaying
+                  ? "text-green-400"
+                  : "text-gray-400 hover:text-green-400"
+              }`}
+            >
+              {currentTrack?.id === track.id ? (
+                isPlaying ? (
+                  <FontAwesomeIcon icon={faPause} size="xs" />
+                ) : (
+                  <FontAwesomeIcon icon={faPlay} size="xs" />
+                )
+              ) : hoveredTrackId === track.id ? (
+                <FontAwesomeIcon icon={faPlay} size="xs" />
+              ) : (
+                <span className="text-gray-400">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              )}
+            </button>
+            <div className="flex-1 min-w-0">
+              <span className="text-white font-medium truncate block">
+                {track.title}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            {track.type && (
+              <span className={getBadgeStyles("type", track.type)}>
+                {track.type}
+              </span>
+            )}
+            {track.category !== "released" && track.available && (
+              <span className={getBadgeStyles("available", track.available)}>
+                {track.available}
+              </span>
+            )}
+            {track.category !== "released" && track.quality && (
+              <span className={getBadgeStyles("quality", track.quality)}>
+                {track.quality}
+              </span>
+            )}
+            <span className="ml-3 text-gray-400 text-xs tabular-nums">
+              {track.duration}
+            </span>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleEdit(track)}
+                className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+                title="Edit Track"
+              >
+                <FontAwesomeIcon icon={faPencil} size="sm" />
+              </button>
+              <button
+                onClick={() => handleDelete(track)}
+                className="text-red-400 hover:text-red-300 transition-colors p-1"
+                title="Delete Track"
+              >
+                <FontAwesomeIcon icon={faTrash} size="sm" />
+              </button>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <div>
-      <ul className="space-y-2">
-        {tracks.map((track, index) => (
-          <li
-            key={track.id}
-            className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
-              currentTrack?.id === track.id
-                ? "bg-gray-700/50 text-white"
-                : "hover:bg-gray-800/50 text-gray-300"
-            }`}
-            onMouseEnter={() => setHoveredTrackId(track.id)}
-            onMouseLeave={() => setHoveredTrackId(null)}
-          >
-            <div className="flex items-center space-x-4 flex-1 min-w-0">
-              <button
-                onClick={() => handlePlayPause(track)}
-                className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
-                  currentTrack?.id === track.id && isPlaying
-                    ? "text-green-400"
-                    : "text-gray-400 hover:text-green-400"
-                }`}
-              >
-                {currentTrack?.id === track.id ? (
-                  isPlaying ? (
-                    <FontAwesomeIcon icon={faPause} size="xs" />
-                  ) : (
-                    <FontAwesomeIcon icon={faPlay} size="xs" />
-                  )
-                ) : hoveredTrackId === track.id ? (
-                  <FontAwesomeIcon icon={faPlay} size="xs" />
-                ) : (
-                  <span className="text-gray-400">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                )}
-              </button>
-              <div className="flex-1 min-w-0">
-                <span className="text-white font-medium truncate block">
-                  {track.title}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {/* Badges for type, available, and quality (non-released only) */}
-              {track.type && (
-                <span className={getBadgeStyles("type", track.type)}>
-                  {track.type}
-                </span>
-              )}
-              {track.category !== "released" && track.available && (
-                <span className={getBadgeStyles("available", track.available)}>
-                  {track.available}
-                </span>
-              )}
-              {track.category !== "released" && track.quality && (
-                <span className={getBadgeStyles("quality", track.quality)}>
-                  {track.quality}
-                </span>
-              )}
-              {/* Add extra spacing before duration */}
-              <span className="ml-3 text-gray-400 text-xs tabular-nums">
-                {track.duration}
-              </span>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleEdit(track)}
-                  className="text-blue-400 hover:text-blue-300 transition-colors p-1"
-                  title="Edit Track"
-                >
-                  <FontAwesomeIcon icon={faPencil} size="sm" />
-                </button>
-                <button
-                  onClick={() => handleDelete(track)}
-                  className="text-red-400 hover:text-red-300 transition-colors p-1"
-                  title="Delete Track"
-                >
-                  <FontAwesomeIcon icon={faTrash} size="sm" />
-                </button>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {isCategorizedView ? renderCategorizedView() : renderDefaultView()}
 
       {/* Edit Dialog */}
       <Dialog
