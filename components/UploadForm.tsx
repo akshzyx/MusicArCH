@@ -14,6 +14,18 @@ interface TrackFormData {
   fileDate: string;
   leakDate: string;
   type: string;
+  trackType?: // New field for the additional track_type
+  | "Music"
+    | "Features With"
+    | "Features Without"
+    | "Early Sessions"
+    | "Instrumentals"
+    | "Acapellas"
+    | "Stems"
+    | "Dolby Atmos"
+    | "Sessions"
+    | "TV Tracks"
+    | "";
   available:
     | "Confirmed"
     | "Partial"
@@ -49,6 +61,7 @@ export default function UploadForm() {
       fileDate: "",
       leakDate: "",
       type: "",
+      trackType: "",
       available: "",
       quality: "",
       notes: "",
@@ -154,6 +167,7 @@ export default function UploadForm() {
         fileDate: "",
         leakDate: "",
         type: "",
+        trackType: "",
         available: "",
         quality: "",
         notes: "",
@@ -220,17 +234,30 @@ export default function UploadForm() {
         );
         return;
       }
+      // Require trackType for unreleased and stems
+      if (
+        (releaseCategory === "unreleased" || releaseCategory === "stems") &&
+        !track.trackType
+      ) {
+        showAlert(
+          "Incomplete Track Details",
+          `Please select a track type for track ${i + 1} (${
+            releaseCategory === "unreleased" ? "unreleased" : "stems"
+          } category).`
+        );
+        return;
+      }
     }
 
     const selectedEra = eras.find((era) => era.id === selectedEraId);
-    const defaultCoverImage = selectedEra?.cover_image || ""; // Fallback to empty string if no cover_image in era
+    const defaultCoverImage = selectedEra?.cover_image || "";
 
     const newReleases: Omit<Release, "id">[] = tracks.map((track) => ({
       era_id: selectedEraId,
       title: track.title,
       duration: track.duration,
       file: track.file.trimEnd(),
-      cover_image: track.coverImage.trimEnd() || defaultCoverImage, // Use track coverImage if provided, otherwise era cover_image
+      cover_image: track.coverImage.trimEnd() || defaultCoverImage,
       file_date:
         releaseCategory === "released"
           ? track.leakDate
@@ -238,6 +265,7 @@ export default function UploadForm() {
       leak_date: releaseCategory !== "released" ? track.leakDate : undefined,
       category: releaseCategory,
       type: track.type || undefined,
+      track_type: track.trackType || undefined, // New field for Supabase
       available: releaseCategory !== "released" ? track.available : undefined,
       quality: releaseCategory !== "released" ? track.quality : undefined,
       notes: track.notes || undefined,
@@ -273,6 +301,7 @@ export default function UploadForm() {
           fileDate: "",
           leakDate: "",
           type: "",
+          trackType: "",
           available: "",
           quality: "",
           notes: "",
@@ -436,17 +465,86 @@ export default function UploadForm() {
                 <label className="block text-sm font-medium text-foreground">
                   Track Type
                 </label>
-                <input
-                  type="text"
+                <select
                   value={track.type}
                   onChange={(e) =>
                     updateTrack(index, { ...track, type: e.target.value })
                   }
-                  onKeyDown={handleKeyDown}
                   className="w-full p-2 border rounded bg-background text-foreground"
-                  placeholder="Enter track type"
-                />
+                >
+                  <option value="" disabled>
+                    Select track type
+                  </option>
+                  {releaseCategory === "released" ? (
+                    <>
+                      <option value="Loosie">Loosie</option>
+                      <option value="Single">Single</option>
+                      <option value="Beat">Beat</option>
+                      <option value="Album Track">Album Track</option>
+                      <option value="Remix">Remix</option>
+                      <option value="Feature">Feature</option>
+                      <option value="Production">Production</option>
+                      <option value="Demo">Demo</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="Beat">Beat</option>
+                      <option value="Demo">Demo</option>
+                      <option value="Remix">Remix</option>
+                      <option value="Throwaway">Throwaway</option>
+                      <option value="Cancer">Cancer</option>
+                      <option value="Unknown">Unknown</option>
+                      <option value="Project File">Project File</option>
+                      <option value="Reference">Reference</option>
+                      <option value="ALT File">ALT File</option>
+                      <option value="Feature">Feature</option>
+                      <option value="Cover">Cover</option>
+                    </>
+                  )}
+                </select>
               </div>
+              {(releaseCategory === "unreleased" ||
+                releaseCategory === "stems") && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Additional Track Type
+                  </label>
+                  <select
+                    value={track.trackType}
+                    onChange={(e) =>
+                      updateTrack(index, {
+                        ...track,
+                        trackType: e.target.value as TrackFormData["trackType"],
+                      })
+                    }
+                    className="w-full p-2 border rounded bg-background text-foreground"
+                    required
+                  >
+                    <option value="" disabled>
+                      Select additional track type
+                    </option>
+                    {releaseCategory === "unreleased" ? (
+                      <>
+                        <option value="Music">Music</option>
+                        <option value="Features With">Features With</option>
+                        <option value="Features Without">
+                          Features Without
+                        </option>
+                        <option value="Early Sessions">Early Sessions</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="Instrumentals">Instrumentals</option>
+                        <option value="Acapellas">Acapellas</option>
+                        <option value="Stems">Stems</option>
+                        <option value="Dolby Atmos">Dolby Atmos</option>
+                        <option value="Sessions">Sessions</option>
+                        <option value="TV Tracks">TV Tracks</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              )}
               {releaseCategory !== "released" && (
                 <>
                   <div>
