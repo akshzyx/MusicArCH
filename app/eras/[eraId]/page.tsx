@@ -76,11 +76,13 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-export default async function EraPage({
-  params,
-}: {
+// Add this interface to properly type your page props
+interface EraPageProps {
   params: { eraId: string };
-}) {
+  searchParams: Record<string, string | string[] | undefined>;
+}
+
+export default async function EraPage({ params }: EraPageProps) {
   return (
     <Suspense
       fallback={
