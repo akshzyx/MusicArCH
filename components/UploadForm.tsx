@@ -539,7 +539,7 @@ export default function UploadForm() {
                     </option>
                     {releaseCategory === "unreleased" ? (
                       <>
-                        <option value="Music">Music</option>
+                        <option value="Music">Fragments</option>
                         <option value="Features With">Features With</option>
                         <option value="Features Without">
                           Features Without

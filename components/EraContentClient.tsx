@@ -25,7 +25,38 @@ export default function EraContentClient({
   tabOrder,
   firstTabWithTracks,
 }: EraContentClientProps) {
-  const [isCategorizedView, setIsCategorizedView] = useState(false);
+  const [activeTab, setActiveTab] = useState(firstTabWithTracks);
+  const [viewMode, setViewMode] = useState<
+    "default" | "trackType" | "releaseType" | "available" | "quality"
+  >("default");
+
+  // Define view modes based on tab
+  const releasedViewModes = ["default", "trackType"];
+  const otherViewModes = [
+    "default",
+    "trackType", // For track_type (Fragments, Early Sessions, etc.)
+    "releaseType", // For type (Beat, Demo, Remix, etc.)
+    "available",
+    "quality",
+  ];
+
+  const getViewModes = (category: string) =>
+    category === "released" ? releasedViewModes : otherViewModes;
+
+  const nextViewMode = (currentCategory: string) => {
+    const viewModes = getViewModes(currentCategory);
+    const currentIndex = viewModes.indexOf(viewMode);
+    const nextIndex = (currentIndex + 1) % viewModes.length;
+    setViewMode(viewModes[nextIndex]);
+  };
+
+  // Handle tab change and reset viewMode to "default" if switching to "released"
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    if (newTab === "released" && !releasedViewModes.includes(viewMode)) {
+      setViewMode("default");
+    }
+  };
 
   return (
     <div className="bg-gray-900 text-white min-h-screen pb-15">
@@ -52,7 +83,11 @@ export default function EraContentClient({
         </div>
 
         {/* Tabs Section */}
-        <Tabs defaultValue={firstTabWithTracks} className="space-y-6">
+        <Tabs
+          defaultValue={firstTabWithTracks}
+          className="space-y-6"
+          onValueChange={handleTabChange} // Updated to use custom handler
+        >
           <div className="flex items-center bg-gray-800 rounded-lg p-1">
             <TabsList className="flex w-full bg-transparent">
               {tabOrder.map(
@@ -69,10 +104,18 @@ export default function EraContentClient({
               )}
             </TabsList>
             <button
-              onClick={() => setIsCategorizedView(!isCategorizedView)}
+              onClick={() => nextViewMode(activeTab)}
               className="px-3 py-1 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap ml-2"
             >
-              {isCategorizedView ? "Default" : "Categorized"}
+              {viewMode === "default"
+                ? "Default"
+                : viewMode === "trackType"
+                ? "Track Type"
+                : viewMode === "releaseType"
+                ? "Release Type"
+                : viewMode === "available"
+                ? "Available"
+                : "Quality"}
             </button>
           </div>
           {tabOrder.map(
@@ -85,7 +128,7 @@ export default function EraContentClient({
                         (r) => r.category === category
                       )}
                       sectionTracks={categories[category]}
-                      isCategorizedView={isCategorizedView}
+                      viewMode={viewMode}
                     />
                   </div>
                 </TabsContent>

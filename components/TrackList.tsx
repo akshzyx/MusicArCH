@@ -23,11 +23,11 @@ import {
 export default function TrackList({
   initialTracks,
   sectionTracks,
-  isCategorizedView = false, // New prop for toggle state
+  viewMode = "default",
 }: {
   initialTracks: (Release & { likes?: number })[];
   sectionTracks: Release[];
-  isCategorizedView?: boolean;
+  viewMode?: "default" | "trackType" | "releaseType" | "available" | "quality";
 }) {
   const [tracks, setTracks] =
     useState<(Release & { likes?: number })[]>(initialTracks);
@@ -212,7 +212,6 @@ export default function TrackList({
     }
   };
 
-  // Badge styling based on value
   const getBadgeStyles = (field: string, value: string) => {
     const baseStyles =
       "px-1.5 py-0.5 text-[10px] rounded-full border border-gray-600";
@@ -254,8 +253,7 @@ export default function TrackList({
 
   // Categorized View Logic
   const renderCategorizedView = () => {
-    // Define order for released track types
-    const releasedTypeOrder = [
+    const releasedTrackTypeOrder = [
       "Single",
       "Album Track",
       "Loosie",
@@ -266,9 +264,22 @@ export default function TrackList({
       "Demo",
     ];
 
-    // Define order for unreleased/stems track types
+    const releaseTypeOrder = [
+      "Beat",
+      "Demo",
+      "Remix",
+      "Throwaway",
+      "Cancer",
+      "Unknown",
+      "Project File",
+      "Reference",
+      "ALT File",
+      "Feature",
+      "Cover",
+    ];
+
     const additionalTypeOrder = [
-      "Music",
+      "Fragments", // Maps to "Music" in DB
       "Features With",
       "Features Without",
       "Early Sessions",
@@ -280,33 +291,125 @@ export default function TrackList({
       "TV Tracks",
     ];
 
-    // Group tracks based on category
-    const groupedTracks =
-      sectionTracks[0]?.category === "released"
-        ? releasedTypeOrder
-            .map((type) => ({
-              type,
-              tracks: tracks.filter((t) => t.type === type),
-            }))
-            .filter((group) => group.tracks.length > 0)
-        : additionalTypeOrder
-            .map((type) => ({
-              type,
-              tracks: tracks.filter((t) => t.track_type === type),
-            }))
-            .filter((group) => group.tracks.length > 0);
+    const availableOrder = [
+      "Confirmed",
+      "Partial",
+      "Snippet",
+      "Full",
+      "Rumored",
+      "OG File",
+    ];
+
+    const qualityOrder = [
+      "High Quality",
+      "Recording",
+      "Lossless",
+      "Low Quality",
+      "CD Quality",
+      "Not Available",
+    ];
+
+    let groupedTracks;
+    if (sectionTracks[0]?.category === "released") {
+      // Released: Only categorize by trackType using a limited set
+      if (viewMode === "trackType") {
+        groupedTracks = releasedTrackTypeOrder
+          .map((type) => ({
+            type,
+            tracks: tracks.filter((t) => t.type === type),
+          }))
+          .filter((group) => group.tracks.length > 0);
+        // Add tracks with no type or outside list as "Unknown"
+        const noTypeTracks = tracks.filter(
+          (t) => !t.type || !releasedTrackTypeOrder.includes(t.type)
+        );
+        if (noTypeTracks.length > 0) {
+          groupedTracks.push({ type: "Unknown", tracks: noTypeTracks });
+        }
+      } else {
+        groupedTracks = [];
+      }
+    } else {
+      // Unreleased/Stems: Categorize based on viewMode
+      if (viewMode === "trackType") {
+        groupedTracks = additionalTypeOrder
+          .map((type) => ({
+            type,
+            tracks: tracks.filter(
+              (t) => t.track_type === (type === "Fragments" ? "Music" : type)
+            ),
+          }))
+          .filter((group) => group.tracks.length > 0);
+        // Add tracks with no track_type as "Unknown"
+        const noTrackTypeTracks = tracks.filter(
+          (t) => !t.track_type || !additionalTypeOrder.includes(t.track_type)
+        );
+        if (noTrackTypeTracks.length > 0) {
+          groupedTracks.push({ type: "Unknown", tracks: noTrackTypeTracks });
+        }
+      } else if (viewMode === "releaseType") {
+        groupedTracks = releaseTypeOrder
+          .map((type) => ({
+            type,
+            tracks: tracks.filter((t) => t.type === type),
+          }))
+          .filter((group) => group.tracks.length > 0);
+        // Add tracks with no type or outside list as "Unknown"
+        const noTypeTracks = tracks.filter(
+          (t) => !t.type || !releaseTypeOrder.includes(t.type)
+        );
+        if (noTypeTracks.length > 0) {
+          groupedTracks.push({ type: "Unknown", tracks: noTypeTracks });
+        }
+      } else if (viewMode === "available") {
+        groupedTracks = availableOrder
+          .map((available) => ({
+            type: available,
+            tracks: tracks.filter((t) => t.available === available),
+          }))
+          .filter((group) => group.tracks.length > 0);
+        // Add tracks with no availability as "Unknown"
+        const noAvailableTracks = tracks.filter(
+          (t) => !t.available || !availableOrder.includes(t.available)
+        );
+        if (noAvailableTracks.length > 0) {
+          groupedTracks.push({ type: "Unknown", tracks: noAvailableTracks });
+        }
+      } else if (viewMode === "quality") {
+        groupedTracks = qualityOrder
+          .map((quality) => ({
+            type: quality,
+            tracks: tracks.filter((t) => t.quality === quality),
+          }))
+          .filter((group) => group.tracks.length > 0);
+        // Add tracks with no quality as "Not Available"
+        const noQualityTracks = tracks.filter(
+          (t) => !t.quality || !qualityOrder.includes(t.quality)
+        );
+        if (noQualityTracks.length > 0) {
+          groupedTracks.push({
+            type: "Not Available",
+            tracks: noQualityTracks,
+          });
+        }
+      } else {
+        groupedTracks = [];
+      }
+    }
+
+    if (groupedTracks.length === 0) {
+      return (
+        <p className="text-gray-400">No tracks available for this view.</p>
+      );
+    }
 
     return (
       <div className="space-y-6">
         {groupedTracks.map((group, groupIndex) => (
           <div key={groupIndex}>
-            {/* Skip "Music" title for unreleased/stems */}
-            {sectionTracks[0]?.category === "released" ||
-            group.type !== "Music" ? (
-              <h3 className="text-lg font-semibold text-white mb-2">
-                {group.type}
-              </h3>
-            ) : null}
+            <h3 className="text-lg font-semibold text-white mb-2">
+              {group.type}
+            </h3>
             <ul className="space-y-2">
               {group.tracks.map((track, index) => (
                 <li
@@ -397,7 +500,6 @@ export default function TrackList({
     );
   };
 
-  // Default View Logic (unchanged)
   const renderDefaultView = () => (
     <ul className="space-y-2">
       {tracks.map((track, index) => (
@@ -483,7 +585,7 @@ export default function TrackList({
 
   return (
     <div>
-      {isCategorizedView ? renderCategorizedView() : renderDefaultView()}
+      {viewMode === "default" ? renderDefaultView() : renderCategorizedView()}
 
       {/* Edit Dialog */}
       <Dialog
@@ -536,16 +638,26 @@ export default function TrackList({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300">
-                Track Type
+                Release Type
               </label>
-              <input
-                type="text"
+              <select
                 value={trackType}
                 onChange={(e) => setTrackType(e.target.value)}
-                onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter track type"
-              />
+              >
+                <option value="">None</option>
+                <option value="Beat">Beat</option>
+                <option value="Demo">Demo</option>
+                <option value="Remix">Remix</option>
+                <option value="Throwaway">Throwaway</option>
+                <option value="Cancer">Cancer</option>
+                <option value="Unknown">Unknown</option>
+                <option value="Project File">Project File</option>
+                <option value="Reference">Reference</option>
+                <option value="ALT File">ALT File</option>
+                <option value="Feature">Feature</option>
+                <option value="Cover">Cover</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300">
