@@ -1,13 +1,10 @@
 import { supabase } from "@/lib/supabase";
-// import Image from "next/image";
 import { Metadata } from "next";
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Suspense } from "react";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import EraContentClient from "@/components/EraContentClient"; // New client component
+import EraContentClient from "@/components/EraContentClient";
 
-// Metadata generation remains unchanged
 export async function generateMetadata({
   params,
 }: {
@@ -30,17 +27,14 @@ export async function generateMetadata({
   };
 }
 
-// Server-side data-fetching component
 async function EraContent({ eraId }: { eraId: string }) {
-  const { data: era, error: eraError } = await supabase
-    .from("eras")
-    .select("*")
-    .eq("id", eraId)
-    .single();
-  const { data: releases, error: releasesError } = await supabase
-    .from("releases")
-    .select("*")
-    .eq("era_id", eraId);
+  const [
+    { data: era, error: eraError },
+    { data: releases, error: releasesError },
+  ] = await Promise.all([
+    supabase.from("eras").select("*").eq("id", eraId).single(),
+    supabase.from("releases").select("*").eq("era_id", eraId),
+  ]);
 
   if (eraError || releasesError || !era) {
     return (
@@ -62,15 +56,15 @@ async function EraContent({ eraId }: { eraId: string }) {
 
   const tabOrder = ["released", "unreleased", "stems"];
   const firstTabWithTracks =
-    tabOrder.find((category) => categories[category].length > 0) || "released";
+    tabOrder.find(
+      (category) => categories[category as keyof typeof categories].length > 0
+    ) || "released";
 
-  // Add mock likes to releases (since schema doesn't have them)
   const releasesWithLikes = releases.map((release) => ({
     ...release,
-    likes: Math.floor(Math.random() * 5000) + 4000, // Random likes between 4k-9k
+    likes: Math.floor(Math.random() * 5000) + 4000,
   }));
 
-  // Pass data to client component
   return (
     <EraContentClient
       era={era}
@@ -82,13 +76,16 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Main page component with Suspense
-export default function EraPage({ params }: { params: { eraId: string } }) {
+export default async function EraPage({
+  params,
+}: {
+  params: { eraId: string };
+}) {
   return (
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">
-          <FontAwesomeIcon icon={faSpinner} spinPulse />{" "}
+          <FontAwesomeIcon icon={faSpinner} spinPulse />
         </div>
       }
     >
