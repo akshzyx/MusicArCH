@@ -14,8 +14,8 @@ interface TrackFormData {
   fileDate: string;
   leakDate: string;
   type: string;
-  trackType?: // New field for the additional track_type
-  | "Music"
+  trackType?:
+    | "Music"
     | "Features With"
     | "Features Without"
     | "Early Sessions"
@@ -44,6 +44,9 @@ interface TrackFormData {
     | "";
   notes: string;
   isLoadingDuration?: boolean;
+  credit?: string; // New optional field
+  og_filename?: string; // New optional field
+  aka?: string; // New optional field
 }
 
 export default function UploadForm() {
@@ -66,6 +69,9 @@ export default function UploadForm() {
       quality: "",
       notes: "",
       isLoadingDuration: false,
+      credit: "",
+      og_filename: "",
+      aka: "",
     },
   ]);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -172,6 +178,9 @@ export default function UploadForm() {
         quality: "",
         notes: "",
         isLoadingDuration: false,
+        credit: "",
+        og_filename: "",
+        aka: "",
       },
     ]);
   };
@@ -234,7 +243,6 @@ export default function UploadForm() {
         );
         return;
       }
-      // Require trackType for unreleased and stems
       if (
         (releaseCategory === "unreleased" || releaseCategory === "stems") &&
         !track.trackType
@@ -265,10 +273,13 @@ export default function UploadForm() {
       leak_date: releaseCategory !== "released" ? track.leakDate : undefined,
       category: releaseCategory,
       type: track.type || undefined,
-      track_type: track.trackType || undefined, // New field for Supabase
+      track_type: track.trackType || undefined,
       available: releaseCategory !== "released" ? track.available : undefined,
       quality: releaseCategory !== "released" ? track.quality : undefined,
       notes: track.notes || undefined,
+      credit: track.credit || undefined, // New field for Supabase
+      og_filename: track.og_filename || undefined, // New field for Supabase
+      aka: track.aka || undefined, // New field for Supabase
     }));
 
     const { error: insertError } = await supabase
@@ -306,6 +317,9 @@ export default function UploadForm() {
           quality: "",
           notes: "",
           isLoadingDuration: false,
+          credit: "",
+          og_filename: "",
+          aka: "",
         },
       ]);
     }
@@ -602,6 +616,54 @@ export default function UploadForm() {
                   </div>
                 </>
               )}
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  Credit (optional)
+                </label>
+                <input
+                  type="text"
+                  value={track.credit}
+                  onChange={(e) =>
+                    updateTrack(index, { ...track, credit: e.target.value })
+                  }
+                  onKeyDown={handleKeyDown}
+                  className="w-full p-2 border rounded bg-background text-foreground"
+                  placeholder="e.g., feat. Joji, prod. Joji"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  Original Filename (optional)
+                </label>
+                <input
+                  type="text"
+                  value={track.og_filename}
+                  onChange={(e) =>
+                    updateTrack(index, {
+                      ...track,
+                      og_filename: e.target.value,
+                    })
+                  }
+                  onKeyDown={handleKeyDown}
+                  className="w-full p-2 border rounded bg-background text-foreground"
+                  placeholder="e.g., original_track_name.mp3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  AKA (optional)
+                </label>
+                <input
+                  type="text"
+                  value={track.aka}
+                  onChange={(e) =>
+                    updateTrack(index, { ...track, aka: e.target.value })
+                  }
+                  onKeyDown={handleKeyDown}
+                  className="w-full p-2 border rounded bg-background text-foreground"
+                  placeholder="e.g., alternative song names"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">
                   Notes

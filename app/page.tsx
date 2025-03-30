@@ -1,27 +1,30 @@
-// app/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import EraCard from "@/components/EraCard";
 import { Era } from "@/lib/types";
-import { getCachedData } from "@/lib/dataCache";
+import { getCachedData, refetchData } from "@/lib/dataCache";
 
 export default function Home() {
   const [data, setData] = useState<{ eras: Era[] }>({ eras: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch or get cached data on mount
-    getCachedData()
+    // Check if this is a full page refresh
+    const isPageRefresh = performance.navigation.type === 0; // 0 = TYPE_NAVIGATE (full refresh)
+
+    const fetchData = isPageRefresh ? refetchData : getCachedData;
+
+    fetchData()
       .then((cachedData) => {
         setData({ eras: cachedData.eras });
         setLoading(false);
       })
       .catch((error) => {
-        console.log("Error loading cached data:", error);
+        console.log("Error loading data:", error);
         setLoading(false);
       });
-  }, []);
+  }, []); // Empty dependency array ensures this runs only on mount
 
   if (loading) {
     return (

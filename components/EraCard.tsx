@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Era, Release } from "@/lib/types";
-import { getCachedData } from "@/lib/dataCache";
+import { getCachedData, refetchData } from "@/lib/dataCache";
 import { useEffect, useState } from "react";
 
 interface EraCardProps {
@@ -15,7 +15,12 @@ export default function EraCard({ era }: EraCardProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getCachedData()
+    // Check if this is a full page refresh
+    const isPageRefresh = performance.navigation.type === 0; // 0 = TYPE_NAVIGATE (full refresh)
+
+    const fetchData = isPageRefresh ? refetchData : getCachedData;
+
+    fetchData()
       .then((cachedData) => {
         setReleases(cachedData.releases.filter((r) => r.era_id === era.id));
       })
