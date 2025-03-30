@@ -1,18 +1,15 @@
 import { supabase } from "@/lib/supabase";
-import { NextPage } from "next"; // Import NextPage
+import { Metadata } from "next";
 import { Suspense } from "react";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EraContentClient from "@/components/EraContentClient";
 
-// Define props using Next.js's expected structure
-type EraPageProps = {
+export async function generateMetadata({
+  params,
+}: {
   params: { eraId: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
-// Use NextPage to type the component
-export async function generateMetadata({ params }: EraPageProps) {
+}): Promise<Metadata> {
   const { data: era, error } = await supabase
     .from("eras")
     .select("title")
@@ -79,8 +76,11 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Type the default export with NextPage
-const EraPage: NextPage<EraPageProps> = async ({ params }) => {
+export default async function EraPage({
+  params,
+}: {
+  params: { eraId: string };
+}) {
   return (
     <Suspense
       fallback={
@@ -92,6 +92,4 @@ const EraPage: NextPage<EraPageProps> = async ({ params }) => {
       <EraContent eraId={params.eraId} />
     </Suspense>
   );
-};
-
-export default EraPage;
+}
