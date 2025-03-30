@@ -5,11 +5,15 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EraContentClient from "@/components/EraContentClient";
 
+// Define the props type explicitly for a Next.js dynamic route page
+interface EraPageProps {
+  params: { eraId: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
 export async function generateMetadata({
   params,
-}: {
-  params: { eraId: string };
-}): Promise<Metadata> {
+}: EraPageProps): Promise<Metadata> {
   const { data: era, error } = await supabase
     .from("eras")
     .select("title")
@@ -74,12 +78,6 @@ async function EraContent({ eraId }: { eraId: string }) {
       firstTabWithTracks={firstTabWithTracks}
     />
   );
-}
-
-// Add this interface to properly type your page props
-interface EraPageProps {
-  params: { eraId: string };
-  searchParams: Record<string, string | string[] | undefined>;
 }
 
 export default async function EraPage({ params }: EraPageProps) {
