@@ -24,7 +24,7 @@ export async function generateMetadata({
   }
 
   return {
-   ccccc    title: `${era.title} - JojiArCH`,
+    title: `${era.title} - JojiArCH`,
   };
 }
 
@@ -79,7 +79,9 @@ async function EraContent({ eraId }: { eraId: string }) {
 }
 
 // Use type assertion to bypass the PageProps constraint
-export default async function EraPage(props: { params: { eraId: string } } & { [key: string]: any }) {
+export default async function EraPage(
+  props: { params: { eraId: string } } & { [key: string]: any }
+) {
   const { params } = props as { params: { eraId: string } };
   return (
     <Suspense
