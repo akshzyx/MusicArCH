@@ -24,7 +24,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${era.title} - JojiArCH`,
+   ccccc    title: `${era.title} - JojiArCH`,
   };
 }
 
@@ -78,12 +78,9 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Use a type that mimics Next.js dynamic route props
-export default async function EraPage({
-  params,
-}: {
-  params: { [key: string]: string }; // Broader type to match dynamic route params
-}) {
+// Use type assertion to bypass the PageProps constraint
+export default async function EraPage(props: { params: { eraId: string } } & { [key: string]: any }) {
+  const { params } = props as { params: { eraId: string } };
   return (
     <Suspense
       fallback={
