@@ -25,12 +25,12 @@ export default function TrackList({
   sectionTracks,
   viewMode = "default",
 }: {
-  initialTracks: (Release & { likes?: number })[];
+  initialTracks: (Release & { likes?: number; credit?: string })[];
   sectionTracks: Release[];
   viewMode?: "default" | "trackType" | "releaseType" | "available" | "quality";
 }) {
   const [tracks, setTracks] =
-    useState<(Release & { likes?: number })[]>(initialTracks);
+    useState<(Release & { likes?: number; credit?: string })[]>(initialTracks);
   const [editingTrack, setEditingTrack] = useState<Release | null>(null);
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
@@ -52,6 +52,7 @@ export default function TrackList({
   const [trackFileDate, setTrackFileDate] = useState("");
   const [trackLeakDate, setTrackLeakDate] = useState("");
   const [trackNotes, setTrackNotes] = useState("");
+  const [trackCredit, setTrackCredit] = useState(""); // Added credit state
   const { currentTrack, isPlaying, playTrack, pauseTrack, stopTrack } =
     useAudio();
   const [alertOpen, setAlertOpen] = useState(false);
@@ -97,6 +98,7 @@ export default function TrackList({
     setTrackFileDate(track.file_date || "");
     setTrackLeakDate(track.leak_date || "");
     setTrackNotes(track.notes || "");
+    setTrackCredit(track.credit || ""); // Set initial credit value
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -121,6 +123,7 @@ export default function TrackList({
       era_id: editingTrack.era_id,
       category: editingTrack.category,
       cover_image: editingTrack.cover_image,
+      credit: trackCredit || undefined, // Include credit in update
     };
 
     const { error } = await supabase
@@ -158,6 +161,7 @@ export default function TrackList({
       setTrackFileDate("");
       setTrackLeakDate("");
       setTrackNotes("");
+      setTrackCredit(""); // Clear credit state
     }
   };
 
@@ -202,6 +206,7 @@ export default function TrackList({
     setTrackFileDate("");
     setTrackLeakDate("");
     setTrackNotes("");
+    setTrackCredit(""); // Clear credit state
   };
 
   const handlePlayPause = (track: Release) => {
@@ -319,7 +324,6 @@ export default function TrackList({
 
     let groupedTracks;
     if (sectionTracks[0]?.category === "released") {
-      // Released: Only categorize by trackType using a limited set
       if (viewMode === "trackType") {
         groupedTracks = releasedTrackTypeOrder
           .map((type) => ({
@@ -327,7 +331,6 @@ export default function TrackList({
             tracks: tracks.filter((t) => t.type === type),
           }))
           .filter((group) => group.tracks.length > 0);
-        // Add tracks with no type or outside list as "Unknown"
         const noTypeTracks = tracks.filter(
           (t) => !t.type || !releasedTrackTypeOrder.includes(t.type)
         );
@@ -338,7 +341,6 @@ export default function TrackList({
         groupedTracks = [];
       }
     } else {
-      // Unreleased/Stems: Categorize based on viewMode
       if (viewMode === "trackType") {
         groupedTracks = additionalTypeOrder
           .map((type) => ({
@@ -348,7 +350,6 @@ export default function TrackList({
             ),
           }))
           .filter((group) => group.tracks.length > 0);
-        // Add tracks with no track_type as "Unknown"
         const noTrackTypeTracks = tracks.filter(
           (t) => !t.track_type || !additionalTypeOrder.includes(t.track_type)
         );
@@ -362,7 +363,6 @@ export default function TrackList({
             tracks: tracks.filter((t) => t.type === type),
           }))
           .filter((group) => group.tracks.length > 0);
-        // Add tracks with no type or outside list as "Unknown"
         const noTypeTracks = tracks.filter(
           (t) => !t.type || !releaseTypeOrder.includes(t.type)
         );
@@ -376,7 +376,6 @@ export default function TrackList({
             tracks: tracks.filter((t) => t.available === available),
           }))
           .filter((group) => group.tracks.length > 0);
-        // Add tracks with no availability as "Unknown"
         const noAvailableTracks = tracks.filter(
           (t) => !t.available || !availableOrder.includes(t.available)
         );
@@ -390,7 +389,6 @@ export default function TrackList({
             tracks: tracks.filter((t) => t.quality === quality),
           }))
           .filter((group) => group.tracks.length > 0);
-        // Add tracks with no quality as "Not Available"
         const noQualityTracks = tracks.filter(
           (t) => !t.quality || !qualityOrder.includes(t.quality)
         );
@@ -455,7 +453,12 @@ export default function TrackList({
                     </button>
                     <div className="flex-1 min-w-0">
                       <span className="text-white font-medium truncate block">
-                        {track.title}
+                        {track.title}{" "}
+                        {track.credit && (
+                          <span className="text-gray-400 text-xs">
+                            {track.credit}
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -518,7 +521,6 @@ export default function TrackList({
               ? "bg-gray-700/50 text-white"
               : "hover:bg-gray-800/50 text-gray-300"
           }`}
-          遵編輯
           onMouseEnter={() => setHoveredTrackId(track.id)}
           onMouseLeave={() => setHoveredTrackId(null)}
         >
@@ -547,7 +549,10 @@ export default function TrackList({
             </button>
             <div className="flex-1 min-w-0">
               <span className="text-white font-medium truncate block">
-                {track.title}
+                {track.title}{" "}
+                {track.credit && (
+                  <span className="text-gray-400 text-xs">{track.credit}</span>
+                )}
               </span>
             </div>
           </div>
@@ -567,7 +572,7 @@ export default function TrackList({
                 {track.quality}
               </span>
             )}
-            <span className="ml-3 text-gray-400 text-xs tabular-nums">
+            <span className="ml-3 text-gray-400 text-xs HASH(0x7f8e1c058eb0) tabular-nums">
               {track.duration}
             </span>
             <div className="flex space-x-2">
@@ -634,7 +639,7 @@ export default function TrackList({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300">
-                Track URL (GitHub) BufferedWriter{" "}
+                Track URL (GitHub)
               </label>
               <input
                 type="url"
@@ -643,6 +648,19 @@ export default function TrackList({
                 onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300">
+                Credit
+              </label>
+              <input
+                type="text"
+                value={trackCredit}
+                onChange={(e) => setTrackCredit(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., prod, feat"
               />
             </div>
             {editingTrack?.category === "released" && (
