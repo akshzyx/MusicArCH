@@ -5,7 +5,7 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EraContentClient from "@/components/EraContentClient";
 
-// Metadata function remains unchanged
+// Metadata function (unchanged)
 export async function generateMetadata({
   params,
 }: {
@@ -28,7 +28,7 @@ export async function generateMetadata({
   };
 }
 
-// EraContent remains unchanged
+// EraContent function (unchanged)
 async function EraContent({ eraId }: { eraId: string }) {
   const [
     { data: era, error: eraError },
@@ -78,9 +78,13 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Simplify the page component and use any to bypass the type issue temporarily
-export default async function EraPage(props: any) {
-  const { params } = props as { params: { eraId: string } };
+// Define a minimal type that satisfies Next.js and avoids no-explicit-any
+type DynamicPageProps = {
+  params: { eraId: string };
+};
+
+// Use the specific type instead of any
+export default async function EraPage({ params }: DynamicPageProps) {
   return (
     <Suspense
       fallback={
