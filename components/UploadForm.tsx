@@ -190,12 +190,12 @@ export default function UploadForm() {
     }
     for (let i = 0; i < tracks.length; i++) {
       const track = tracks[i];
-      if (!track.title || !track.duration || !track.file || !track.coverImage) {
+      if (!track.title || !track.duration || !track.file) {
         showAlert(
           "Incomplete Track Details",
-          `Please fill in all track details for track ${
+          `Please fill in all required track details (title, URL, duration) for track ${
             i + 1
-          }, including the cover image URL.`
+          }.`
         );
         return;
       }
@@ -222,12 +222,15 @@ export default function UploadForm() {
       }
     }
 
+    const selectedEra = eras.find((era) => era.id === selectedEraId);
+    const defaultCoverImage = selectedEra?.cover_image || ""; // Fallback to empty string if no cover_image in era
+
     const newReleases: Omit<Release, "id">[] = tracks.map((track) => ({
       era_id: selectedEraId,
       title: track.title,
       duration: track.duration,
       file: track.file.trimEnd(),
-      cover_image: track.coverImage.trimEnd(),
+      cover_image: track.coverImage.trimEnd() || defaultCoverImage, // Use track coverImage if provided, otherwise era cover_image
       file_date:
         releaseCategory === "released"
           ? track.leakDate
@@ -386,7 +389,7 @@ export default function UploadForm() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">
-                  Cover Image URL (GitHub)
+                  Cover Image URL (GitHub, optional)
                 </label>
                 <input
                   type="url"
@@ -396,8 +399,7 @@ export default function UploadForm() {
                   }
                   onKeyDown={handleKeyDown}
                   className="w-full p-2 border rounded bg-background text-foreground"
-                  placeholder="Enter cover image URL"
-                  required
+                  placeholder="Enter cover image URL (or leave blank for era default)"
                 />
               </div>
               {releaseCategory !== "released" && (
