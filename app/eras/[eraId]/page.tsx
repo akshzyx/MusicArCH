@@ -1,35 +1,35 @@
 import { supabase } from "@/lib/supabase";
-import { Metadata } from "next";
+import { Metadata, NextPage } from "next"; // Import NextPage
 import { Suspense } from "react";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EraContentClient from "@/components/EraContentClient";
 
-// Define the props type explicitly for a Next.js dynamic route page
-interface EraPageProps {
+// Define props using Next.js's expected structure
+type EraPageProps = {
   params: { eraId: string };
   searchParams: { [key: string]: string | string[] | undefined };
-}
+};
 
-export async function generateMetadata({
-  params,
-}: EraPageProps): Promise<Metadata> {
-  const { data: era, error } = await supabase
-    .from("eras")
-    .select("title")
-    .eq("id", params.eraId)
-    .single();
+// Use NextPage to type the component
+export const generateMetadata: NextPage<EraPageProps>["generateMetadata"] =
+  async ({ params }) => {
+    const { data: era, error } = await supabase
+      .from("eras")
+      .select("title")
+      .eq("id", params.eraId)
+      .single();
 
-  if (error || !era) {
+    if (error || !era) {
+      return {
+        title: "Era Not Found - JojiArCH",
+      };
+    }
+
     return {
-      title: "Era Not Found - JojiArCH",
+      title: `${era.title} - JojiArCH`,
     };
-  }
-
-  return {
-    title: `${era.title} - JojiArCH`,
   };
-}
 
 async function EraContent({ eraId }: { eraId: string }) {
   const [
@@ -80,7 +80,8 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-export default async function EraPage({ params }: EraPageProps) {
+// Type the default export with NextPage
+const EraPage: NextPage<EraPageProps> = async ({ params }) => {
   return (
     <Suspense
       fallback={
@@ -92,4 +93,6 @@ export default async function EraPage({ params }: EraPageProps) {
       <EraContent eraId={params.eraId} />
     </Suspense>
   );
-}
+};
+
+export default EraPage;
