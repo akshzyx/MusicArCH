@@ -5,7 +5,7 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EraContentClient from "@/components/EraContentClient";
 
-// Metadata function remains unchanged
+// Metadata function (unchanged)
 export async function generateMetadata({
   params,
 }: {
@@ -28,7 +28,7 @@ export async function generateMetadata({
   };
 }
 
-// EraContent remains unchanged
+// EraContent function (unchanged)
 async function EraContent({ eraId }: { eraId: string }) {
   const [
     { data: era, error: eraError },
@@ -78,12 +78,12 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Simplify the page component and use any to bypass the type issue temporarily
-// ... (rest of the file unchanged)
-
-export default async function EraPage(props: any) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { params } = props as { params: { eraId: string } };
+// Use a type that mimics Next.js dynamic route props
+export default async function EraPage({
+  params,
+}: {
+  params: { [key: string]: string }; // Broader type to match dynamic route params
+}) {
   return (
     <Suspense
       fallback={
