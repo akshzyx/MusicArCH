@@ -36,6 +36,7 @@ export default function TrackList({
   const [trackDuration, setTrackDuration] = useState("");
   const [trackFile, setTrackFile] = useState("");
   const [trackType, setTrackType] = useState("");
+  const [trackTrackType, setTrackTrackType] = useState("");
   const [trackAvailable, setTrackAvailable] = useState<
     "Confirmed" | "Partial" | "Snippet" | "Full" | "Rumored" | "OG File" | ""
   >("");
@@ -90,6 +91,7 @@ export default function TrackList({
     setTrackDuration(track.duration);
     setTrackFile(track.file);
     setTrackType(track.type || "");
+    setTrackTrackType(track.track_type || "");
     setTrackAvailable(track.available || "");
     setTrackQuality(track.quality || "");
     setTrackFileDate(track.file_date || "");
@@ -106,6 +108,10 @@ export default function TrackList({
       duration: trackDuration,
       file: trackFile.trimEnd(),
       type: trackType || undefined,
+      track_type:
+        editingTrack.category !== "released"
+          ? trackTrackType || undefined
+          : undefined,
       available:
         editingTrack.category !== "released" ? trackAvailable : undefined,
       quality: editingTrack.category !== "released" ? trackQuality : undefined,
@@ -146,6 +152,7 @@ export default function TrackList({
       setTrackDuration("");
       setTrackFile("");
       setTrackType("");
+      setTrackTrackType("");
       setTrackAvailable("");
       setTrackQuality("");
       setTrackFileDate("");
@@ -189,6 +196,7 @@ export default function TrackList({
     setTrackDuration("");
     setTrackFile("");
     setTrackType("");
+    setTrackTrackType("");
     setTrackAvailable("");
     setTrackQuality("");
     setTrackFileDate("");
@@ -510,6 +518,7 @@ export default function TrackList({
               ? "bg-gray-700/50 text-white"
               : "hover:bg-gray-800/50 text-gray-300"
           }`}
+          遵編輯
           onMouseEnter={() => setHoveredTrackId(track.id)}
           onMouseLeave={() => setHoveredTrackId(null)}
         >
@@ -625,7 +634,7 @@ export default function TrackList({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300">
-                Track URL (GitHub)
+                Track URL (GitHub) BufferedWriter{" "}
               </label>
               <input
                 type="url"
@@ -636,29 +645,77 @@ export default function TrackList({
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300">
-                Release Type
-              </label>
-              <select
-                value={trackType}
-                onChange={(e) => setTrackType(e.target.value)}
-                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">None</option>
-                <option value="Beat">Beat</option>
-                <option value="Demo">Demo</option>
-                <option value="Remix">Remix</option>
-                <option value="Throwaway">Throwaway</option>
-                <option value="Cancer">Cancer</option>
-                <option value="Unknown">Unknown</option>
-                <option value="Project File">Project File</option>
-                <option value="Reference">Reference</option>
-                <option value="ALT File">ALT File</option>
-                <option value="Feature">Feature</option>
-                <option value="Cover">Cover</option>
-              </select>
-            </div>
+            {editingTrack?.category === "released" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300">
+                  Track Type
+                </label>
+                <select
+                  value={trackType}
+                  onChange={(e) => setTrackType(e.target.value)}
+                  className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">None</option>
+                  <option value="Single">Single</option>
+                  <option value="Album Track">Album Track</option>
+                  <option value="Loosie">Loosie</option>
+                  <option value="Beat">Beat</option>
+                  <option value="Remix">Remix</option>
+                  <option value="Feature">Feature</option>
+                  <option value="Production">Production</option>
+                  <option value="Demo">Demo</option>
+                </select>
+              </div>
+            )}
+            {editingTrack?.category !== "released" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300">
+                  Release Type
+                </label>
+                <select
+                  value={trackType}
+                  onChange={(e) => setTrackType(e.target.value)}
+                  className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">None</option>
+                  <option value="Beat">Beat</option>
+                  <option value="Demo">Demo</option>
+                  <option value="Remix">Remix</option>
+                  <option value="Throwaway">Throwaway</option>
+                  <option value="Cancer">Cancer</option>
+                  <option value="Unknown">Unknown</option>
+                  <option value="Project File">Project File</option>
+                  <option value="Reference">Reference</option>
+                  <option value="ALT File">ALT File</option>
+                  <option value="Feature">Feature</option>
+                  <option value="Cover">Cover</option>
+                </select>
+              </div>
+            )}
+            {editingTrack?.category !== "released" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300">
+                  Track Type
+                </label>
+                <select
+                  value={trackTrackType}
+                  onChange={(e) => setTrackTrackType(e.target.value)}
+                  className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">None</option>
+                  <option value="Fragments">Fragments</option>
+                  <option value="Features With">Features With</option>
+                  <option value="Features Without">Features Without</option>
+                  <option value="Early Sessions">Early Sessions</option>
+                  <option value="Instrumentals">Instrumentals</option>
+                  <option value="Acapellas">Acapellas</option>
+                  <option value="Stems">Stems</option>
+                  <option value="Dolby Atmos">Dolby Atmos</option>
+                  <option value="Sessions">Sessions</option>
+                  <option value="TV Tracks">TV Tracks</option>
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-300">
                 File Date
