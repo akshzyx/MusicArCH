@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Metadata, NextPage } from "next"; // Import NextPage
+import { NextPage } from "next"; // Import NextPage
 import { Suspense } from "react";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -12,24 +12,23 @@ type EraPageProps = {
 };
 
 // Use NextPage to type the component
-export const generateMetadata: NextPage<EraPageProps>["generateMetadata"] =
-  async ({ params }) => {
-    const { data: era, error } = await supabase
-      .from("eras")
-      .select("title")
-      .eq("id", params.eraId)
-      .single();
+export async function generateMetadata({ params }: EraPageProps) {
+  const { data: era, error } = await supabase
+    .from("eras")
+    .select("title")
+    .eq("id", params.eraId)
+    .single();
 
-    if (error || !era) {
-      return {
-        title: "Era Not Found - JojiArCH",
-      };
-    }
-
+  if (error || !era) {
     return {
-      title: `${era.title} - JojiArCH`,
+      title: "Era Not Found - JojiArCH",
     };
+  }
+
+  return {
+    title: `${era.title} - JojiArCH`,
   };
+}
 
 async function EraContent({ eraId }: { eraId: string }) {
   const [
