@@ -9,58 +9,52 @@ interface CachedData {
   timestamp: number;
 }
 
-const CACHE_KEY = "jojiArchData";
+// Singleton cache instance
+const DataCache = (() => {
+  let cache: CachedData | null = null;
 
-// Fetch data from Supabase
-async function fetchAllData(): Promise<CachedData> {
-  const { data: eras, error: erasError } = await supabase
-    .from("eras")
-    .select("id, title, album_rank, cover_image")
-    .limit(50)
-    .order("album_rank", { ascending: true });
+  // Fetch data from Supabase
+  async function fetchData(): Promise<CachedData> {
+    console.log("Fetching fresh data from Supabase");
+    const { data: eras, error: erasError } = await supabase
+      .from("eras")
+      .select("id, title, album_rank, cover_image")
+      .limit(50)
+      .order("album_rank", { ascending: true });
 
-  const { data: releases, error: releasesError } = await supabase
-    .from("releases")
-    .select("*");
+    const { data: releases, error: releasesError } = await supabase
+      .from("releases")
+      .select("*");
 
-  if (erasError || releasesError) {
-    throw new Error("Failed to fetch data");
+    if (erasError || releasesError) {
+      throw new Error("Failed to fetch data");
+    }
+
+    const data = {
+      eras: eras || [],
+      releases: releases || [],
+      timestamp: Date.now(),
+    };
+
+    cache = data; // Update cache
+    return data;
   }
 
   return {
-    eras: eras || [],
-    releases: releases || [],
-    timestamp: Date.now(),
+    getCachedData: async (): Promise<CachedData> => {
+      if (typeof window === "undefined") {
+        return { eras: [], releases: [], timestamp: 0 };
+      }
+      if (cache) {
+        console.log("Returning cached data");
+        return cache;
+      }
+      return fetchData(); // Initial fetch if no cache
+    },
+    refetchData: async (): Promise<CachedData> => {
+      return fetchData(); // Always fetch fresh data
+    },
   };
-}
+})();
 
-// Get or fetch data
-export function getCachedData(): Promise<CachedData> {
-  if (typeof window === "undefined") {
-    // Server-side fallback (empty data)
-    return Promise.resolve({
-      eras: [],
-      releases: [],
-      timestamp: 0,
-    });
-  }
-
-  const cached = localStorage.getItem(CACHE_KEY);
-  if (cached) {
-    return Promise.resolve(JSON.parse(cached));
-  }
-
-  // Fetch and cache if not present
-  return fetchAllData().then((data) => {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    return data;
-  });
-}
-
-// Refetch on reload
-export function refetchData(): Promise<CachedData> {
-  return fetchAllData().then((data) => {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    return data;
-  });
-}
+export const { getCachedData, refetchData } = DataCache;

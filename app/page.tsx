@@ -10,21 +10,34 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if this is a full page refresh
-    const isPageRefresh = performance.navigation.type === 0; // 0 = TYPE_NAVIGATE (full refresh)
+    console.log("useEffect running - checking navigation type");
+    const loadData = async () => {
+      try {
+        // Check if this is a refresh or initial load
+        const navigationType = (
+          performance.getEntriesByType(
+            "navigation"
+          )[0] as PerformanceNavigationTiming
+        )?.type;
+        console.log("Navigation type:", navigationType); // Log type: "navigate", "reload", etc.
 
-    const fetchData = isPageRefresh ? refetchData : getCachedData;
-
-    fetchData()
-      .then((cachedData) => {
-        setData({ eras: cachedData.eras });
-        setLoading(false);
-      })
-      .catch((error) => {
+        const shouldRefetch =
+          navigationType === "reload" || navigationType === "navigate";
+        const dataToUse = shouldRefetch
+          ? await refetchData()
+          : await getCachedData();
+        setData({ eras: dataToUse.eras });
+      } catch (error) {
         console.log("Error loading data:", error);
+        const cachedData = await getCachedData();
+        setData({ eras: cachedData.eras });
+      } finally {
         setLoading(false);
-      });
-  }, []); // Empty dependency array ensures this runs only on mount
+      }
+    };
+
+    loadData();
+  }, []); // Runs only on mount (initial load, refresh, reopen)
 
   if (loading) {
     return (
