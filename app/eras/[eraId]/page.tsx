@@ -5,7 +5,6 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EraContentClient from "@/components/EraContentClient";
 
-// Metadata function (unchanged)
 export async function generateMetadata({
   params,
 }: {
@@ -28,7 +27,6 @@ export async function generateMetadata({
   };
 }
 
-// EraContent function (unchanged)
 async function EraContent({ eraId }: { eraId: string }) {
   const [
     { data: era, error: eraError },
@@ -78,9 +76,17 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Use type assertion to bypass the PageProps constraint
-export default async function EraPage(props: { params: { eraId: string } }) {
-  const { params } = props as { params: { eraId: string } };
+// Properly typed page component with PageProps
+interface PageProps {
+  params: {
+    eraId: string;
+  };
+  searchParams?: {
+    [key: string]: string | string[] | undefined;
+  };
+}
+
+export default async function EraPage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
