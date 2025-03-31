@@ -78,12 +78,11 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Simplified default export without complex type assertion
-export default async function EraPage({
-  params,
-}: {
-  params: { eraId: string };
-}) {
+// Use type assertion to bypass the PageProps constraint
+export default async function EraPage(
+  props /*: { params: { eraId: string }; [key: string]: unknown }*/ // Commented out the problematic type definition
+) {
+  const { params } = props as { params: { eraId: string } };
   return (
     <Suspense
       fallback={
