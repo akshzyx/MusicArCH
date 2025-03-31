@@ -2,9 +2,10 @@ import "./globals.css";
 import { Metadata } from "next";
 import { IBM_Plex_Sans_Thai_Looped } from "next/font/google";
 import ClientWrapper from "@/components/ClientWrapper";
-import Navbar from "@/components/Navbar"; // Ensure this points to the right file
+import Navbar from "@/components/Navbar";
 import { ReactNode } from "react";
 import { AudioProvider } from "@/lib/AudioContext";
+import { ClerkProvider } from "@clerk/nextjs"; // Add ClerkProvider
 
 export const metadata: Metadata = {
   title: "JojiArCH",
@@ -20,17 +21,19 @@ const ibmPlexSansThaiLooped = IBM_Plex_Sans_Thai_Looped({
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark" data-darkreader-lock>
-      <body
-        className={`${ibmPlexSansThaiLooped.variable} bg-background text-foreground font-sans pt-20`}
-      >
-        <AudioProvider>
-          <div className="sticky top-0 w-full z-50">
-            <Navbar />
-          </div>
-          <ClientWrapper>{children}</ClientWrapper>
-        </AudioProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className="dark" data-darkreader-lock>
+        <body
+          className={`${ibmPlexSansThaiLooped.variable} bg-background text-foreground font-sans pt-20`}
+        >
+          <AudioProvider>
+            <div className="sticky top-0 w-full z-50">
+              <Navbar />
+            </div>
+            <ClientWrapper>{children}</ClientWrapper>
+          </AudioProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

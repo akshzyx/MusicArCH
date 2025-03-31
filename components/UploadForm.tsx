@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Release, Era } from "@/lib/types";
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
+import { useUser } from "@clerk/nextjs"; // Add Clerk hook
 
 interface TrackFormData {
   title: string;
@@ -44,12 +45,13 @@ interface TrackFormData {
     | "";
   notes: string;
   isLoadingDuration?: boolean;
-  credit?: string; // New optional field
-  og_filename?: string; // New optional field
-  aka?: string; // New optional field
+  credit?: string;
+  og_filename?: string;
+  aka?: string;
 }
 
 export default function UploadForm() {
+  const { user, isSignedIn } = useUser(); // Get user info from Clerk
   const [eras, setEras] = useState<Era[]>([]);
   const [selectedEraId, setSelectedEraId] = useState<string>("");
   const [releaseCategory, setReleaseCategory] = useState<
@@ -79,6 +81,9 @@ export default function UploadForm() {
   const [alertDescription, setAlertDescription] = useState("");
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const router = useRouter();
+
+  // Check if user is admin based on publicMetadata
+  const isAdmin = user?.publicMetadata?.role === "admin";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -197,6 +202,11 @@ export default function UploadForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isSignedIn || !isAdmin) {
+      showAlert("Unauthorized", "Only admins can upload tracks.");
+      return;
+    }
+
     console.log("Submitting with:", {
       selectedEraId,
       releaseCategory,
@@ -283,9 +293,9 @@ export default function UploadForm() {
           ? track.quality
           : undefined,
       notes: track.notes || undefined,
-      credit: track.credit || undefined, // New field for Supabase
-      og_filename: track.og_filename || undefined, // New field for Supabase
-      aka: track.aka || undefined, // New field for Supabase
+      credit: track.credit || undefined,
+      og_filename: track.og_filename || undefined,
+      aka: track.aka || undefined,
     }));
 
     const { error: insertError } = await supabase
@@ -347,6 +357,17 @@ export default function UploadForm() {
       e.stopPropagation();
     }
   };
+
+  if (!isSignedIn || !isAdmin) {
+    return (
+      <div className="text-center p-4">
+        <h2 className="text-2xl font-bold text-foreground">Access Denied</h2>
+        <p className="text-foreground">
+          You must be signed in as an admin to upload tracks.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -114,10 +114,10 @@ export default function AboutPage() {
             Have feedback, suggestions, or want to contribute? Reach out to us
             at{" "}
             <a
-              href="mailto:contact@jojiarch.com"
+              href="mailto:tres.suing503@passfwd.com"
               className="text-blue-400 hover:text-blue-300 transition-colors"
             >
-              contact@jojiarch.com
+              tres.suing503@passfwd.com
             </a>
             .
           </p>

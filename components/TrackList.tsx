@@ -19,6 +19,7 @@ import {
   faPlay,
   faPause,
 } from "@fortawesome/free-solid-svg-icons";
+import { useUser } from "@clerk/nextjs"; // Add Clerk hook
 
 export default function TrackList({
   initialTracks,
@@ -29,6 +30,8 @@ export default function TrackList({
   sectionTracks: Release[];
   viewMode?: "default" | "trackType" | "releaseType" | "available" | "quality";
 }) {
+  const { isSignedIn, user } = useUser(); // Get user info from Clerk
+  const isAdmin = isSignedIn && user?.publicMetadata?.role === "admin"; // Check if admin
   const [tracks, setTracks] =
     useState<(Release & { credit?: string })[]>(initialTracks);
   const [editingTrack, setEditingTrack] = useState<Release | null>(null);
@@ -37,7 +40,6 @@ export default function TrackList({
   const [trackFile, setTrackFile] = useState("");
   const [trackType, setTrackType] = useState("");
   const [trackTrackType, setTrackTrackType] = useState("");
-  // Adjusted type to exclude "" as a valid state value
   const [trackAvailable, setTrackAvailable] = useState<
     | "Confirmed"
     | "Partial"
@@ -91,6 +93,10 @@ export default function TrackList({
   };
 
   const handleEdit = (track: Release) => {
+    if (!isAdmin) {
+      showAlert("Unauthorized", "Only admins can edit tracks.");
+      return;
+    }
     if (currentTrack?.id === track.id && isPlaying) {
       pauseTrack();
     }
@@ -100,8 +106,8 @@ export default function TrackList({
     setTrackFile(track.file);
     setTrackType(track.type || "");
     setTrackTrackType(track.track_type || "");
-    setTrackAvailable(track.available); // No || "" here, just the value or undefined
-    setTrackQuality(track.quality); // No || "" here, just the value or undefined
+    setTrackAvailable(track.available);
+    setTrackQuality(track.quality);
     setTrackFileDate(track.file_date || "");
     setTrackLeakDate(track.leak_date || "");
     setTrackNotes(track.notes || "");
@@ -110,6 +116,10 @@ export default function TrackList({
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      showAlert("Unauthorized", "Only admins can update tracks.");
+      return;
+    }
     if (!editingTrack) return;
 
     const updatedTrack = {
@@ -160,8 +170,8 @@ export default function TrackList({
       setTrackFile("");
       setTrackType("");
       setTrackTrackType("");
-      setTrackAvailable(undefined); // Reset to undefined instead of ""
-      setTrackQuality(undefined); // Reset to undefined instead of ""
+      setTrackAvailable(undefined);
+      setTrackQuality(undefined);
       setTrackFileDate("");
       setTrackLeakDate("");
       setTrackNotes("");
@@ -170,6 +180,10 @@ export default function TrackList({
   };
 
   const handleDelete = async (track: Release) => {
+    if (!isAdmin) {
+      showAlert("Unauthorized", "Only admins can delete tracks.");
+      return;
+    }
     showAlert(
       "Confirm Deletion",
       `Are you sure you want to delete "${track.title}"?`,
@@ -205,8 +219,8 @@ export default function TrackList({
     setTrackFile("");
     setTrackType("");
     setTrackTrackType("");
-    setTrackAvailable(undefined); // Reset to undefined instead of ""
-    setTrackQuality(undefined); // Reset to undefined instead of ""
+    setTrackAvailable(undefined);
+    setTrackQuality(undefined);
     setTrackFileDate("");
     setTrackLeakDate("");
     setTrackNotes("");
@@ -489,22 +503,24 @@ export default function TrackList({
                     <span className="ml-3 text-gray-400 text-xs tabular-nums">
                       {track.duration}
                     </span>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(track)}
-                        className="text-blue-400 hover:text-blue-300 transition-colors p-1"
-                        title="Edit Track"
-                      >
-                        <FontAwesomeIcon icon={faPencil} size="sm" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(track)}
-                        className="text-red-400 hover:text-red-300 transition-colors p-1"
-                        title="Delete Track"
-                      >
-                        <FontAwesomeIcon icon={faTrash} size="sm" />
-                      </button>
-                    </div>
+                    {isAdmin && ( // Show edit/delete buttons only to admins
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEdit(track)}
+                          className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+                          title="Edit Track"
+                        >
+                          <FontAwesomeIcon icon={faPencil} size="sm" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(track)}
+                          className="text-red-400 hover:text-red-300 transition-colors p-1"
+                          title="Delete Track"
+                        >
+                          <FontAwesomeIcon icon={faTrash} size="sm" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </li>
               ))}
@@ -579,22 +595,24 @@ export default function TrackList({
             <span className="ml-3 text-gray-400 text-xs tabular-nums">
               {track.duration}
             </span>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleEdit(track)}
-                className="text-blue-400 hover:text-blue-300 transition-colors p-1"
-                title="Edit Track"
-              >
-                <FontAwesomeIcon icon={faPencil} size="sm" />
-              </button>
-              <button
-                onClick={() => handleDelete(track)}
-                className="text-red-400 hover:text-red-300 transition-colors p-1"
-                title="Delete Track"
-              >
-                <FontAwesomeIcon icon={faTrash} size="sm" />
-              </button>
-            </div>
+            {isAdmin && ( // Show edit/delete buttons only to admins
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleEdit(track)}
+                  className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+                  title="Edit Track"
+                >
+                  <FontAwesomeIcon icon={faPencil} size="sm" />
+                </button>
+                <button
+                  onClick={() => handleDelete(track)}
+                  className="text-red-400 hover:text-red-300 transition-colors p-1"
+                  title="Delete Track"
+                >
+                  <FontAwesomeIcon icon={faTrash} size="sm" />
+                </button>
+              </div>
+            )}
           </div>
         </li>
       ))}
