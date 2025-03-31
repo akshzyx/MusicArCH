@@ -52,7 +52,14 @@ export default function EraContentClient({
     const viewModes = getViewModes(currentCategory);
     const currentIndex = viewModes.indexOf(viewMode);
     const nextIndex = (currentIndex + 1) % viewModes.length;
-    setViewMode(viewModes[nextIndex]);
+    setViewMode(
+      viewModes[nextIndex] as
+        | "default"
+        | "trackType"
+        | "releaseType"
+        | "available"
+        | "quality"
+    );
   };
 
   // Handle tab change and reset viewMode to "default" if switching to "released"
