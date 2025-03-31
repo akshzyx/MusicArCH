@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Add useEffect
 import Image from "next/image";
 import TrackList from "@/components/TrackList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,12 +30,17 @@ export default function EraContentClient({
     "default" | "trackType" | "releaseType" | "available" | "quality"
   >("default");
 
+  // Scroll to top when the component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array ensures it runs only on mount
+
   // Define view modes based on tab
   const releasedViewModes = ["default", "trackType"];
   const otherViewModes = [
     "default",
-    "trackType", // For track_type (Fragments, Early Sessions, etc.)
-    "releaseType", // For type (Beat, Demo, Remix, etc.)
+    "trackType",
+    "releaseType",
     "available",
     "quality",
   ];
@@ -86,7 +91,7 @@ export default function EraContentClient({
         <Tabs
           defaultValue={firstTabWithTracks}
           className="space-y-6"
-          onValueChange={handleTabChange} // Updated to use custom handler
+          onValueChange={handleTabChange}
         >
           <div className="flex items-center bg-gray-800 rounded-lg p-1">
             <TabsList className="flex w-full bg-transparent">
