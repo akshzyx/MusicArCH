@@ -10,6 +10,9 @@ import { ClerkProvider } from "@clerk/nextjs"; // Add ClerkProvider
 export const metadata: Metadata = {
   title: "JojiArCH",
   description: "Complete Joji & his aliases discography",
+  icons: {
+    icon: "/favicon.svg", // Direct path to SVG
+  },
 };
 
 const ibmPlexSansThaiLooped = IBM_Plex_Sans_Thai_Looped({
