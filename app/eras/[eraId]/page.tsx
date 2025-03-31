@@ -8,12 +8,13 @@ import EraContentClient from "@/components/EraContentClient";
 export async function generateMetadata({
   params,
 }: {
-  params: { eraId: string };
+  params: Promise<{ eraId: string }>; // Updated to Promise
 }): Promise<Metadata> {
+  const resolvedParams = await params; // Await the params
   const { data: era, error } = await supabase
     .from("eras")
     .select("title")
-    .eq("id", params.eraId)
+    .eq("id", resolvedParams.eraId)
     .single();
 
   if (error || !era) {
@@ -76,17 +77,14 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Properly typed page component with PageProps
+// Updated interface to handle params as a Promise
 interface PageProps {
-  params: {
-    eraId: string;
-  };
-  searchParams?: {
-    [key: string]: string | string[] | undefined;
-  };
+  params: Promise<{ eraId: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function EraPage({ params }: PageProps) {
+  const resolvedParams = await params; // Await the params Promise
   return (
     <Suspense
       fallback={
@@ -95,7 +93,7 @@ export default async function EraPage({ params }: PageProps) {
         </div>
       }
     >
-      <EraContent eraId={params.eraId} />
+      <EraContent eraId={resolvedParams.eraId} />
     </Suspense>
   );
 }
