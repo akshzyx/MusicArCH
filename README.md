@@ -2,8 +2,9 @@
 
 _A fan-made archive celebrating Joji's musical evolution through his iconic eras._
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fakshzyx%2FMusicArch)  
-🌐 **Live Site**: [https://jojiarch.vercel.app](https://jojiarch.vercel.app)
+<!-- [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fakshzyx%2FMusicArch)   -->
+
+🌐 **Live Site**: [JojiArCH](https://jojiarch.vercel.app)
 
 ---
 
