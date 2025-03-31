@@ -274,8 +274,14 @@ export default function UploadForm() {
       category: releaseCategory,
       type: track.type || undefined,
       track_type: track.trackType || undefined,
-      available: releaseCategory !== "released" ? track.available : undefined,
-      quality: releaseCategory !== "released" ? track.quality : undefined,
+      available:
+        releaseCategory !== "released" && track.available !== ""
+          ? track.available
+          : undefined,
+      quality:
+        releaseCategory !== "released" && track.quality !== ""
+          ? track.quality
+          : undefined,
       notes: track.notes || undefined,
       credit: track.credit || undefined, // New field for Supabase
       og_filename: track.og_filename || undefined, // New field for Supabase

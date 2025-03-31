@@ -37,9 +37,16 @@ export default function TrackList({
   const [trackFile, setTrackFile] = useState("");
   const [trackType, setTrackType] = useState("");
   const [trackTrackType, setTrackTrackType] = useState("");
+  // Adjusted type to exclude "" as a valid state value
   const [trackAvailable, setTrackAvailable] = useState<
-    "Confirmed" | "Partial" | "Snippet" | "Full" | "Rumored" | "OG File" | ""
-  >("");
+    | "Confirmed"
+    | "Partial"
+    | "Snippet"
+    | "Full"
+    | "Rumored"
+    | "OG File"
+    | undefined
+  >(undefined);
   const [trackQuality, setTrackQuality] = useState<
     | "Not Available"
     | "High Quality"
@@ -47,8 +54,8 @@ export default function TrackList({
     | "Lossless"
     | "Low Quality"
     | "CD Quality"
-    | ""
-  >("");
+    | undefined
+  >(undefined);
   const [trackFileDate, setTrackFileDate] = useState("");
   const [trackLeakDate, setTrackLeakDate] = useState("");
   const [trackNotes, setTrackNotes] = useState("");
@@ -93,8 +100,8 @@ export default function TrackList({
     setTrackFile(track.file);
     setTrackType(track.type || "");
     setTrackTrackType(track.track_type || "");
-    setTrackAvailable(track.available || "");
-    setTrackQuality(track.quality || "");
+    setTrackAvailable(track.available); // No || "" here, just the value or undefined
+    setTrackQuality(track.quality); // No || "" here, just the value or undefined
     setTrackFileDate(track.file_date || "");
     setTrackLeakDate(track.leak_date || "");
     setTrackNotes(track.notes || "");
@@ -153,8 +160,8 @@ export default function TrackList({
       setTrackFile("");
       setTrackType("");
       setTrackTrackType("");
-      setTrackAvailable("");
-      setTrackQuality("");
+      setTrackAvailable(undefined); // Reset to undefined instead of ""
+      setTrackQuality(undefined); // Reset to undefined instead of ""
       setTrackFileDate("");
       setTrackLeakDate("");
       setTrackNotes("");
@@ -198,8 +205,8 @@ export default function TrackList({
     setTrackFile("");
     setTrackType("");
     setTrackTrackType("");
-    setTrackAvailable("");
-    setTrackQuality("");
+    setTrackAvailable(undefined); // Reset to undefined instead of ""
+    setTrackQuality(undefined); // Reset to undefined instead of ""
     setTrackFileDate("");
     setTrackLeakDate("");
     setTrackNotes("");
@@ -319,7 +326,7 @@ export default function TrackList({
       "Not Available",
     ];
 
-    let groupedTracks;
+    let groupedTracks: { type: string; tracks: Release[] }[];
     if (sectionTracks[0]?.category === "released") {
       if (viewMode === "trackType") {
         groupedTracks = releasedTrackTypeOrder
@@ -569,7 +576,7 @@ export default function TrackList({
                 {track.quality}
               </span>
             )}
-            <span className="ml-3 text-gray-400 text-xs HASH(0x7f8e1c058eb0) tabular-nums">
+            <span className="ml-3 text-gray-400 text-xs tabular-nums">
               {track.duration}
             </span>
             <div className="flex space-x-2">
@@ -760,25 +767,24 @@ export default function TrackList({
                     Available
                   </label>
                   <select
-                    value={trackAvailable}
+                    value={trackAvailable ?? ""}
                     onChange={(e) =>
                       setTrackAvailable(
-                        e.target.value as
-                          | "Confirmed"
-                          | "Partial"
-                          | "Snippet"
-                          | "Full"
-                          | "Rumored"
-                          | "OG File"
-                          | ""
+                        e.target.value === ""
+                          ? undefined
+                          : (e.target.value as
+                              | "Confirmed"
+                              | "Partial"
+                              | "Snippet"
+                              | "Full"
+                              | "Rumored"
+                              | "OG File")
                       )
                     }
                     className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="" disabled>
-                      Select availability
-                    </option>
+                    <option value="">Select availability</option>
                     <option value="Confirmed">Confirmed</option>
                     <option value="Partial">Partial</option>
                     <option value="Snippet">Snippet</option>
@@ -792,25 +798,24 @@ export default function TrackList({
                     Quality
                   </label>
                   <select
-                    value={trackQuality}
+                    value={trackQuality ?? ""}
                     onChange={(e) =>
                       setTrackQuality(
-                        e.target.value as
-                          | "Not Available"
-                          | "High Quality"
-                          | "Recording"
-                          | "Lossless"
-                          | "Low Quality"
-                          | "CD Quality"
-                          | ""
+                        e.target.value === ""
+                          ? undefined
+                          : (e.target.value as
+                              | "Not Available"
+                              | "High Quality"
+                              | "Recording"
+                              | "Lossless"
+                              | "Low Quality"
+                              | "CD Quality")
                       )
                     }
                     className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="" disabled>
-                      Select quality
-                    </option>
+                    <option value="">Select quality</option>
                     <option value="Not Available">Not Available</option>
                     <option value="High Quality">High Quality</option>
                     <option value="Recording">Recording</option>
@@ -863,7 +868,6 @@ export default function TrackList({
         cancelText={onConfirmAction ? "Cancel" : undefined}
         onConfirm={onConfirmAction ? () => onConfirmAction() : undefined}
         variant={alertVariant}
-        className="bg-[#0C1521] text-white border border-gray-700"
       />
     </div>
   );
