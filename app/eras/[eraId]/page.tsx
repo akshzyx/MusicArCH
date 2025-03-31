@@ -78,11 +78,12 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Use type assertion to bypass the PageProps constraint
-export default async function EraPage(
-  props: { params: { eraId: string }; [key: string]: unknown } // <-- Use 'unknown' instead
-) {
-  const { params } = props as { params: { eraId: string } };
+// ✅ FIXED: Correctly typing the Next.js page props
+export default async function EraPage({
+  params,
+}: {
+  params: { eraId: string };
+}) {
   return (
     <Suspense
       fallback={
