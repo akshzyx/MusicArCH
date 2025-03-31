@@ -2,7 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface AlbumCardProps {
-  album: Album;
+  album: {
+    id: string;
+    cover_image: string;
+    title: string;
+    release_date: string;
+  };
 }
 
 export default function AlbumCard({ album }: AlbumCardProps) {
