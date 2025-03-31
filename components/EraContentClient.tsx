@@ -104,7 +104,8 @@ export default function EraContentClient({
             <TabsList className="flex w-full bg-transparent">
               {tabOrder.map(
                 (category) =>
-                  categories[category].length > 0 && (
+                  categories[category as keyof typeof categories].length >
+                    0 && (
                     <TabsTrigger
                       key={category}
                       value={category}
@@ -132,14 +133,16 @@ export default function EraContentClient({
           </div>
           {tabOrder.map(
             (category) =>
-              categories[category].length > 0 && (
+              categories[category as keyof typeof categories].length > 0 && (
                 <TabsContent key={category} value={category}>
                   <div className="bg-gray-800 rounded-lg p-4">
                     <TrackList
                       initialTracks={releasesWithLikes.filter(
                         (r) => r.category === category
                       )}
-                      sectionTracks={categories[category]}
+                      sectionTracks={
+                        categories[category as keyof typeof categories]
+                      }
                       viewMode={viewMode}
                     />
                   </div>

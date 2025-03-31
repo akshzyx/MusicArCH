@@ -9,6 +9,8 @@ export interface Release {
   leak_date?: string;
   category: "released" | "unreleased" | "stems";
   type?: string;
+  track_type?: string;
+  credit?: string;
   available?:
     | "Confirmed"
     | "Partial"

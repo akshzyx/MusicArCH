@@ -25,12 +25,12 @@ export default function TrackList({
   sectionTracks,
   viewMode = "default",
 }: {
-  initialTracks: (Release & { likes?: number; credit?: string })[];
+  initialTracks: (Release & { credit?: string })[];
   sectionTracks: Release[];
   viewMode?: "default" | "trackType" | "releaseType" | "available" | "quality";
 }) {
   const [tracks, setTracks] =
-    useState<(Release & { likes?: number; credit?: string })[]>(initialTracks);
+    useState<(Release & { credit?: string })[]>(initialTracks);
   const [editingTrack, setEditingTrack] = useState<Release | null>(null);
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
@@ -52,7 +52,7 @@ export default function TrackList({
   const [trackFileDate, setTrackFileDate] = useState("");
   const [trackLeakDate, setTrackLeakDate] = useState("");
   const [trackNotes, setTrackNotes] = useState("");
-  const [trackCredit, setTrackCredit] = useState(""); // Added credit state
+  const [trackCredit, setTrackCredit] = useState("");
   const { currentTrack, isPlaying, playTrack, pauseTrack, stopTrack } =
     useAudio();
   const [alertOpen, setAlertOpen] = useState(false);
@@ -98,7 +98,7 @@ export default function TrackList({
     setTrackFileDate(track.file_date || "");
     setTrackLeakDate(track.leak_date || "");
     setTrackNotes(track.notes || "");
-    setTrackCredit(track.credit || ""); // Set initial credit value
+    setTrackCredit(track.credit || "");
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -123,7 +123,7 @@ export default function TrackList({
       era_id: editingTrack.era_id,
       category: editingTrack.category,
       cover_image: editingTrack.cover_image,
-      credit: trackCredit || undefined, // Include credit in update
+      credit: trackCredit || undefined,
     };
 
     const { error } = await supabase
@@ -137,18 +137,15 @@ export default function TrackList({
     } else {
       console.log("Track updated:", editingTrack.id);
       showAlert("Success", "Track updated successfully!");
-      const updatedTrackWithLikes = {
+      const updatedTrackData = {
         ...editingTrack,
         ...updatedTrack,
-        likes: tracks.find((t) => t.id === editingTrack.id)?.likes,
       };
       setTracks(
-        tracks.map((t) =>
-          t.id === editingTrack.id ? updatedTrackWithLikes : t
-        )
+        tracks.map((t) => (t.id === editingTrack.id ? updatedTrackData : t))
       );
       if (currentTrack?.id === editingTrack.id) {
-        playTrack(updatedTrackWithLikes, sectionTracks);
+        playTrack(updatedTrackData, sectionTracks);
       }
       setEditingTrack(null);
       setTrackTitle("");
@@ -161,7 +158,7 @@ export default function TrackList({
       setTrackFileDate("");
       setTrackLeakDate("");
       setTrackNotes("");
-      setTrackCredit(""); // Clear credit state
+      setTrackCredit("");
     }
   };
 
@@ -206,7 +203,7 @@ export default function TrackList({
     setTrackFileDate("");
     setTrackLeakDate("");
     setTrackNotes("");
-    setTrackCredit(""); // Clear credit state
+    setTrackCredit("");
   };
 
   const handlePlayPause = (track: Release) => {
