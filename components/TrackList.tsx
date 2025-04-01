@@ -100,6 +100,7 @@ export default function TrackList({
         "Feature",
         "Production",
         "Demo",
+        "Instrumental",
       ];
       const releaseTypeOrder = [
         "Beat",
@@ -427,6 +428,7 @@ export default function TrackList({
       "Feature",
       "Production",
       "Demo",
+      "Instrumental",
     ];
 
     const releaseTypeOrder = [
