@@ -877,6 +877,7 @@ export default function TrackList({
                   <option value="Feature">Feature</option>
                   <option value="Production">Production</option>
                   <option value="Demo">Demo</option>
+                  <option value="Demo">Instrumental</option>
                 </select>
               </div>
             )}
