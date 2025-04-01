@@ -86,7 +86,6 @@ export default function TrackList({
     setTracks(initialTracks);
   }, [initialTracks]);
 
-  // Update audio context's sectionTracks when viewMode or tracks change
   useEffect(() => {
     if (viewMode === "default") {
       setSectionTracks(tracks);
@@ -242,10 +241,46 @@ export default function TrackList({
     }
     if (!editingTrack) return;
 
+    const isPlayable = trackFile.trim() !== "";
+    const isNonReleased = editingTrack.category !== "released";
+
+    // Validation
+    if (!trackTitle) {
+      showAlert("Validation Error", "Track Title is required.");
+      return;
+    }
+
+    if (isNonReleased) {
+      // For non-released tracks, check Quality and Track URL/Duration consistency
+      if (!trackFile.trim() && trackQuality !== "Not Available") {
+        showAlert(
+          "Validation Error",
+          "Track URL and Duration are required unless Quality is set to 'Not Available'."
+        );
+        return;
+      }
+      if (isPlayable && (!trackFile || !trackDuration)) {
+        showAlert(
+          "Validation Error",
+          "Track URL and Duration are required for playable tracks."
+        );
+        return;
+      }
+    } else {
+      // For released tracks, just check if it's playable
+      if (isPlayable && (!trackFile || !trackDuration)) {
+        showAlert(
+          "Validation Error",
+          "Track URL and Duration are required for playable tracks."
+        );
+        return;
+      }
+    }
+
     const updatedTrack = {
       title: trackTitle,
-      duration: trackDuration,
-      file: trackFile.trimEnd(),
+      duration: trackDuration || "",
+      file: trackFile.trimEnd() || "",
       type: trackType || undefined,
       track_type:
         editingTrack.category !== "released"
@@ -284,11 +319,12 @@ export default function TrackList({
             ? {
                 ...updatedTrackData,
                 cover_image: updatedTrackData.cover_image || "",
+                duration: updatedTrackData.duration || "",
               }
             : t
         )
       );
-      if (currentTrack?.id === editingTrack.id) {
+      if (currentTrack?.id === editingTrack.id && isPlayable) {
         playTrack(
           {
             ...updatedTrackData,
@@ -362,11 +398,19 @@ export default function TrackList({
     setTrackCoverImage("");
   };
 
+  const isTrackPlayable = (track: Release) => {
+    return !!track.file && track.file.trim() !== "";
+  };
+
   const handlePlayPause = (track: Release, trackList: Release[]) => {
+    if (!isTrackPlayable(track)) {
+      return;
+    }
+
     if (currentTrack?.id === track.id && isPlaying) {
       pauseTrack();
     } else {
-      playTrack(track, trackList); // Pass the specific track list
+      playTrack(track, trackList);
     }
   };
 
@@ -417,7 +461,6 @@ export default function TrackList({
     }
   };
 
-  // Categorized View Logic
   const renderCategorizedView = () => {
     const releasedTrackTypeOrder = [
       "Single",
@@ -446,7 +489,7 @@ export default function TrackList({
     ];
 
     const additionalTypeOrder = [
-      "Fragments", // Maps to "Music" in DB
+      "Fragments",
       "Features With",
       "Features Without",
       "Early Sessions",
@@ -575,42 +618,72 @@ export default function TrackList({
                 <li
                   key={track.id}
                   className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
-                    currentTrack?.id === track.id
-                      ? "bg-gray-700/50 text-white"
-                      : "hover:bg-gray-800/50 text-gray-300"
+                    isTrackPlayable(track)
+                      ? currentTrack?.id === track.id
+                        ? "bg-gray-700/50 text-white"
+                        : "hover:bg-gray-800/50 text-gray-300"
+                      : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
                   }`}
-                  onMouseEnter={() => setHoveredTrackId(track.id)}
+                  onMouseEnter={() =>
+                    isTrackPlayable(track) && setHoveredTrackId(track.id)
+                  }
                   onMouseLeave={() => setHoveredTrackId(null)}
                 >
                   <div className="flex items-center space-x-4 flex-1 min-w-0">
                     <button
-                      onClick={() => handlePlayPause(track, group.tracks)} // Use group.tracks instead of sectionTracks
+                      onClick={() => handlePlayPause(track, group.tracks)}
                       className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
-                        currentTrack?.id === track.id && isPlaying
-                          ? "text-green-400"
-                          : "text-gray-400 hover:text-green-400"
+                        isTrackPlayable(track)
+                          ? currentTrack?.id === track.id && isPlaying
+                            ? "text-green-400"
+                            : "text-gray-400 hover:text-green-400"
+                          : "text-gray-600 cursor-not-allowed"
                       }`}
+                      disabled={!isTrackPlayable(track)}
                     >
-                      {currentTrack?.id === track.id ? (
-                        isPlaying ? (
-                          <FontAwesomeIcon icon={faPause} size="xs" />
-                        ) : (
+                      {isTrackPlayable(track) ? (
+                        currentTrack?.id === track.id ? (
+                          isPlaying ? (
+                            <FontAwesomeIcon icon={faPause} size="xs" />
+                          ) : (
+                            <FontAwesomeIcon icon={faPlay} size="xs" />
+                          )
+                        ) : hoveredTrackId === track.id ? (
                           <FontAwesomeIcon icon={faPlay} size="xs" />
+                        ) : (
+                          <span className="text-gray-400">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
                         )
-                      ) : hoveredTrackId === track.id ? (
-                        <FontAwesomeIcon icon={faPlay} size="xs" />
                       ) : (
-                        <span className="text-gray-400">
+                        <span className="text-gray-600">
                           {String(index + 1).padStart(2, "0")}
                         </span>
                       )}
                     </button>
                     <div className="flex-1 min-w-0">
-                      <span className="text-white font-medium truncate block">
+                      <span
+                        className={`font-medium truncate block ${
+                          isTrackPlayable(track)
+                            ? "text-white"
+                            : "text-gray-500"
+                        }`}
+                      >
                         {track.title}{" "}
                         {track.credit && (
-                          <span className="text-gray-400 text-xs">
+                          <span
+                            className={
+                              isTrackPlayable(track)
+                                ? "text-gray-400 text-xs"
+                                : "text-gray-600 text-xs"
+                            }
+                          >
                             {track.credit}
+                          </span>
+                        )}
+                        {!isTrackPlayable(track) && (
+                          <span className="text-gray-600 text-xs ml-1">
+                            (Not Available)
                           </span>
                         )}
                       </span>
@@ -647,21 +720,35 @@ export default function TrackList({
                         {track.quality}
                       </span>
                     )}
-                    <span className="ml-3 text-gray-400 text-xs tabular-nums">
+                    <span
+                      className={`ml-3 text-xs tabular-nums ${
+                        isTrackPlayable(track)
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
+                    >
                       {track.duration}
                     </span>
                     {isAdmin && (
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(track)}
-                          className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+                          className={
+                            isTrackPlayable(track)
+                              ? "text-blue-400 hover:text-blue-300 transition-colors p-1"
+                              : "text-blue-600 p-1"
+                          }
                           title="Edit Track"
                         >
                           <FontAwesomeIcon icon={faPencil} size="sm" />
                         </button>
                         <button
                           onClick={() => handleDelete(track)}
-                          className="text-red-400 hover:text-red-300 transition-colors p-1"
+                          className={
+                            isTrackPlayable(track)
+                              ? "text-red-400 hover:text-red-300 transition-colors p-1"
+                              : "text-red-600 p-1"
+                          }
                           title="Delete Track"
                         >
                           <FontAwesomeIcon icon={faTrash} size="sm" />
@@ -684,41 +771,71 @@ export default function TrackList({
         <li
           key={track.id}
           className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
-            currentTrack?.id === track.id
-              ? "bg-gray-700/50 text-white"
-              : "hover:bg-gray-800/50 text-gray-300"
+            isTrackPlayable(track)
+              ? currentTrack?.id === track.id
+                ? "bg-gray-700/50 text-white"
+                : "hover:bg-gray-800/50 text-gray-300"
+              : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
           }`}
-          onMouseEnter={() => setHoveredTrackId(track.id)}
+          onMouseEnter={() =>
+            isTrackPlayable(track) && setHoveredTrackId(track.id)
+          }
           onMouseLeave={() => setHoveredTrackId(null)}
         >
           <div className="flex items-center space-x-4 flex-1 min-w-0">
             <button
-              onClick={() => handlePlayPause(track, tracks)} // Use tracks instead of sectionTracks
+              onClick={() => handlePlayPause(track, tracks)}
               className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
-                currentTrack?.id === track.id && isPlaying
-                  ? "text-green-400"
-                  : "text-gray-400 hover:text-green-400"
+                isTrackPlayable(track)
+                  ? currentTrack?.id === track.id && isPlaying
+                    ? "text-green-400"
+                    : "text-gray-400 hover:text-green-400"
+                  : "text-gray-600 cursor-not-allowed"
               }`}
+              disabled={!isTrackPlayable(track)}
             >
-              {currentTrack?.id === track.id ? (
-                isPlaying ? (
-                  <FontAwesomeIcon icon={faPause} size="xs" />
-                ) : (
+              {isTrackPlayable(track) ? (
+                currentTrack?.id === track.id ? (
+                  isPlaying ? (
+                    <FontAwesomeIcon icon={faPause} size="xs" />
+                  ) : (
+                    <FontAwesomeIcon icon={faPlay} size="xs" />
+                  )
+                ) : hoveredTrackId === track.id ? (
                   <FontAwesomeIcon icon={faPlay} size="xs" />
+                ) : (
+                  <span className="text-gray-400">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                 )
-              ) : hoveredTrackId === track.id ? (
-                <FontAwesomeIcon icon={faPlay} size="xs" />
               ) : (
-                <span className="text-gray-400">
+                <span className="text-gray-600">
                   {String(index + 1).padStart(2, "0")}
                 </span>
               )}
             </button>
             <div className="flex-1 min-w-0">
-              <span className="text-white font-medium truncate block">
+              <span
+                className={`font-medium truncate block ${
+                  isTrackPlayable(track) ? "text-white" : "text-gray-500"
+                }`}
+              >
                 {track.title}{" "}
                 {track.credit && (
-                  <span className="text-gray-400 text-xs">{track.credit}</span>
+                  <span
+                    className={
+                      isTrackPlayable(track)
+                        ? "text-gray-400 text-xs"
+                        : "text-gray-600 text-xs"
+                    }
+                  >
+                    {track.credit}
+                  </span>
+                )}
+                {!isTrackPlayable(track) && (
+                  <span className="text-gray-600 text-xs ml-1">
+                    (Not Available)
+                  </span>
                 )}
               </span>
             </div>
@@ -754,21 +871,33 @@ export default function TrackList({
                 {track.quality}
               </span>
             )}
-            <span className="ml-3 text-gray-400 text-xs tabular-nums">
+            <span
+              className={`ml-3 text-xs tabular-nums ${
+                isTrackPlayable(track) ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
               {track.duration}
             </span>
             {isAdmin && (
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleEdit(track)}
-                  className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+                  className={
+                    isTrackPlayable(track)
+                      ? "text-blue-400 hover:text-blue-300 transition-colors p-1"
+                      : "text-blue-600 p-1"
+                  }
                   title="Edit Track"
                 >
                   <FontAwesomeIcon icon={faPencil} size="sm" />
                 </button>
                 <button
                   onClick={() => handleDelete(track)}
-                  className="text-red-400 hover:text-red-300 transition-colors p-1"
+                  className={
+                    isTrackPlayable(track)
+                      ? "text-red-400 hover:text-red-300 transition-colors p-1"
+                      : "text-red-600 p-1"
+                  }
                   title="Delete Track"
                 >
                   <FontAwesomeIcon icon={faTrash} size="sm" />
@@ -785,7 +914,6 @@ export default function TrackList({
     <div>
       {viewMode === "default" ? renderDefaultView() : renderCategorizedView()}
 
-      {/* Edit Dialog */}
       <Dialog
         open={!!editingTrack}
         onOpenChange={(open) => !open && handleCancel()}
@@ -810,7 +938,11 @@ export default function TrackList({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300">
-                Duration
+                Duration{" "}
+                {(trackFile.trim() !== "" ||
+                  (editingTrack?.category !== "released" &&
+                    trackQuality !== "Not Available")) &&
+                  "(Required)"}
               </label>
               <input
                 type="text"
@@ -818,12 +950,20 @@ export default function TrackList({
                 onChange={(e) => setTrackDuration(e.target.value)}
                 onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
+                required={
+                  trackFile.trim() !== "" ||
+                  (editingTrack?.category !== "released" &&
+                    trackQuality !== "Not Available")
+                }
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300">
-                Track URL (GitHub)
+                Track URL (GitHub){" "}
+                {(trackFile.trim() !== "" ||
+                  (editingTrack?.category !== "released" &&
+                    trackQuality !== "Not Available")) &&
+                  "(Required)"}
               </label>
               <input
                 type="url"
@@ -831,7 +971,11 @@ export default function TrackList({
                 onChange={(e) => setTrackFile(e.target.value)}
                 onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
+                required={
+                  trackFile.trim() !== "" ||
+                  (editingTrack?.category !== "released" &&
+                    trackQuality !== "Not Available")
+                }
               />
             </div>
             <div>
@@ -1052,7 +1196,6 @@ export default function TrackList({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <CustomAlertDialog
         isOpen={alertOpen}
         onOpenChange={setAlertOpen}

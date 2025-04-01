@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Release, Era } from "@/lib/types";
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
-import { useUser } from "@clerk/nextjs"; // Add Clerk hook
+import { useUser } from "@clerk/nextjs";
 
 interface TrackFormData {
   title: string;
@@ -51,11 +51,11 @@ interface TrackFormData {
 }
 
 export default function UploadForm() {
-  const { user, isSignedIn } = useUser(); // Get user info from Clerk
+  const { user, isSignedIn } = useUser();
   const [eras, setEras] = useState<Era[]>([]);
   const [selectedEraId, setSelectedEraId] = useState<string>("");
   const [releaseCategory, setReleaseCategory] = useState<
-    "released" | "unreleased" | "stems"
+    "released" | "unreleased" | "stems" | string
   >("released");
   const [tracks, setTracks] = useState<TrackFormData[]>([
     {
@@ -82,7 +82,6 @@ export default function UploadForm() {
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const router = useRouter();
 
-  // Check if user is admin based on publicMetadata
   const isAdmin = user?.publicMetadata?.role === "admin";
 
   useEffect(() => {
@@ -207,12 +206,6 @@ export default function UploadForm() {
       return;
     }
 
-    console.log("Submitting with:", {
-      selectedEraId,
-      releaseCategory,
-      tracks,
-    });
-
     if (!selectedEraId) {
       showAlert("Missing Era", "Please select an era.");
       return;
@@ -223,12 +216,10 @@ export default function UploadForm() {
     }
     for (let i = 0; i < tracks.length; i++) {
       const track = tracks[i];
-      if (!track.title || !track.duration || !track.file) {
+      if (!track.title) {
         showAlert(
           "Incomplete Track Details",
-          `Please fill in all required track details (title, URL, duration) for track ${
-            i + 1
-          }.`
+          `Please fill in the title for track ${i + 1}.`
         );
         return;
       }
@@ -240,6 +231,30 @@ export default function UploadForm() {
           }.`
         );
         return;
+      }
+      // Check file URL requirement based on quality and category
+      if (
+        releaseCategory === "released" ||
+        (releaseCategory !== "released" &&
+          track.quality !== "Not Available" &&
+          releaseCategory !== "")
+      ) {
+        if (!track.file) {
+          showAlert(
+            "Incomplete Track Details",
+            `Please provide a track URL for track ${i + 1}.`
+          );
+          return;
+        }
+        if (!track.duration) {
+          showAlert(
+            "Incomplete Track Details",
+            `Please ensure a valid track URL is provided to calculate duration for track ${
+              i + 1
+            }.`
+          );
+          return;
+        }
       }
       if (
         releaseCategory !== "released" &&
@@ -281,7 +296,7 @@ export default function UploadForm() {
           ? track.leakDate
           : track.fileDate || undefined,
       leak_date: releaseCategory !== "released" ? track.leakDate : undefined,
-      category: releaseCategory,
+      category: releaseCategory as "released" | "unreleased" | "stems",
       type: track.type || undefined,
       track_type: track.trackType || undefined,
       available:
@@ -309,7 +324,6 @@ export default function UploadForm() {
         "Failed to add releases: " + insertError.message
       );
     } else {
-      console.log("Created releases with tracks");
       showAlert(
         "Success",
         `New release created with ${tracks.length} track${
@@ -344,7 +358,6 @@ export default function UploadForm() {
   const handleAlertClose = (open: boolean) => {
     setAlertOpen(open);
     if (!open && redirectUrl) {
-      console.log("Redirecting to:", redirectUrl);
       router.push(redirectUrl);
       setRedirectUrl(null);
     }
@@ -446,7 +459,11 @@ export default function UploadForm() {
                   }
                   onKeyDown={handleKeyDown}
                   className="p-2 border rounded flex-1 bg-background text-foreground"
-                  required
+                  required={
+                    releaseCategory === "released" ||
+                    (releaseCategory !== "released" &&
+                      track.quality !== "Not Available")
+                  }
                 />
                 <div className="p-2 w-24 text-foreground">
                   {track.isLoadingDuration
