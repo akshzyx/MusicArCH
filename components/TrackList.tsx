@@ -227,11 +227,11 @@ export default function TrackList({
     setTrackCredit("");
   };
 
-  const handlePlayPause = (track: Release) => {
+  const handlePlayPause = (track: Release, trackList: Release[]) => {
     if (currentTrack?.id === track.id && isPlaying) {
       pauseTrack();
     } else {
-      playTrack(track, sectionTracks);
+      playTrack(track, trackList); // Pass the specific track list
     }
   };
 
@@ -448,7 +448,7 @@ export default function TrackList({
                 >
                   <div className="flex items-center space-x-4 flex-1 min-w-0">
                     <button
-                      onClick={() => handlePlayPause(track)}
+                      onClick={() => handlePlayPause(track, group.tracks)} // Use group.tracks instead of sectionTracks
                       className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                         currentTrack?.id === track.id && isPlaying
                           ? "text-green-400"
@@ -557,7 +557,7 @@ export default function TrackList({
         >
           <div className="flex items-center space-x-4 flex-1 min-w-0">
             <button
-              onClick={() => handlePlayPause(track)}
+              onClick={() => handlePlayPause(track, tracks)} // Use tracks instead of sectionTracks
               className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                 currentTrack?.id === track.id && isPlaying
                   ? "text-green-400"
