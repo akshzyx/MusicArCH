@@ -34,6 +34,7 @@ export default function AudioPlayer() {
 
   const [showTimeLeft, setShowTimeLeft] = useState(false);
   const [bgColor, setBgColor] = useState("rgba(31, 41, 55, 0.6)"); // Default gray-900/60
+  const [gradientColor, setGradientColor] = useState("rgba(74, 222, 128, 1)"); // Default green-400
 
   const handlePlayPause = useCallback(() => {
     if (!currentTrack) return;
@@ -48,6 +49,7 @@ export default function AudioPlayer() {
   useEffect(() => {
     if (!currentTrack?.cover_image) {
       setBgColor("rgba(31, 41, 55, 0.6)"); // Fallback to gray-900/60
+      setGradientColor("rgba(74, 222, 128, 1)"); // Fallback to green-400
       return;
     }
 
@@ -59,15 +61,18 @@ export default function AudioPlayer() {
       try {
         const colorThief = new ColorThief(); // Instantiate with new
         const [r, g, b] = colorThief.getColor(img);
-        setBgColor(`rgba(${r}, ${g}, ${b}, 0.6)`); // 60% opacity
+        setBgColor(`rgba(${r}, ${g}, ${b}, 0.6)`); // 60% opacity for background
+        setGradientColor(`rgba(${r}, ${g}, ${b}, 1)`); // Full opacity for progress bar
       } catch (error) {
         console.error("Color extraction failed:", error);
         setBgColor("rgba(31, 41, 55, 0.6)"); // Fallback on error
+        setGradientColor("rgba(74, 222, 128, 1)"); // Fallback on error
       }
     };
 
     img.onerror = () => {
       setBgColor("rgba(31, 41, 55, 0.6)"); // Fallback if image fails
+      setGradientColor("rgba(74, 222, 128, 1)"); // Fallback if image fails
     };
   }, [currentTrack]);
 
@@ -179,11 +184,17 @@ export default function AudioPlayer() {
         >
           {/* Waveform Bar Effect */}
           <div
-            className="bg-green-400 h-1 sm:h-1.5 md:h-2 rounded-full transition-all duration-100"
-            style={{ width: `${progress}%` }}
+            className="h-1 sm:h-1.5 md:h-2 rounded-full transition-all duration-100"
+            style={{
+              width: `${progress}%`,
+              background: `linear-gradient(to right, ${gradientColor}, rgba(255, 255, 255, 0.8))`, // Gradient from dominant color to white
+            }}
           />
           {/* Draggable Progress Indicator */}
-          <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div
+            className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ backgroundColor: gradientColor }} // Match indicator to dominant color
+          />
         </div>
         <span
           className="text-[10px] sm:text-xs md:text-sm text-gray-400 cursor-pointer"
