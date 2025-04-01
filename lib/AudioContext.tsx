@@ -26,6 +26,7 @@ interface AudioContextType {
   toggleRepeat: () => void;
   toggleShuffle: () => void;
   setAudioTime: (time: number) => void;
+  setSectionTracks: (tracks: Release[]) => void; // Added this line
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -221,6 +222,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         toggleRepeat,
         toggleShuffle,
         setAudioTime,
+        setSectionTracks, // Added this line
       }}
     >
       {children}

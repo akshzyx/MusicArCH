@@ -62,8 +62,14 @@ export default function TrackList({
   const [trackLeakDate, setTrackLeakDate] = useState("");
   const [trackNotes, setTrackNotes] = useState("");
   const [trackCredit, setTrackCredit] = useState("");
-  const { currentTrack, isPlaying, playTrack, pauseTrack, stopTrack } =
-    useAudio();
+  const {
+    currentTrack,
+    isPlaying,
+    playTrack,
+    pauseTrack,
+    stopTrack,
+    setSectionTracks,
+  } = useAudio();
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertDescription, setAlertDescription] = useState("");
@@ -78,6 +84,117 @@ export default function TrackList({
   useEffect(() => {
     setTracks(initialTracks);
   }, [initialTracks]);
+
+  // Update audio context's sectionTracks when viewMode or tracks change
+  useEffect(() => {
+    if (viewMode === "default") {
+      setSectionTracks(tracks);
+    } else {
+      const releasedTrackTypeOrder = [
+        "Single",
+        "Album Track",
+        "Loosie",
+        "Beat",
+        "Remix",
+        "Feature",
+        "Production",
+        "Demo",
+      ];
+      const releaseTypeOrder = [
+        "Beat",
+        "Demo",
+        "Remix",
+        "Throwaway",
+        "Cancer",
+        "Unknown",
+        "Project File",
+        "Reference",
+        "ALT File",
+        "Feature",
+        "Cover",
+      ];
+      const additionalTypeOrder = [
+        "Fragments",
+        "Features With",
+        "Features Without",
+        "Early Sessions",
+        "Instrumentals",
+        "Acapellas",
+        "Stems",
+        "Dolby Atmos",
+        "Sessions",
+        "TV Tracks",
+      ];
+      const availableOrder = [
+        "Confirmed",
+        "Partial",
+        "Snippet",
+        "Full",
+        "Rumored",
+        "OG File",
+      ];
+      const qualityOrder = [
+        "High Quality",
+        "Recording",
+        "Lossless",
+        "Low Quality",
+        "CD Quality",
+        "Not Available",
+      ];
+
+      let flatTracks: Release[] = [];
+      if (
+        sectionTracks[0]?.category === "released" &&
+        viewMode === "trackType"
+      ) {
+        flatTracks = releasedTrackTypeOrder
+          .flatMap((type) => tracks.filter((t) => t.type === type))
+          .concat(
+            tracks.filter(
+              (t) => !t.type || !releasedTrackTypeOrder.includes(t.type)
+            )
+          );
+      } else if (viewMode === "trackType") {
+        flatTracks = additionalTypeOrder
+          .flatMap((type) =>
+            tracks.filter(
+              (t) => t.track_type === (type === "Fragments" ? "Music" : type)
+            )
+          )
+          .concat(
+            tracks.filter(
+              (t) =>
+                !t.track_type || !additionalTypeOrder.includes(t.track_type)
+            )
+          );
+      } else if (viewMode === "releaseType") {
+        flatTracks = releaseTypeOrder
+          .flatMap((type) => tracks.filter((t) => t.type === type))
+          .concat(
+            tracks.filter((t) => !t.type || !releaseTypeOrder.includes(t.type))
+          );
+      } else if (viewMode === "available") {
+        flatTracks = availableOrder
+          .flatMap((available) =>
+            tracks.filter((t) => t.available === available)
+          )
+          .concat(
+            tracks.filter(
+              (t) => !t.available || !availableOrder.includes(t.available)
+            )
+          );
+      } else if (viewMode === "quality") {
+        flatTracks = qualityOrder
+          .flatMap((quality) => tracks.filter((t) => t.quality === quality))
+          .concat(
+            tracks.filter(
+              (t) => !t.quality || !qualityOrder.includes(t.quality)
+            )
+          );
+      }
+      setSectionTracks(flatTracks);
+    }
+  }, [viewMode, tracks, sectionTracks, setSectionTracks]);
 
   const showAlert = (
     title: string,
