@@ -62,6 +62,7 @@ export default function TrackList({
   const [trackLeakDate, setTrackLeakDate] = useState("");
   const [trackNotes, setTrackNotes] = useState("");
   const [trackCredit, setTrackCredit] = useState("");
+  const [trackCoverImage, setTrackCoverImage] = useState("");
   const {
     currentTrack,
     isPlaying,
@@ -229,6 +230,7 @@ export default function TrackList({
     setTrackLeakDate(track.leak_date || "");
     setTrackNotes(track.notes || "");
     setTrackCredit(track.credit || "");
+    setTrackCoverImage(track.cover_image || "");
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -256,7 +258,7 @@ export default function TrackList({
       notes: trackNotes || undefined,
       era_id: editingTrack.era_id,
       category: editingTrack.category,
-      cover_image: editingTrack.cover_image,
+      cover_image: trackCoverImage || undefined,
       credit: trackCredit || undefined,
     };
 
@@ -293,6 +295,7 @@ export default function TrackList({
       setTrackLeakDate("");
       setTrackNotes("");
       setTrackCredit("");
+      setTrackCoverImage("");
     }
   };
 
@@ -342,6 +345,7 @@ export default function TrackList({
     setTrackLeakDate("");
     setTrackNotes("");
     setTrackCredit("");
+    setTrackCoverImage("");
   };
 
   const handlePlayPause = (track: Release, trackList: Release[]) => {
@@ -826,6 +830,19 @@ export default function TrackList({
                 onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., prod, feat"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300">
+                Cover Image URL
+              </label>
+              <input
+                type="url"
+                value={trackCoverImage}
+                onChange={(e) => setTrackCoverImage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter cover image URL"
               />
             </div>
             {editingTrack?.category === "released" && (
