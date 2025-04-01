@@ -19,7 +19,7 @@ import {
   faPlay,
   faPause,
 } from "@fortawesome/free-solid-svg-icons";
-import { useUser } from "@clerk/nextjs"; // Add Clerk hook
+import { useUser } from "@clerk/nextjs";
 
 export default function TrackList({
   initialTracks,
@@ -30,8 +30,8 @@ export default function TrackList({
   sectionTracks: Release[];
   viewMode?: "default" | "trackType" | "releaseType" | "available" | "quality";
 }) {
-  const { isSignedIn, user } = useUser(); // Get user info from Clerk
-  const isAdmin = isSignedIn && user?.publicMetadata?.role === "admin"; // Check if admin
+  const { isSignedIn, user } = useUser();
+  const isAdmin = isSignedIn && user?.publicMetadata?.role === "admin";
   const [tracks, setTracks] =
     useState<(Release & { credit?: string })[]>(initialTracks);
   const [editingTrack, setEditingTrack] = useState<Release | null>(null);
@@ -482,20 +482,31 @@ export default function TrackList({
                   </div>
                   <div className="flex items-center space-x-2">
                     {track.type && (
-                      <span className={getBadgeStyles("type", track.type)}>
+                      <span
+                        className={`${getBadgeStyles(
+                          "type",
+                          track.type
+                        )} hidden sm:inline-block`}
+                      >
                         {track.type}
                       </span>
                     )}
                     {track.category !== "released" && track.available && (
                       <span
-                        className={getBadgeStyles("available", track.available)}
+                        className={`${getBadgeStyles(
+                          "available",
+                          track.available
+                        )} hidden sm:inline-block`}
                       >
                         {track.available}
                       </span>
                     )}
                     {track.category !== "released" && track.quality && (
                       <span
-                        className={getBadgeStyles("quality", track.quality)}
+                        className={`${getBadgeStyles(
+                          "quality",
+                          track.quality
+                        )} hidden sm:inline-block`}
                       >
                         {track.quality}
                       </span>
@@ -503,7 +514,7 @@ export default function TrackList({
                     <span className="ml-3 text-gray-400 text-xs tabular-nums">
                       {track.duration}
                     </span>
-                    {isAdmin && ( // Show edit/delete buttons only to admins
+                    {isAdmin && (
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(track)}
@@ -578,24 +589,39 @@ export default function TrackList({
           </div>
           <div className="flex items-center space-x-2">
             {track.type && (
-              <span className={getBadgeStyles("type", track.type)}>
+              <span
+                className={`${getBadgeStyles(
+                  "type",
+                  track.type
+                )} hidden sm:inline-block`}
+              >
                 {track.type}
               </span>
             )}
             {track.category !== "released" && track.available && (
-              <span className={getBadgeStyles("available", track.available)}>
+              <span
+                className={`${getBadgeStyles(
+                  "available",
+                  track.available
+                )} hidden sm:inline-block`}
+              >
                 {track.available}
               </span>
             )}
             {track.category !== "released" && track.quality && (
-              <span className={getBadgeStyles("quality", track.quality)}>
+              <span
+                className={`${getBadgeStyles(
+                  "quality",
+                  track.quality
+                )} hidden sm:inline-block`}
+              >
                 {track.quality}
               </span>
             )}
             <span className="ml-3 text-gray-400 text-xs tabular-nums">
               {track.duration}
             </span>
-            {isAdmin && ( // Show edit/delete buttons only to admins
+            {isAdmin && (
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleEdit(track)}
