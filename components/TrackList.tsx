@@ -278,10 +278,23 @@ export default function TrackList({
         ...updatedTrack,
       };
       setTracks(
-        tracks.map((t) => (t.id === editingTrack.id ? updatedTrackData : t))
+        tracks.map((t) =>
+          t.id === editingTrack.id
+            ? {
+                ...updatedTrackData,
+                cover_image: updatedTrackData.cover_image || "",
+              }
+            : t
+        )
       );
       if (currentTrack?.id === editingTrack.id) {
-        playTrack(updatedTrackData, sectionTracks);
+        playTrack(
+          {
+            ...updatedTrackData,
+            cover_image: updatedTrackData.cover_image || "",
+          },
+          sectionTracks
+        );
       }
       setEditingTrack(null);
       setTrackTitle("");
