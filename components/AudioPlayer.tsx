@@ -34,7 +34,6 @@ export default function AudioPlayer() {
 
   const [showTimeLeft, setShowTimeLeft] = useState(false);
   const [bgColor, setBgColor] = useState("rgba(31, 41, 55, 0.6)"); // Default gray-900/60
-  const colorThief = new ColorThief();
 
   const handlePlayPause = useCallback(() => {
     if (!currentTrack) return;
@@ -58,6 +57,7 @@ export default function AudioPlayer() {
 
     img.onload = () => {
       try {
+        const colorThief = new ColorThief(); // Instantiate with new
         const [r, g, b] = colorThief.getColor(img);
         setBgColor(`rgba(${r}, ${g}, ${b}, 0.6)`); // 60% opacity
       } catch (error) {
