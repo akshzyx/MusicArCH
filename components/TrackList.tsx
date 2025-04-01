@@ -716,7 +716,9 @@ export default function TrackList({
               <span className="text-white font-medium truncate block">
                 {track.title}{" "}
                 {track.credit && (
-                  <span className="text-gray-400 text-xs">{track.credit}</span>
+                  <span class hadclassName="text-gray-400 text-xs">
+                    {track.credit}
+                  </span>
                 )}
               </span>
             </div>
@@ -877,7 +879,7 @@ export default function TrackList({
                   <option value="Feature">Feature</option>
                   <option value="Production">Production</option>
                   <option value="Demo">Demo</option>
-                  <option value="Demo">Instrumental</option>
+                  <option value="Instrumental">Instrumental</option>
                 </select>
               </div>
             )}
