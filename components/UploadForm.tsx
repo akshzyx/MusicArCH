@@ -372,9 +372,6 @@ export default function UploadForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-4">
-        <h2 className="text-2xl font-bold text-foreground text-center">
-          Upload New Track
-        </h2>
         <div>
           <label className="block text-sm font-medium text-foreground">
             Select Era
