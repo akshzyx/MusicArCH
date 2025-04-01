@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-export default function middleware(req) {
+import { NextRequest } from "next/server";
+
+export default function middleware(req: NextRequest) {
   console.log("Middleware running for:", req.nextUrl.pathname);
   return NextResponse.next();
 }
