@@ -718,9 +718,7 @@ export default function TrackList({
               <span className="text-white font-medium truncate block">
                 {track.title}{" "}
                 {track.credit && (
-                  <span class hadclassName="text-gray-400 text-xs">
-                    {track.credit}
-                  </span>
+                  <span className="text-gray-400 text-xs">{track.credit}</span>
                 )}
               </span>
             </div>
