@@ -9,6 +9,8 @@ import {
   faBackward,
   faRepeat,
   faShuffle,
+  faVolumeHigh,
+  faVolumeMute, // Added mute icon
 } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
@@ -35,6 +37,8 @@ export default function AudioPlayer() {
   const [showTimeLeft, setShowTimeLeft] = useState(false);
   const [bgColor, setBgColor] = useState("rgba(31, 41, 55, 0.6)"); // Default gray-900/60
   const [gradientColor, setGradientColor] = useState("rgba(74, 222, 128, 1)"); // Default green-400
+  const [volume, setVolume] = useState(1); // Default volume at 100%
+  const [isVolumeHovered, setIsVolumeHovered] = useState(false); // Track hover state
 
   const handlePlayPause = useCallback(() => {
     if (!currentTrack) return;
@@ -103,6 +107,12 @@ export default function AudioPlayer() {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const handleToggleDuration = () => setShowTimeLeft(!showTimeLeft);
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    setAudioTime({ volume: newVolume }); // Update audio volume in context
+  };
 
   if (!currentTrack) return null;
 
@@ -179,7 +189,11 @@ export default function AudioPlayer() {
           {formatTime(currentTime)}
         </span>
         <div
-          className="relative flex-1 bg-gray-600 rounded-full h-1 sm:h-1.5 md:h-2 cursor-pointer group"
+          className={`relative bg-gray-600 rounded-full h-1 sm:h-1.5 md:h-2 cursor-pointer group transition-all duration-200 ${
+            isVolumeHovered
+              ? "flex-1 sm:w-[calc(100%-4rem)] md:w-[calc(100%-5rem)]"
+              : "flex-1"
+          }`}
           onClick={handleProgressClick}
         >
           {/* Waveform Bar Effect */}
@@ -192,7 +206,7 @@ export default function AudioPlayer() {
           />
           {/* Draggable Progress Indicator */}
           <div
-            className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
             style={{ backgroundColor: gradientColor }} // Match indicator to dominant color
           />
         </div>
@@ -204,6 +218,31 @@ export default function AudioPlayer() {
             ? `-${formatTime(duration - currentTime)}`
             : formatTime(duration)}
         </span>
+        {/* Volume Control */}
+        <div
+          className="hidden sm:flex items-center group"
+          onMouseEnter={() => setIsVolumeHovered(true)}
+          onMouseLeave={() => setIsVolumeHovered(false)}
+        >
+          <FontAwesomeIcon
+            icon={volume === 0 ? faVolumeMute : faVolumeHigh} // Switch icon based on volume
+            className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm"
+          />
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={handleVolumeChange}
+            className="w-0 group-hover:w-12 md:group-hover:w-16 h-1 sm:h-1.5 md:h-2 rounded-full bg-gray-600 appearance-none cursor-pointer transition-all duration-200 ml-2 volume-slider"
+            style={{
+              background: `linear-gradient(to right, ${gradientColor} ${
+                volume * 100
+              }%, #4b5563 ${volume * 100}%)`, // Gradient fill based on volume
+            }}
+          />
+        </div>
       </div>
     </div>
   );

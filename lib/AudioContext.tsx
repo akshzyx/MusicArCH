@@ -25,8 +25,8 @@ interface AudioContextType {
   prevTrack: () => void;
   toggleRepeat: () => void;
   toggleShuffle: () => void;
-  setAudioTime: (time: number) => void;
-  setSectionTracks: (tracks: Release[]) => void; // Added this line
+  setAudioTime: (timeOrOptions: number | { volume?: number }) => void; // Updated type
+  setSectionTracks: (tracks: Release[]) => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -197,10 +197,16 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const toggleShuffle = () => setIsShuffle((prev) => !prev);
 
-  const setAudioTime = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
+  const setAudioTime = (timeOrOptions: number | { volume?: number }) => {
+    if (!audioRef.current) return;
+
+    const audio = audioRef.current;
+
+    if (typeof timeOrOptions === "number") {
+      audio.currentTime = timeOrOptions;
+      setCurrentTime(timeOrOptions);
+    } else if (timeOrOptions.volume !== undefined) {
+      audio.volume = Math.max(0, Math.min(1, timeOrOptions.volume)); // Clamp volume between 0 and 1
     }
   };
 
@@ -222,7 +228,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         toggleRepeat,
         toggleShuffle,
         setAudioTime,
-        setSectionTracks, // Added this line
+        setSectionTracks,
       }}
     >
       {children}
