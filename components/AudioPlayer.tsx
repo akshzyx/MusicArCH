@@ -12,6 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
+import ColorThief from "colorthief"; // Import colorthief
 
 export default function AudioPlayer() {
   const {
@@ -32,6 +33,8 @@ export default function AudioPlayer() {
   } = useAudio();
 
   const [showTimeLeft, setShowTimeLeft] = useState(false);
+  const [bgColor, setBgColor] = useState("rgba(31, 41, 55, 0.6)"); // Default gray-900/60
+  const colorThief = new ColorThief();
 
   const handlePlayPause = useCallback(() => {
     if (!currentTrack) return;
@@ -41,6 +44,32 @@ export default function AudioPlayer() {
       playTrack(currentTrack, sectionTracks);
     }
   }, [currentTrack, isPlaying, pauseTrack, playTrack, sectionTracks]);
+
+  // Extract dominant color when track changes
+  useEffect(() => {
+    if (!currentTrack?.cover_image) {
+      setBgColor("rgba(31, 41, 55, 0.6)"); // Fallback to gray-900/60
+      return;
+    }
+
+    const img = new window.Image();
+    img.crossOrigin = "Anonymous"; // For CORS if images are external
+    img.src = currentTrack.cover_image;
+
+    img.onload = () => {
+      try {
+        const [r, g, b] = colorThief.getColor(img);
+        setBgColor(`rgba(${r}, ${g}, ${b}, 0.6)`); // 60% opacity
+      } catch (error) {
+        console.error("Color extraction failed:", error);
+        setBgColor("rgba(31, 41, 55, 0.6)"); // Fallback on error
+      }
+    };
+
+    img.onerror = () => {
+      setBgColor("rgba(31, 41, 55, 0.6)"); // Fallback if image fails
+    };
+  }, [currentTrack]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -73,7 +102,12 @@ export default function AudioPlayer() {
   if (!currentTrack) return null;
 
   return (
-    <div className="fixed bottom-2 left-1/2 transform -translate-x-1/2 w-11/12 sm:w-4/5 md:w-3/4 lg:w-3/4 bg-gray-900/60 backdrop-blur-xl text-white py-2 sm:py-3 md:py-4 px-4 sm:px-6 rounded-xl flex items-center justify-between gap-2 sm:gap-4 md:gap-6 shadow-2xl border border-gray-700">
+    <div
+      className="fixed bottom-2 left-1/2 transform -translate-x-1/2 w-11/12 sm:w-4/5 md:w-3/4 lg:w-3/4 text-white py-2 sm:py-3 md:py-4 px-4 sm:px-6 rounded-xl flex items-center justify-between gap-2 sm:gap-4 md:gap-6 shadow-2xl border border-gray-700 backdrop-blur-xl transition-all duration-500"
+      style={{
+        background: `linear-gradient(135deg, ${bgColor}, rgba(31, 41, 55, 0.6))`, // Dynamic gradient
+      }}
+    >
       {/* Album Art & Title */}
       <div className="flex items-center gap-2 sm:gap-3 md:gap-4 w-auto min-w-0 truncate">
         <Image
@@ -82,8 +116,8 @@ export default function AudioPlayer() {
           className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg object-cover"
           width={48}
           height={48}
-          onError={() => {
-            currentTrack.cover_image = "/default.jpg";
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = "/default.jpg"; // Safer fallback
           }}
         />
         <span className="font-semibold text-sm sm:text-base md:text-lg truncate">
