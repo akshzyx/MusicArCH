@@ -199,20 +199,17 @@ export default function UploadForm() {
     setAlertOpen(true);
   };
 
-  // Function to parse and normalize date input
   const parseDate = (input: string): string | undefined => {
     if (!input) return undefined;
 
-    // Check if it's just a year (e.g., "2013")
     if (/^\d{4}$/.test(input)) {
-      return `${input}-01-01`; // Normalize to Jan 1 of that year
+      return `${input}-01-01`;
     }
 
-    // Check if it's in "Month Day, Year" or "Month Day Year" format (e.g., "Oct 1, 2013" or "Oct 1 2013")
     const dateRegex = /^([A-Za-z]{3})\s+(\d{1,2})(?:,)?\s*(\d{4})$/;
     const match = input.match(dateRegex);
     if (match) {
-      const [, monthStr, day, year] = match; // Destructure with empty first element for full match
+      const [, monthStr, day, year] = match;
       const months: { [key: string]: string } = {
         jan: "01",
         feb: "02",
@@ -228,14 +225,13 @@ export default function UploadForm() {
         dec: "12",
       };
       const month = months[monthStr.toLowerCase()];
-      if (!month) return undefined; // Invalid month
+      if (!month) return undefined;
       const dayPadded = day.padStart(2, "0");
-      // Basic validation for day (1-31)
       if (parseInt(day) < 1 || parseInt(day) > 31) return undefined;
       return `${year}-${month}-${dayPadded}`;
     }
 
-    return undefined; // Invalid format
+    return undefined;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -318,7 +314,6 @@ export default function UploadForm() {
         );
         return;
       }
-      // Validate fileDate
       if (track.fileDate) {
         const parsedFileDate = parseDate(track.fileDate);
         if (!parsedFileDate) {
@@ -331,7 +326,6 @@ export default function UploadForm() {
           return;
         }
       }
-      // Validate leakDate
       if (track.leakDate) {
         const parsedLeakDate = parseDate(track.leakDate);
         if (!parsedLeakDate) {
@@ -365,7 +359,16 @@ export default function UploadForm() {
       type: track.type || undefined,
       track_type: track.trackType || undefined,
       available:
-        releaseCategory !== "released" && track.available !== ""
+        releaseCategory !== "released" &&
+        track.available !== "" &&
+        [
+          "Confirmed",
+          "Partial",
+          "Snippet",
+          "Full",
+          "Rumored",
+          "OG File",
+        ].includes(track.available)
           ? track.available
           : undefined,
       quality:
@@ -670,6 +673,7 @@ export default function UploadForm() {
                       <option value="ALT File">ALT File</option>
                       <option value="Feature">Feature</option>
                       <option value="Cover">Cover</option>
+                      <option value="Voice Memo">Voice Memo</option>
                     </>
                   )}
                 </select>
@@ -711,6 +715,7 @@ export default function UploadForm() {
                         <option value="Dolby Atmos">Dolby Atmos</option>
                         <option value="Sessions">Sessions</option>
                         <option value="TV Tracks">TV Tracks</option>
+                        <option value="Voice Memo">Voice Memo</option>
                       </>
                     )}
                   </select>
@@ -743,6 +748,7 @@ export default function UploadForm() {
                       <option value="Full">Full</option>
                       <option value="Rumored">Rumored</option>
                       <option value="OG File">OG File</option>
+                      <option value="Tagged">Tagged</option>
                     </select>
                   </div>
                   <div>

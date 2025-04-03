@@ -5,6 +5,7 @@ export interface Release {
   duration: string;
   file: string;
   cover_image: string;
+  og_filename?: string;
   file_date?: string;
   leak_date?: string;
   category: "released" | "unreleased" | "stems";

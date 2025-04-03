@@ -26,14 +26,16 @@ export default function TrackList({
   sectionTracks,
   viewMode = "default",
 }: {
-  initialTracks: (Release & { credit?: string })[];
+  initialTracks: (Release & { credit?: string; og_filename?: string })[];
   sectionTracks: Release[];
   viewMode?: "default" | "trackType" | "releaseType" | "available" | "quality";
 }) {
   const { isSignedIn, user } = useUser();
   const isAdmin = isSignedIn && user?.publicMetadata?.role === "admin";
   const [tracks, setTracks] =
-    useState<(Release & { credit?: string })[]>(initialTracks);
+    useState<(Release & { credit?: string; og_filename?: string })[]>(
+      initialTracks
+    );
   const [editingTrack, setEditingTrack] = useState<Release | null>(null);
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
@@ -47,6 +49,7 @@ export default function TrackList({
     | "Full"
     | "Rumored"
     | "OG File"
+    | "Tagged"
     | undefined
   >(undefined);
   const [trackQuality, setTrackQuality] = useState<
@@ -63,6 +66,7 @@ export default function TrackList({
   const [trackNotes, setTrackNotes] = useState("");
   const [trackCredit, setTrackCredit] = useState("");
   const [trackCoverImage, setTrackCoverImage] = useState("");
+  const [trackOgFilename, setTrackOgFilename] = useState("");
   const {
     currentTrack,
     isPlaying,
@@ -113,6 +117,7 @@ export default function TrackList({
         "ALT File",
         "Feature",
         "Cover",
+        "Voice Memo",
       ];
       const additionalTypeOrder = [
         "Fragments",
@@ -133,6 +138,7 @@ export default function TrackList({
         "Full",
         "Rumored",
         "OG File",
+        "Tagged",
       ];
       const qualityOrder = [
         "High Quality",
@@ -261,6 +267,7 @@ export default function TrackList({
     setTrackNotes(track.notes || "");
     setTrackCredit(track.credit || "");
     setTrackCoverImage(track.cover_image || "");
+    setTrackOgFilename(track.og_filename || "");
   };
 
   const parseDate = (input: string): string | undefined => {
@@ -401,6 +408,7 @@ export default function TrackList({
       category: editingTrack.category,
       cover_image: trackCoverImage || undefined,
       credit: trackCredit || undefined,
+      og_filename: trackOgFilename || undefined,
     };
 
     const { error } = await supabase
@@ -414,7 +422,6 @@ export default function TrackList({
     } else {
       console.log("Track updated:", editingTrack.id);
 
-      // Fetch the updated track from Supabase
       const { data: fetchedTrack, error: fetchError } = await supabase
         .from("releases")
         .select("*")
@@ -434,9 +441,9 @@ export default function TrackList({
           duration: fetchedTrack.duration || "",
           file_date: fetchedTrack.file_date || undefined,
           leak_date: fetchedTrack.leak_date || undefined,
+          og_filename: fetchedTrack.og_filename || undefined,
         };
 
-        // Update the tracks state with the fetched data
         setTracks(
           tracks.map((t) => (t.id === editingTrack.id ? updatedTrackData : t))
         );
@@ -445,7 +452,6 @@ export default function TrackList({
           playTrack(updatedTrackData, sectionTracks);
         }
 
-        // Show success alert and close dialog on "OK"
         showAlert("Success", "Track updated successfully!", "default", () => {
           setEditingTrack(null);
           setTrackTitle("");
@@ -460,6 +466,7 @@ export default function TrackList({
           setTrackNotes("");
           setTrackCredit("");
           setTrackCoverImage("");
+          setTrackOgFilename("");
         });
       }
     }
@@ -512,6 +519,7 @@ export default function TrackList({
     setTrackNotes("");
     setTrackCredit("");
     setTrackCoverImage("");
+    setTrackOgFilename("");
   };
 
   const isTrackPlayable = (track: Release) => {
@@ -555,6 +563,8 @@ export default function TrackList({
             return `${baseStyles} bg-yellow-900 text-yellow-300`;
           case "Rumored":
             return `${baseStyles} bg-red-900 text-red-300`;
+          case "Tagged":
+            return `${baseStyles} bg-blue-900 text-blue-300`;
           default:
             return `${baseStyles} bg-gray-700 text-gray-200`;
         }
@@ -602,6 +612,7 @@ export default function TrackList({
       "ALT File",
       "Feature",
       "Cover",
+      "Voice Memo",
     ];
 
     const additionalTypeOrder = [
@@ -624,6 +635,7 @@ export default function TrackList({
       "Full",
       "Rumored",
       "OG File",
+      "Tagged",
     ];
 
     const qualityOrder = [
@@ -730,7 +742,9 @@ export default function TrackList({
 
     if (groupedTracks.length === 0) {
       return (
-        <p className="text-gray-400">No tracks available for this view.</p>
+        <p className="text-gray-400">
+          No tracks available for Broadus this view.
+        </p>
       );
     }
 
@@ -1131,6 +1145,19 @@ export default function TrackList({
                 placeholder="Enter cover image URL"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300">
+                Original Filename
+              </label>
+              <input
+                type="text"
+                value={trackOgFilename}
+                onChange={(e) => setTrackOgFilename(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., original_track_name.mp3"
+              />
+            </div>
             {editingTrack?.category === "released" && (
               <div>
                 <label className="block text-sm font-medium text-gray-300">
@@ -1176,6 +1203,7 @@ export default function TrackList({
                   <option value="ALT File">ALT File</option>
                   <option value="Feature">Feature</option>
                   <option value="Cover">Cover</option>
+                  <option value="Voice Memo">Voice Memo</option>
                 </select>
               </div>
             )}
@@ -1258,7 +1286,8 @@ export default function TrackList({
                               | "Snippet"
                               | "Full"
                               | "Rumored"
-                              | "OG File")
+                              | "OG File"
+                              | "Tagged")
                       )
                     }
                     className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1271,6 +1300,7 @@ export default function TrackList({
                     <option value="Full">Full</option>
                     <option value="Rumored">Rumored</option>
                     <option value="OG File">OG File</option>
+                    <option value="Tagged">Tagged</option>
                   </select>
                 </div>
                 <div>
