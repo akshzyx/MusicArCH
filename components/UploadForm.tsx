@@ -208,11 +208,11 @@ export default function UploadForm() {
       return `${input}-01-01`; // Normalize to Jan 1 of that year
     }
 
-    // Check if it's in "Month Day, Year" format (e.g., "Oct 1, 2013")
-    const dateRegex = /^([A-Za-z]{3}) (\d{1,2}), (\d{4})$/;
+    // Check if it's in "Month Day, Year" or "Month Day Year" format (e.g., "Oct 1, 2013" or "Oct 1 2013")
+    const dateRegex = /^([A-Za-z]{3})\s+(\d{1,2})(?:,)?\s*(\d{4})$/;
     const match = input.match(dateRegex);
     if (match) {
-      const [monthStr, day, year] = match;
+      const [, monthStr, day, year] = match; // Destructure with empty first element for full match
       const months: { [key: string]: string } = {
         jan: "01",
         feb: "02",

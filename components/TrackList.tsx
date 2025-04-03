@@ -393,8 +393,7 @@ export default function TrackList({
       available:
         editingTrack.category !== "released" ? trackAvailable : undefined,
       quality: editingTrack.category !== "released" ? trackQuality : undefined,
-      file_date:
-        editingTrack.category === "released" ? parsedLeakDate : parsedFileDate,
+      file_date: parsedFileDate,
       leak_date:
         editingTrack.category !== "released" ? parsedLeakDate : undefined,
       notes: trackNotes || undefined,
@@ -414,44 +413,55 @@ export default function TrackList({
       showAlert("Update Failed", "Failed to update track: " + error.message);
     } else {
       console.log("Track updated:", editingTrack.id);
-      showAlert("Success", "Track updated successfully!");
-      const updatedTrackData = {
-        ...editingTrack,
-        ...updatedTrack,
-      };
-      setTracks(
-        tracks.map((t) =>
-          t.id === editingTrack.id
-            ? {
-                ...updatedTrackData,
-                cover_image: updatedTrackData.cover_image || "",
-                duration: updatedTrackData.duration || "",
-              }
-            : t
-        )
-      );
-      if (currentTrack?.id === editingTrack.id && isPlayable) {
-        playTrack(
-          {
-            ...updatedTrackData,
-            cover_image: updatedTrackData.cover_image || "",
-          },
-          sectionTracks
+
+      // Fetch the updated track from Supabase
+      const { data: fetchedTrack, error: fetchError } = await supabase
+        .from("releases")
+        .select("*")
+        .eq("id", editingTrack.id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching updated track:", fetchError);
+        showAlert(
+          "Fetch Failed",
+          "Failed to fetch updated track: " + fetchError.message
         );
+      } else if (fetchedTrack) {
+        const updatedTrackData = {
+          ...fetchedTrack,
+          cover_image: fetchedTrack.cover_image || "",
+          duration: fetchedTrack.duration || "",
+          file_date: fetchedTrack.file_date || undefined,
+          leak_date: fetchedTrack.leak_date || undefined,
+        };
+
+        // Update the tracks state with the fetched data
+        setTracks(
+          tracks.map((t) => (t.id === editingTrack.id ? updatedTrackData : t))
+        );
+
+        if (currentTrack?.id === editingTrack.id && isPlayable) {
+          playTrack(updatedTrackData, sectionTracks);
+        }
+
+        // Show success alert and close dialog on "OK"
+        showAlert("Success", "Track updated successfully!", "default", () => {
+          setEditingTrack(null);
+          setTrackTitle("");
+          setTrackDuration("");
+          setTrackFile("");
+          setTrackType("");
+          setTrackTrackType("");
+          setTrackAvailable(undefined);
+          setTrackQuality(undefined);
+          setTrackFileDate("");
+          setTrackLeakDate("");
+          setTrackNotes("");
+          setTrackCredit("");
+          setTrackCoverImage("");
+        });
       }
-      setEditingTrack(null);
-      setTrackTitle("");
-      setTrackDuration("");
-      setTrackFile("");
-      setTrackType("");
-      setTrackTrackType("");
-      setTrackAvailable(undefined);
-      setTrackQuality(undefined);
-      setTrackFileDate("");
-      setTrackLeakDate("");
-      setTrackNotes("");
-      setTrackCredit("");
-      setTrackCoverImage("");
     }
   };
 
@@ -1031,7 +1041,6 @@ export default function TrackList({
   return (
     <div>
       {viewMode === "default" ? renderDefaultView() : renderCategorizedView()}
-
       <Dialog
         open={!!editingTrack}
         onOpenChange={(open) => !open && handleCancel()}
@@ -1328,7 +1337,6 @@ export default function TrackList({
           </form>
         </DialogContent>
       </Dialog>
-
       <CustomAlertDialog
         isOpen={alertOpen}
         onOpenChange={setAlertOpen}
