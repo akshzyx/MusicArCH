@@ -156,18 +156,34 @@ export default function TrackList({
             )
           );
       } else if (viewMode === "trackType") {
-        flatTracks = additionalTypeOrder
-          .flatMap((type) =>
-            tracks.filter(
-              (t) => t.track_type === (type === "Fragments" ? "Music" : type)
-            )
-          )
-          .concat(
-            tracks.filter(
-              (t) =>
-                !t.track_type || !additionalTypeOrder.includes(t.track_type)
-            )
-          );
+        const categorizedTrackIds = new Set<number>();
+        flatTracks = additionalTypeOrder.flatMap((type) => {
+          const matchedTracks = tracks.filter((t) => {
+            const isMatch =
+              t.track_type === (type === "Fragments" ? "Music" : type);
+            if (isMatch) categorizedTrackIds.add(t.id);
+            return isMatch;
+          });
+          return matchedTracks;
+        });
+        const allTrackTypes = [
+          "Music",
+          "Features With",
+          "Features Without",
+          "Early Sessions",
+          "Instrumentals",
+          "Acapellas",
+          "Stems",
+          "Dolby Atmos",
+          "Sessions",
+          "TV Tracks",
+        ];
+        const noTrackTypeTracks = tracks.filter(
+          (t) =>
+            !categorizedTrackIds.has(t.id) &&
+            (!t.track_type || !allTrackTypes.includes(t.track_type))
+        );
+        flatTracks = flatTracks.concat(noTrackTypeTracks);
       } else if (viewMode === "releaseType") {
         flatTracks = releaseTypeOrder
           .flatMap((type) => tracks.filter((t) => t.type === type))
@@ -176,9 +192,7 @@ export default function TrackList({
           );
       } else if (viewMode === "available") {
         flatTracks = availableOrder
-          .flatMap((available) =>
-            tracks.filter((t) => t.available === available)
-          )
+          .flatMap((type) => tracks.filter((t) => t.available === type))
           .concat(
             tracks.filter(
               (t) => !t.available || !availableOrder.includes(t.available)
@@ -186,7 +200,7 @@ export default function TrackList({
           );
       } else if (viewMode === "quality") {
         flatTracks = qualityOrder
-          .flatMap((quality) => tracks.filter((t) => t.quality === quality))
+          .flatMap((type) => tracks.filter((t) => t.quality === type))
           .concat(
             tracks.filter(
               (t) => !t.quality || !qualityOrder.includes(t.quality)
@@ -226,7 +240,6 @@ export default function TrackList({
     setTrackTrackType(track.track_type || "");
     setTrackAvailable(track.available);
     setTrackQuality(track.quality);
-    // Convert existing YYYY-MM-DD to "Month Day, Year" or "Year" for display
     setTrackFileDate(
       track.file_date
         ? new Date(track.file_date).toLocaleDateString("en-US", {
@@ -250,16 +263,37 @@ export default function TrackList({
     setTrackCoverImage(track.cover_image || "");
   };
 
-  // Function to parse and normalize date input (same as in UploadForm)
   const parseDate = (input: string): string | undefined => {
     if (!input) return undefined;
 
-    // Check if it's just a year (e.g., "2013")
-    if (/^\d{4}$/.test(input)) {
-      return `${input}-01-01`; // Normalize to Jan 1 of that year
+    const existingFormatRegex = /^([A-Za-z]{3}) (\d{1,2}), (\d{4})$/;
+    if (existingFormatRegex.test(input)) {
+      const [monthStr, day, year] = input.match(existingFormatRegex)!.slice(1);
+      const months: { [key: string]: string } = {
+        jan: "01",
+        feb: "02",
+        mar: "03",
+        apr: "04",
+        may: "05",
+        jun: "06",
+        jul: "07",
+        aug: "08",
+        sep: "09",
+        oct: "10",
+        nov: "11",
+        dec: "12",
+      };
+      const month = months[monthStr.toLowerCase()];
+      if (!month) return undefined;
+      const dayPadded = day.padStart(2, "0");
+      if (parseInt(day) < 1 || parseInt(day) > 31) return undefined;
+      return `${year}-${month}-${dayPadded}`;
     }
 
-    // Check if it's in "Month Day, Year" format (e.g., "Oct 1, 2013")
+    if (/^\d{4}$/.test(input)) {
+      return `${input}-01-01`;
+    }
+
     const dateRegex = /^([A-Za-z]{3}) (\d{1,2}), (\d{4})$/;
     const match = input.match(dateRegex);
     if (match) {
@@ -279,14 +313,13 @@ export default function TrackList({
         dec: "12",
       };
       const month = months[monthStr.toLowerCase()];
-      if (!month) return undefined; // Invalid month
+      if (!month) return undefined;
       const dayPadded = day.padStart(2, "0");
-      // Basic validation for day (1-31)
       if (parseInt(day) < 1 || parseInt(day) > 31) return undefined;
       return `${year}-${month}-${dayPadded}`;
     }
 
-    return undefined; // Invalid format
+    return undefined;
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -300,7 +333,6 @@ export default function TrackList({
     const isPlayable = trackFile.trim() !== "";
     const isNonReleased = editingTrack.category !== "released";
 
-    // Validation
     if (!trackTitle) {
       showAlert("Validation Error", "Track Title is required.");
       return;
@@ -331,7 +363,6 @@ export default function TrackList({
       }
     }
 
-    // Validate and parse dates
     const parsedFileDate = parseDate(trackFileDate);
     if (trackFileDate && !parsedFileDate) {
       showAlert(
@@ -622,8 +653,20 @@ export default function TrackList({
             ),
           }))
           .filter((group) => group.tracks.length > 0);
+        const allTrackTypes = [
+          "Music",
+          "Features With",
+          "Features Without",
+          "Early Sessions",
+          "Instrumentals",
+          "Acapellas",
+          "Stems",
+          "Dolby Atmos",
+          "Sessions",
+          "TV Tracks",
+        ];
         const noTrackTypeTracks = tracks.filter(
-          (t) => !t.track_type || !additionalTypeOrder.includes(t.track_type)
+          (t) => !t.track_type || !allTrackTypes.includes(t.track_type)
         );
         if (noTrackTypeTracks.length > 0) {
           groupedTracks.push({ type: "Unknown", tracks: noTrackTypeTracks });
@@ -1130,7 +1173,7 @@ export default function TrackList({
             {editingTrack?.category !== "released" && (
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Track Type
+                  Additional Track Type
                 </label>
                 <select
                   value={trackTrackType}
@@ -1138,16 +1181,23 @@ export default function TrackList({
                   className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">None</option>
-                  <option value="Fragments">Fragments</option>
-                  <option value="Features With">Features With</option>
-                  <option value="Features Without">Features Without</option>
-                  <option value="Early Sessions">Early Sessions</option>
-                  <option value="Instrumentals">Instrumentals</option>
-                  <option value="Acapellas">Acapellas</option>
-                  <option value="Stems">Stems</option>
-                  <option value="Dolby Atmos">Dolby Atmos</option>
-                  <option value="Sessions">Sessions</option>
-                  <option value="TV Tracks">TV Tracks</option>
+                  {editingTrack?.category === "unreleased" ? (
+                    <>
+                      <option value="Music">Fragments</option>
+                      <option value="Features With">Features With</option>
+                      <option value="Features Without">Features Without</option>
+                      <option value="Early Sessions">Early Sessions</option>
+                    </>
+                  ) : editingTrack?.category === "stems" ? (
+                    <>
+                      <option value="Instrumentals">Instrumentals</option>
+                      <option value="Acapellas">Acapellas</option>
+                      <option value="Stems">Stems</option>
+                      <option value="Dolby Atmos">Dolby Atmos</option>
+                      <option value="Sessions">Sessions</option>
+                      <option value="TV Tracks">TV Tracks</option>
+                    </>
+                  ) : null}
                 </select>
               </div>
             )}
