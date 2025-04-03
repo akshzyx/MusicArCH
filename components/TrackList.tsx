@@ -226,11 +226,67 @@ export default function TrackList({
     setTrackTrackType(track.track_type || "");
     setTrackAvailable(track.available);
     setTrackQuality(track.quality);
-    setTrackFileDate(track.file_date || "");
-    setTrackLeakDate(track.leak_date || "");
+    // Convert existing YYYY-MM-DD to "Month Day, Year" or "Year" for display
+    setTrackFileDate(
+      track.file_date
+        ? new Date(track.file_date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : ""
+    );
+    setTrackLeakDate(
+      track.leak_date
+        ? new Date(track.leak_date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : ""
+    );
     setTrackNotes(track.notes || "");
     setTrackCredit(track.credit || "");
     setTrackCoverImage(track.cover_image || "");
+  };
+
+  // Function to parse and normalize date input (same as in UploadForm)
+  const parseDate = (input: string): string | undefined => {
+    if (!input) return undefined;
+
+    // Check if it's just a year (e.g., "2013")
+    if (/^\d{4}$/.test(input)) {
+      return `${input}-01-01`; // Normalize to Jan 1 of that year
+    }
+
+    // Check if it's in "Month Day, Year" format (e.g., "Oct 1, 2013")
+    const dateRegex = /^([A-Za-z]{3}) (\d{1,2}), (\d{4})$/;
+    const match = input.match(dateRegex);
+    if (match) {
+      const [monthStr, day, year] = match;
+      const months: { [key: string]: string } = {
+        jan: "01",
+        feb: "02",
+        mar: "03",
+        apr: "04",
+        may: "05",
+        jun: "06",
+        jul: "07",
+        aug: "08",
+        sep: "09",
+        oct: "10",
+        nov: "11",
+        dec: "12",
+      };
+      const month = months[monthStr.toLowerCase()];
+      if (!month) return undefined; // Invalid month
+      const dayPadded = day.padStart(2, "0");
+      // Basic validation for day (1-31)
+      if (parseInt(day) < 1 || parseInt(day) > 31) return undefined;
+      return `${year}-${month}-${dayPadded}`;
+    }
+
+    return undefined; // Invalid format
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -251,7 +307,6 @@ export default function TrackList({
     }
 
     if (isNonReleased) {
-      // For non-released tracks, check Quality and Track URL/Duration consistency
       if (!trackFile.trim() && trackQuality !== "Not Available") {
         showAlert(
           "Validation Error",
@@ -267,7 +322,6 @@ export default function TrackList({
         return;
       }
     } else {
-      // For released tracks, just check if it's playable
       if (isPlayable && (!trackFile || !trackDuration)) {
         showAlert(
           "Validation Error",
@@ -275,6 +329,25 @@ export default function TrackList({
         );
         return;
       }
+    }
+
+    // Validate and parse dates
+    const parsedFileDate = parseDate(trackFileDate);
+    if (trackFileDate && !parsedFileDate) {
+      showAlert(
+        "Invalid File Date",
+        "File Date must be in the format 'Month Day, Year' (e.g., 'Oct 1, 2013') or just a year (e.g., '2013')."
+      );
+      return;
+    }
+
+    const parsedLeakDate = parseDate(trackLeakDate);
+    if (trackLeakDate && !parsedLeakDate) {
+      showAlert(
+        "Invalid Leak Date",
+        "Leak Date must be in the format 'Month Day, Year' (e.g., 'Oct 1, 2013') or just a year (e.g., '2013')."
+      );
+      return;
     }
 
     const updatedTrack = {
@@ -289,8 +362,10 @@ export default function TrackList({
       available:
         editingTrack.category !== "released" ? trackAvailable : undefined,
       quality: editingTrack.category !== "released" ? trackQuality : undefined,
-      file_date: trackFileDate || undefined,
-      leak_date: trackLeakDate || undefined,
+      file_date:
+        editingTrack.category === "released" ? parsedLeakDate : parsedFileDate,
+      leak_date:
+        editingTrack.category !== "released" ? parsedLeakDate : undefined,
       notes: trackNotes || undefined,
       era_id: editingTrack.era_id,
       category: editingTrack.category,
@@ -1078,26 +1153,34 @@ export default function TrackList({
             )}
             <div>
               <label className="block text-sm font-medium text-gray-300">
-                File Date
+                {editingTrack?.category === "released"
+                  ? "Release Date (optional)"
+                  : "File Date (optional)"}
               </label>
               <input
-                type="date"
+                type="text"
                 value={trackFileDate}
                 onChange={(e) => setTrackFileDate(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Oct 1, 2013 or 2013"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300">
-                Leak Date
-              </label>
-              <input
-                type="date"
-                value={trackLeakDate}
-                onChange={(e) => setTrackLeakDate(e.target.value)}
-                className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {editingTrack?.category !== "released" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300">
+                  Leak Date (optional)
+                </label>
+                <input
+                  type="text"
+                  value={trackLeakDate}
+                  onChange={(e) => setTrackLeakDate(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Oct 1, 2013 or 2013"
+                />
+              </div>
+            )}
             {editingTrack?.category !== "released" && (
               <>
                 <div>

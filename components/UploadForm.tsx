@@ -12,8 +12,8 @@ interface TrackFormData {
   file: string;
   duration: string;
   coverImage: string;
-  fileDate: string;
-  leakDate: string;
+  fileDate: string; // e.g., "Oct 1, 2013" or "2013"
+  leakDate: string; // e.g., "Oct 1, 2013" or "2013"
   type: string;
   trackType?:
     | "Music"
@@ -199,6 +199,45 @@ export default function UploadForm() {
     setAlertOpen(true);
   };
 
+  // Function to parse and normalize date input
+  const parseDate = (input: string): string | undefined => {
+    if (!input) return undefined;
+
+    // Check if it's just a year (e.g., "2013")
+    if (/^\d{4}$/.test(input)) {
+      return `${input}-01-01`; // Normalize to Jan 1 of that year
+    }
+
+    // Check if it's in "Month Day, Year" format (e.g., "Oct 1, 2013")
+    const dateRegex = /^([A-Za-z]{3}) (\d{1,2}), (\d{4})$/;
+    const match = input.match(dateRegex);
+    if (match) {
+      const [monthStr, day, year] = match;
+      const months: { [key: string]: string } = {
+        jan: "01",
+        feb: "02",
+        mar: "03",
+        apr: "04",
+        may: "05",
+        jun: "06",
+        jul: "07",
+        aug: "08",
+        sep: "09",
+        oct: "10",
+        nov: "11",
+        dec: "12",
+      };
+      const month = months[monthStr.toLowerCase()];
+      if (!month) return undefined; // Invalid month
+      const dayPadded = day.padStart(2, "0");
+      // Basic validation for day (1-31)
+      if (parseInt(day) < 1 || parseInt(day) > 31) return undefined;
+      return `${year}-${month}-${dayPadded}`;
+    }
+
+    return undefined; // Invalid format
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isSignedIn || !isAdmin) {
@@ -232,7 +271,6 @@ export default function UploadForm() {
         );
         return;
       }
-      // Check file URL requirement based on quality and category
       if (
         releaseCategory === "released" ||
         (releaseCategory !== "released" &&
@@ -280,6 +318,32 @@ export default function UploadForm() {
         );
         return;
       }
+      // Validate fileDate
+      if (track.fileDate) {
+        const parsedFileDate = parseDate(track.fileDate);
+        if (!parsedFileDate) {
+          showAlert(
+            "Invalid File Date",
+            `File Date for track ${
+              i + 1
+            } must be in the format "Month Day, Year" (e.g., "Oct 1, 2013") or just a year (e.g., "2013").`
+          );
+          return;
+        }
+      }
+      // Validate leakDate
+      if (track.leakDate) {
+        const parsedLeakDate = parseDate(track.leakDate);
+        if (!parsedLeakDate) {
+          showAlert(
+            "Invalid Leak/Release Date",
+            `Leak/Release Date for track ${
+              i + 1
+            } must be in the format "Month Day, Year" (e.g., "Oct 1, 2013") or just a year (e.g., "2013").`
+          );
+          return;
+        }
+      }
     }
 
     const selectedEra = eras.find((era) => era.id === selectedEraId);
@@ -293,9 +357,10 @@ export default function UploadForm() {
       cover_image: track.coverImage.trimEnd() || defaultCoverImage,
       file_date:
         releaseCategory === "released"
-          ? track.leakDate
-          : track.fileDate || undefined,
-      leak_date: releaseCategory !== "released" ? track.leakDate : undefined,
+          ? parseDate(track.leakDate)
+          : parseDate(track.fileDate),
+      leak_date:
+        releaseCategory !== "released" ? parseDate(track.leakDate) : undefined,
       category: releaseCategory as "released" | "unreleased" | "stems",
       type: track.type || undefined,
       track_type: track.trackType || undefined,
@@ -486,34 +551,84 @@ export default function UploadForm() {
                   placeholder="Enter cover image URL (or leave blank for era default)"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  Credit (optional)
+                </label>
+                <input
+                  type="text"
+                  value={track.credit}
+                  onChange={(e) =>
+                    updateTrack(index, { ...track, credit: e.target.value })
+                  }
+                  onKeyDown={handleKeyDown}
+                  className="w-full p-2 border rounded bg-background text-foreground"
+                  placeholder="e.g., feat. Joji, prod. Joji"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  Original Filename (optional)
+                </label>
+                <input
+                  type="text"
+                  value={track.og_filename}
+                  onChange={(e) =>
+                    updateTrack(index, {
+                      ...track,
+                      og_filename: e.target.value,
+                    })
+                  }
+                  onKeyDown={handleKeyDown}
+                  className="w-full p-2 border rounded bg-background text-foreground"
+                  placeholder="e.g., original_track_name.mp3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  AKA (optional)
+                </label>
+                <input
+                  type="text"
+                  value={track.aka}
+                  onChange={(e) =>
+                    updateTrack(index, { ...track, aka: e.target.value })
+                  }
+                  onKeyDown={handleKeyDown}
+                  className="w-full p-2 border rounded bg-background text-foreground"
+                  placeholder="e.g., alternative song names"
+                />
+              </div>
               {releaseCategory !== "released" && (
                 <div>
                   <label className="block text-sm font-medium text-foreground">
-                    File Date
+                    File Date (optional)
                   </label>
                   <input
-                    type="date"
+                    type="text"
                     value={track.fileDate}
                     onChange={(e) =>
                       updateTrack(index, { ...track, fileDate: e.target.value })
                     }
                     className="w-full p-2 border rounded bg-background text-foreground"
+                    placeholder="e.g., Oct 1, 2013 or 2013"
                   />
                 </div>
               )}
               <div>
                 <label className="block text-sm font-medium text-foreground">
                   {releaseCategory === "released"
-                    ? "Release Date"
-                    : "Leak Date"}
+                    ? "Release Date (optional)"
+                    : "Leak Date (optional)"}
                 </label>
                 <input
-                  type="date"
+                  type="text"
                   value={track.leakDate}
                   onChange={(e) =>
                     updateTrack(index, { ...track, leakDate: e.target.value })
                   }
                   className="w-full p-2 border rounded bg-background text-foreground"
+                  placeholder="e.g., Oct 1, 2013 or 2013"
                 />
               </div>
               <div>
@@ -540,7 +655,7 @@ export default function UploadForm() {
                       <option value="Feature">Feature</option>
                       <option value="Production">Production</option>
                       <option value="Demo">Demo</option>
-                      <option value="Demo">Instrumental</option>
+                      <option value="Instrumental">Instrumental</option>
                     </>
                   ) : (
                     <>
@@ -658,54 +773,6 @@ export default function UploadForm() {
                   </div>
                 </>
               )}
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Credit (optional)
-                </label>
-                <input
-                  type="text"
-                  value={track.credit}
-                  onChange={(e) =>
-                    updateTrack(index, { ...track, credit: e.target.value })
-                  }
-                  onKeyDown={handleKeyDown}
-                  className="w-full p-2 border rounded bg-background text-foreground"
-                  placeholder="e.g., feat. Joji, prod. Joji"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Original Filename (optional)
-                </label>
-                <input
-                  type="text"
-                  value={track.og_filename}
-                  onChange={(e) =>
-                    updateTrack(index, {
-                      ...track,
-                      og_filename: e.target.value,
-                    })
-                  }
-                  onKeyDown={handleKeyDown}
-                  className="w-full p-2 border rounded bg-background text-foreground"
-                  placeholder="e.g., original_track_name.mp3"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  AKA (optional)
-                </label>
-                <input
-                  type="text"
-                  value={track.aka}
-                  onChange={(e) =>
-                    updateTrack(index, { ...track, aka: e.target.value })
-                  }
-                  onKeyDown={handleKeyDown}
-                  className="w-full p-2 border rounded bg-background text-foreground"
-                  placeholder="e.g., alternative song names"
-                />
-              </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">
                   Notes
