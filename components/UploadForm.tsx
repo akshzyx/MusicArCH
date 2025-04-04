@@ -308,7 +308,7 @@ export default function UploadForm() {
       ) {
         showAlert(
           "Incomplete Track Details",
-          `Please select a track type for track ${i + 1} (${
+          `Please select a Release type for track ${i + 1} (${
             releaseCategory === "unreleased" ? "unreleased" : "stems"
           } category).`
         );
@@ -636,7 +636,7 @@ export default function UploadForm() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">
-                  Track Type
+                  Release Type
                 </label>
                 <select
                   value={track.type}
@@ -646,7 +646,7 @@ export default function UploadForm() {
                   className="w-full p-2 border rounded bg-background text-foreground"
                 >
                   <option value="" disabled>
-                    Select track type
+                    Select release type
                   </option>
                   {releaseCategory === "released" ? (
                     <>
@@ -659,6 +659,15 @@ export default function UploadForm() {
                       <option value="Production">Production</option>
                       <option value="Demo">Demo</option>
                       <option value="Instrumental">Instrumental</option>
+                    </>
+                  ) : releaseCategory === "stems" ? (
+                    <>
+                      <option value="Instrumental">Instrumental</option>
+                      <option value="Acapella">Acapella</option>
+                      <option value="Stems">Stems</option>
+                      <option value="Mix">Mix</option>
+                      <option value="Session">Session</option>
+                      <option value="TV Track">TV Track</option>
                     </>
                   ) : (
                     <>

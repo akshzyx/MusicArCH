@@ -1192,18 +1192,31 @@ export default function TrackList({
                   className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">None</option>
-                  <option value="Beat">Beat</option>
-                  <option value="Demo">Demo</option>
-                  <option value="Remix">Remix</option>
-                  <option value="Throwaway">Throwaway</option>
-                  <option value="Cancer">Cancer</option>
-                  <option value="Unknown">Unknown</option>
-                  <option value="Project File">Project File</option>
-                  <option value="Reference">Reference</option>
-                  <option value="ALT File">ALT File</option>
-                  <option value="Feature">Feature</option>
-                  <option value="Cover">Cover</option>
-                  <option value="Voice Memo">Voice Memo</option>
+                  {editingTrack?.category === "stems" ? (
+                    <>
+                      <option value="Instrumental">Instrumental</option>
+                      <option value="Acapella">Acapella</option>
+                      <option value="Stems">Stems</option>
+                      <option value="Mix">Mix</option>
+                      <option value="Session">Session</option>
+                      <option value="TV Track">TV Track</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="Beat">Beat</option>
+                      <option value="Demo">Demo</option>
+                      <option value="Remix">Remix</option>
+                      <option value="Throwaway">Throwaway</option>
+                      <option value="Cancer">Cancer</option>
+                      <option value="Unknown">Unknown</option>
+                      <option value="Project File">Project File</option>
+                      <option value="Reference">Reference</option>
+                      <option value="ALT File">ALT File</option>
+                      <option value="Feature">Feature</option>
+                      <option value="Cover">Cover</option>
+                      <option value="Voice Memo">Voice Memo</option>
+                    </>
+                  )}
                 </select>
               </div>
             )}
