@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { fetchGitHubRepoContents } from "@/lib/github";
 import { Release } from "@/lib/types";
 import { useAudio } from "@/lib/AudioContext";
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
@@ -25,11 +26,10 @@ import { useUser } from "@clerk/nextjs";
 export default function TrackList({
   initialTracks,
   sectionTracks,
-  viewMode = "trackType", // Set trackType as the initial default
+  viewMode = "trackType",
 }: {
   initialTracks: (Release & { credit?: string; og_filename?: string })[];
   sectionTracks: Release[];
-  // Moved "default" to the end of the union type
   viewMode?: "trackType" | "releaseType" | "available" | "quality" | "default";
 }) {
   const { isSignedIn, user } = useUser();
@@ -42,6 +42,7 @@ export default function TrackList({
   const [trackTitle, setTrackTitle] = useState("");
   const [trackDuration, setTrackDuration] = useState("");
   const [trackFile, setTrackFile] = useState("");
+  const [isMultiFiles, setIsMultiFiles] = useState(false);
   const [trackType, setTrackType] = useState("");
   const [trackTrackType, setTrackTrackType] = useState("");
   const [trackAvailable, setTrackAvailable] = useState<
@@ -91,6 +92,7 @@ export default function TrackList({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set()
   );
+  const githubToken = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
   useEffect(() => {
     setTracks(initialTracks);
@@ -261,6 +263,9 @@ export default function TrackList({
     setTrackTitle(track.title);
     setTrackDuration(track.duration);
     setTrackFile(track.file);
+    setIsMultiFiles(
+      track.category === "stems" && !!track.multi_files && !track.file
+    );
     setTrackType(track.type || "");
     setTrackTrackType(track.track_type || "");
     setTrackAvailable(track.available);
@@ -323,7 +328,7 @@ export default function TrackList({
     const dateRegex = /^([A-Za-z]{3}) (\d{1,2}), (\d{4})$/;
     const match = input.match(dateRegex);
     if (match) {
-      const [monthStr, day, year] = match;
+      const [, monthStr, day, year] = match;
       const months: { [key: string]: string } = {
         jan: "01",
         feb: "02",
@@ -348,6 +353,35 @@ export default function TrackList({
     return undefined;
   };
 
+  const calculateTotalDuration = (
+    multiFiles: Release["multi_files"]
+  ): string => {
+    if (!multiFiles) return "0:00";
+
+    let totalSeconds = 0;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const traverse = (obj: any) => {
+      for (const key in obj) {
+        const value = obj[key];
+        if ("duration" in value && value.duration) {
+          const [minutes, seconds] = value.duration.split(":").map(Number);
+          totalSeconds += minutes * 60 + seconds;
+        } else if (typeof value === "object") {
+          traverse(value);
+        }
+      }
+    };
+
+    traverse(multiFiles);
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAdmin) {
@@ -356,7 +390,7 @@ export default function TrackList({
     }
     if (!editingTrack) return;
 
-    const isPlayable = trackFile.trim() !== "";
+    const isPlayable = trackFile.trim() !== "" && !isMultiFiles;
     const isNonReleased = editingTrack.category !== "released";
 
     if (!trackTitle) {
@@ -365,10 +399,14 @@ export default function TrackList({
     }
 
     if (isNonReleased) {
-      if (!trackFile.trim() && trackQuality !== "Not Available") {
+      if (
+        !trackFile.trim() &&
+        trackQuality !== "Not Available" &&
+        !isMultiFiles
+      ) {
         showAlert(
           "Validation Error",
-          "Track URL and Duration are required unless Quality is set to 'Not Available'."
+          "Track URL and Duration are required unless Quality is set to 'Not Available' or using a GitHub repository."
         );
         return;
       }
@@ -407,10 +445,33 @@ export default function TrackList({
       return;
     }
 
+    let multiFilesData: Release["multi_files"] = editingTrack.multi_files;
+    let totalDuration = trackDuration;
+
+    if (editingTrack.category === "stems" && isMultiFiles && trackFile) {
+      try {
+        multiFilesData = await fetchGitHubRepoContents(trackFile, githubToken);
+        totalDuration = calculateTotalDuration(multiFilesData);
+        setTrackDuration(totalDuration); // Update UI immediately
+      } catch (error) {
+        showAlert(
+          "GitHub Fetch Failed",
+          `Failed to fetch GitHub repository contents: ${
+            (error as Error).message
+          }`
+        );
+        return;
+      }
+    } else if (isMultiFiles) {
+      multiFilesData = undefined; // Clear if unchecked or no URL
+      totalDuration = "";
+    }
+
     const updatedTrack = {
       title: trackTitle,
-      duration: trackDuration || "",
-      file: trackFile.trimEnd() || "",
+      duration: totalDuration || "",
+      file: isMultiFiles ? "" : trackFile.trimEnd() || "",
+      multi_files: multiFilesData,
       type: trackType || undefined,
       track_type:
         editingTrack.category !== "released"
@@ -476,6 +537,7 @@ export default function TrackList({
           setTrackTitle("");
           setTrackDuration("");
           setTrackFile("");
+          setIsMultiFiles(false);
           setTrackType("");
           setTrackTrackType("");
           setTrackAvailable(undefined);
@@ -529,6 +591,7 @@ export default function TrackList({
     setTrackTitle("");
     setTrackDuration("");
     setTrackFile("");
+    setIsMultiFiles(false);
     setTrackType("");
     setTrackTrackType("");
     setTrackAvailable(undefined);
@@ -1061,17 +1124,15 @@ export default function TrackList({
                             {track.quality}
                           </span>
                         )}
-                        {!hasMultiFiles && (
-                          <span
-                            className={`ml-3 text-xs tabular-nums ${
-                              isTrackPlayable(track)
-                                ? "text-gray-400"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            {track.duration}
-                          </span>
-                        )}
+                        <span
+                          className={`ml-3 text-xs tabular-nums ${
+                            isTrackPlayable(track) || hasMultiFiles
+                              ? "text-gray-400"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {track.duration}
+                        </span>
                         {isAdmin && (
                           <div className="flex space-x-2">
                             <button
@@ -1241,15 +1302,15 @@ export default function TrackList({
                     {track.quality}
                   </span>
                 )}
-                {!hasMultiFiles && (
-                  <span
-                    className={`ml-3 text-xs tabular-nums ${
-                      isTrackPlayable(track) ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    {track.duration}
-                  </span>
-                )}
+                <span
+                  className={`ml-3 text-xs tabular-nums ${
+                    isTrackPlayable(track) || hasMultiFiles
+                      ? "text-gray-400"
+                      : "text-gray-600"
+                  }`}
+                >
+                  {track.duration}
+                </span>
                 {isAdmin && (
                   <div className="flex space-x-2">
                     <button
@@ -1317,10 +1378,14 @@ export default function TrackList({
             <div>
               <label className="block text-sm font-medium text-gray-300">
                 Duration{" "}
-                {(trackFile.trim() !== "" ||
-                  (editingTrack?.category !== "released" &&
-                    trackQuality !== "Not Available")) &&
-                  "(Required)"}
+                {(trackFile.trim() !== "" && !isMultiFiles) ||
+                (editingTrack?.category !== "released" &&
+                  trackQuality !== "Not Available" &&
+                  !isMultiFiles)
+                  ? "(Required)"
+                  : isMultiFiles
+                  ? "(Auto-calculated)"
+                  : ""}
               </label>
               <input
                 type="text"
@@ -1329,19 +1394,25 @@ export default function TrackList({
                 onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required={
-                  trackFile.trim() !== "" ||
+                  (trackFile.trim() !== "" && !isMultiFiles) ||
                   (editingTrack?.category !== "released" &&
-                    trackQuality !== "Not Available")
+                    trackQuality !== "Not Available" &&
+                    !isMultiFiles)
                 }
+                disabled={isMultiFiles} // Disable when using GitHub repo
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300">
-                Track URL (GitHub){" "}
-                {(trackFile.trim() !== "" ||
-                  (editingTrack?.category !== "released" &&
-                    trackQuality !== "Not Available")) &&
-                  "(Required)"}
+                {editingTrack?.category === "stems" && isMultiFiles
+                  ? "GitHub Repository URL"
+                  : "Track URL (GitHub)"}{" "}
+                {(trackFile.trim() !== "" && !isMultiFiles) ||
+                (editingTrack?.category !== "released" &&
+                  trackQuality !== "Not Available" &&
+                  !isMultiFiles)
+                  ? "(Required)"
+                  : ""}
               </label>
               <input
                 type="url"
@@ -1350,12 +1421,36 @@ export default function TrackList({
                 onKeyDown={handleKeyDown}
                 className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required={
-                  trackFile.trim() !== "" ||
+                  (trackFile.trim() !== "" && !isMultiFiles) ||
                   (editingTrack?.category !== "released" &&
-                    trackQuality !== "Not Available")
+                    trackQuality !== "Not Available" &&
+                    !isMultiFiles)
+                }
+                placeholder={
+                  editingTrack?.category === "stems" && isMultiFiles
+                    ? "e.g., https://github.com/username/repo"
+                    : "e.g., https://github.com/username/repo/raw/main/track.mp3"
                 }
               />
             </div>
+            {editingTrack?.category === "stems" && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={isMultiFiles}
+                  onChange={(e) => {
+                    setIsMultiFiles(e.target.checked);
+                    if (!e.target.checked) {
+                      setTrackDuration(""); // Clear duration when switching off GitHub repo
+                    }
+                  }}
+                  className="h-4 w-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+                />
+                <label className="text-sm font-medium text-gray-300">
+                  Use GitHub Repository
+                </label>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-300">
                 Credit
