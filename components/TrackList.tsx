@@ -87,6 +87,9 @@ export default function TrackList({
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
     null
   );
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState(0);
+  const [cancelUpdate, setCancelUpdate] = useState(false);
   const [hoveredTrackId, setHoveredTrackId] = useState<string | null>(null);
   const [expandedTracks, setExpandedTracks] = useState<Set<number>>(new Set());
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
@@ -445,25 +448,48 @@ export default function TrackList({
       return;
     }
 
+    setIsUpdating(true);
+    setUpdateProgress(0);
+    setCancelUpdate(false);
+    setAlertTitle("Updating Track");
+    setAlertDescription("Please wait, updating...");
+    setAlertVariant("default");
+    setOnConfirmAction(null);
+    setAlertOpen(true);
+
     let multiFilesData: Release["multi_files"] = editingTrack.multi_files;
     let totalDuration = trackDuration;
 
     if (editingTrack.category === "stems" && isMultiFiles && trackFile) {
       try {
+        setUpdateProgress(10);
         multiFilesData = await fetchGitHubRepoContents(trackFile, githubToken);
+        if (cancelUpdate) throw new Error("Update cancelled");
+        setUpdateProgress(50);
         totalDuration = calculateTotalDuration(multiFilesData);
-        setTrackDuration(totalDuration); // Update UI immediately
+        setTrackDuration(totalDuration);
       } catch (error) {
-        showAlert(
-          "GitHub Fetch Failed",
+        if (cancelUpdate) {
+          setAlertTitle("Update Cancelled");
+          setAlertDescription("The track update was cancelled.");
+          setIsUpdating(false);
+          setUpdateProgress(0);
+          setAlertOpen(false); // Close dialog on cancel
+          return;
+        }
+        setAlertTitle("GitHub Fetch Failed");
+        setAlertDescription(
           `Failed to fetch GitHub repository contents: ${
             (error as Error).message
           }`
         );
+        setAlertVariant("destructive");
+        setIsUpdating(false);
+        setUpdateProgress(0);
         return;
       }
     } else if (isMultiFiles) {
-      multiFilesData = undefined; // Clear if unchecked or no URL
+      multiFilesData = undefined;
       totalDuration = "";
     }
 
@@ -491,6 +517,16 @@ export default function TrackList({
       og_filename: trackOgFilename || undefined,
     };
 
+    setUpdateProgress(75);
+    if (cancelUpdate) {
+      setAlertTitle("Update Cancelled");
+      setAlertDescription("The track update was cancelled.");
+      setIsUpdating(false);
+      setUpdateProgress(0);
+      setAlertOpen(false); // Close dialog on cancel
+      return;
+    }
+
     const { error } = await supabase
       .from("releases")
       .update(updatedTrack)
@@ -498,59 +534,82 @@ export default function TrackList({
 
     if (error) {
       console.error("Error updating track:", error);
-      showAlert("Update Failed", "Failed to update track: " + error.message);
-    } else {
-      console.log("Track updated:", editingTrack.id);
-
-      const { data: fetchedTrack, error: fetchError } = await supabase
-        .from("releases")
-        .select("*")
-        .eq("id", editingTrack.id)
-        .single();
-
-      if (fetchError) {
-        console.error("Error fetching updated track:", fetchError);
-        showAlert(
-          "Fetch Failed",
-          "Failed to fetch updated track: " + fetchError.message
-        );
-      } else if (fetchedTrack) {
-        const updatedTrackData = {
-          ...fetchedTrack,
-          cover_image: fetchedTrack.cover_image || "",
-          duration: fetchedTrack.duration || "",
-          file_date: fetchedTrack.file_date || undefined,
-          leak_date: fetchedTrack.leak_date || undefined,
-          og_filename: fetchedTrack.og_filename || undefined,
-        };
-
-        setTracks(
-          tracks.map((t) => (t.id === editingTrack.id ? updatedTrackData : t))
-        );
-
-        if (currentTrack?.id === editingTrack.id && isPlayable) {
-          playTrack(updatedTrackData, sectionTracks);
-        }
-
-        showAlert("Success", "Track updated successfully!", "default", () => {
-          setEditingTrack(null);
-          setTrackTitle("");
-          setTrackDuration("");
-          setTrackFile("");
-          setIsMultiFiles(false);
-          setTrackType("");
-          setTrackTrackType("");
-          setTrackAvailable(undefined);
-          setTrackQuality(undefined);
-          setTrackFileDate("");
-          setTrackLeakDate("");
-          setTrackNotes("");
-          setTrackCredit("");
-          setTrackCoverImage("");
-          setTrackOgFilename("");
-        });
-      }
+      setAlertTitle("Update Failed");
+      setAlertDescription("Failed to update track: " + error.message);
+      setAlertVariant("destructive");
+      setIsUpdating(false);
+      setUpdateProgress(0);
+      return;
     }
+
+    setUpdateProgress(90);
+    console.log("Track updated:", editingTrack.id);
+
+    const { data: fetchedTrack, error: fetchError } = await supabase
+      .from("releases")
+      .select("*")
+      .eq("id", editingTrack.id)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching updated track:", fetchError);
+      setAlertTitle("Fetch Failed");
+      setAlertDescription(
+        "Failed to fetch updated track: " + fetchError.message
+      );
+      setAlertVariant("destructive");
+      setIsUpdating(false);
+      setUpdateProgress(0);
+      return;
+    }
+
+    if (fetchedTrack) {
+      const updatedTrackData = {
+        ...fetchedTrack,
+        cover_image: fetchedTrack.cover_image || "",
+        duration: fetchedTrack.duration || "",
+        file_date: fetchedTrack.file_date || undefined,
+        leak_date: fetchedTrack.leak_date || undefined,
+        og_filename: fetchedTrack.og_filename || undefined,
+      };
+
+      setTracks(
+        tracks.map((t) => (t.id === editingTrack.id ? updatedTrackData : t))
+      );
+
+      if (currentTrack?.id === editingTrack.id && isPlayable) {
+        playTrack(updatedTrackData, sectionTracks);
+      }
+
+      setUpdateProgress(100);
+      setAlertTitle("Success");
+      setAlertDescription("Track updated successfully!");
+      setAlertVariant("default");
+      setOnConfirmAction(() => () => {
+        setEditingTrack(null);
+        setTrackTitle("");
+        setTrackDuration("");
+        setTrackFile("");
+        setIsMultiFiles(false);
+        setTrackType("");
+        setTrackTrackType("");
+        setTrackAvailable(undefined);
+        setTrackQuality(undefined);
+        setTrackFileDate("");
+        setTrackLeakDate("");
+        setTrackNotes("");
+        setTrackCredit("");
+        setTrackCoverImage("");
+        setTrackOgFilename("");
+        setAlertOpen(false);
+      });
+      setIsUpdating(false);
+    }
+  };
+
+  const handleCancelUpdate = () => {
+    setCancelUpdate(true);
+    setAlertOpen(false); // Ensure dialog closes on cancel
   };
 
   const handleDelete = async (track: Release) => {
@@ -693,126 +752,148 @@ export default function TrackList({
     path: string = ""
   ) => {
     if (!json) return null;
-    return Object.entries(json).map(([key, value], index) => {
-      const currentPath = path ? `${path}/${key}` : key;
-      const isFolder = typeof value === "object" && !("url" in value);
-      const parentTrack = tracks.find((t) => t.id === trackId);
 
+    // Separate folders and files
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const folders: [string, any][] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const files: [string, any][] = [];
+
+    Object.entries(json).forEach(([key, value]) => {
+      const isFolder = typeof value === "object" && !("url" in value);
       if (isFolder) {
-        const isExpanded = expandedFolders.has(`${trackId}-${currentPath}`);
-        return (
-          <div key={currentPath} className="ml-6 mt-2">
-            <div
-              className="flex items-center py-1 px-2 cursor-pointer hover:bg-gray-800/50 rounded-lg bg-gray-700/20"
-              onClick={() => toggleFolder(`${trackId}-${currentPath}`)}
-            >
-              <span className="w-5 h-5 flex items-center justify-center text-xs text-gray-400">
-                {isExpanded ? (
-                  <FontAwesomeIcon icon={faChevronDown} size="xs" />
-                ) : (
-                  String(index + 1).padStart(2, "0")
-                )}
-              </span>
-              <span className="ml-3 text-gray-200 font-semibold">{key}</span>
-            </div>
-            {isExpanded && (
-              <div className="ml-2 mt-2">
-                {renderJsonContent(
-                  value as Release["multi_files"],
-                  trackId,
-                  currentPath
-                )}
-              </div>
-            )}
-          </div>
-        );
+        folders.push([key, value]);
       } else {
-        const file = value as {
-          url: string;
-          duration: string;
-          size: number;
-          type: string;
-          sha: string;
-        };
-        const isPlayable = !!file.url && file.url.trim() !== "";
-        const syntheticTrack: Release = {
-          id: parseInt(`${trackId}${index}`, 10),
-          title: key,
-          file: file.url,
-          duration: file.duration,
-          era_id: parentTrack?.era_id || "",
-          category: parentTrack?.category || "unreleased",
-          cover_image: parentTrack?.cover_image || "",
-        };
-        return (
-          <div
-            key={currentPath}
-            className={`flex items-center py-1.5 px-2 ml-6 mt-2 rounded-lg transition-all duration-200 ${
-              isPlayable
-                ? currentTrack?.id === syntheticTrack.id
-                  ? "bg-gray-700/50 text-white"
-                  : "hover:bg-gray-800/50 text-gray-300"
-                : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
-            }`}
-            onMouseEnter={() =>
-              isPlayable && setHoveredTrackId(syntheticTrack.id.toString())
-            }
-            onMouseLeave={() => setHoveredTrackId(null)}
-          >
-            <button
-              onClick={() => handlePlayPause(syntheticTrack, tracks)}
-              className={`w-5 h-5 flex items-center justify-center text-xs rounded-full transition-colors ${
-                isPlayable
-                  ? currentTrack?.id === syntheticTrack.id && isPlaying
-                    ? "text-green-400"
-                    : "text-gray-400 hover:text-green-400"
-                  : "text-gray-600 cursor-not-allowed"
-              }`}
-              disabled={!isPlayable}
-            >
-              {isPlayable ? (
-                currentTrack?.id === syntheticTrack.id ? (
-                  isPlaying ? (
-                    <FontAwesomeIcon icon={faPause} size="xs" />
-                  ) : (
-                    <FontAwesomeIcon icon={faPlay} size="xs" />
-                  )
-                ) : hoveredTrackId === syntheticTrack.id.toString() ? (
-                  <FontAwesomeIcon icon={faPlay} size="xs" />
-                ) : (
-                  <span className="text-gray-400">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                )
-              ) : (
-                <span className="text-gray-600">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-              )}
-            </button>
-            <span
-              className={`font-medium truncate flex-1 ml-3 ${
-                isPlayable ? "text-white" : "text-gray-500"
-              }`}
-            >
-              {key}
-              {!isPlayable && (
-                <span className="text-gray-600 text-xs ml-1">
-                  (Not Available)
-                </span>
-              )}
-            </span>
-            <span
-              className={`ml-3 text-xs tabular-nums ${
-                isPlayable ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              {file.duration}
-            </span>
-          </div>
-        );
+        files.push([key, value]);
       }
     });
+
+    const renderFolders = folders.map(([key, value], index) => {
+      const currentPath = path ? `${path}/${key}` : key;
+      const isExpanded = expandedFolders.has(`${trackId}-${currentPath}`);
+      return (
+        <div key={currentPath} className="ml-6 mt-2">
+          <div
+            className="flex items-center py-1 px-2 cursor-pointer hover:bg-gray-800/50 rounded-lg bg-gray-700/20"
+            onClick={() => toggleFolder(`${trackId}-${currentPath}`)}
+          >
+            <span className="w-5 h-5 flex items-center justify-center text-xs text-gray-400">
+              {isExpanded ? (
+                <FontAwesomeIcon icon={faChevronDown} size="xs" />
+              ) : (
+                String(index + 1).padStart(2, "0")
+              )}
+            </span>
+            <span className="ml-3 text-gray-200 font-semibold">{key}</span>
+          </div>
+          {isExpanded && (
+            <div className="ml-2 mt-2">
+              {renderJsonContent(
+                value as Release["multi_files"],
+                trackId,
+                currentPath
+              )}
+            </div>
+          )}
+        </div>
+      );
+    });
+
+    const renderFiles = files.map(([key, value], index) => {
+      const currentPath = path ? `${path}/${key}` : key;
+      const file = value as {
+        url: string;
+        duration: string;
+        size: number;
+        type: string;
+        sha: string;
+      };
+      const isPlayable = !!file.url && file.url.trim() !== "";
+      const parentTrack = tracks.find((t) => t.id === trackId);
+      const syntheticTrack: Release = {
+        id: parseInt(`${trackId}${index}`, 10),
+        title: key,
+        file: file.url,
+        duration: file.duration,
+        era_id: parentTrack?.era_id || "",
+        category: parentTrack?.category || "unreleased",
+        cover_image: parentTrack?.cover_image || "",
+      };
+      return (
+        <div
+          key={currentPath}
+          className={`flex items-center py-1.5 px-2 ml-6 mt-2 rounded-lg transition-all duration-200 ${
+            isPlayable
+              ? currentTrack?.id === syntheticTrack.id
+                ? "bg-gray-700/50 text-white"
+                : "hover:bg-gray-800/50 text-gray-300"
+              : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
+          }`}
+          onMouseEnter={() =>
+            isPlayable && setHoveredTrackId(syntheticTrack.id.toString())
+          }
+          onMouseLeave={() => setHoveredTrackId(null)}
+        >
+          <button
+            onClick={() => handlePlayPause(syntheticTrack, tracks)}
+            className={`w-5 h-5 flex items-center justify-center text-xs rounded-full transition-colors ${
+              isPlayable
+                ? currentTrack?.id === syntheticTrack.id && isPlaying
+                  ? "text-green-400"
+                  : "text-gray-400 hover:text-green-400"
+                : "text-gray-600 cursor-not-allowed"
+            }`}
+            disabled={!isPlayable}
+          >
+            {isPlayable ? (
+              currentTrack?.id === syntheticTrack.id ? (
+                isPlaying ? (
+                  <FontAwesomeIcon icon={faPause} size="xs" />
+                ) : (
+                  <FontAwesomeIcon icon={faPlay} size="xs" />
+                )
+              ) : hoveredTrackId === syntheticTrack.id.toString() ? (
+                <FontAwesomeIcon icon={faPlay} size="xs" />
+              ) : (
+                <span className="text-gray-400">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              )
+            ) : (
+              <span className="text-gray-600">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+            )}
+          </button>
+          <span
+            className={`font-medium truncate flex-1 ml-3 ${
+              isPlayable ? "text-white" : "text-gray-500"
+            }`}
+          >
+            {key}
+            {!isPlayable && (
+              <span className="text-gray-600 text-xs ml-1">
+                (Not Available)
+              </span>
+            )}
+          </span>
+          <span
+            className={`ml-3 text-xs tabular-nums ${
+              isPlayable ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            {file.duration}
+          </span>
+        </div>
+      );
+    });
+
+    return (
+      <>
+        {renderFolders}
+        {renderFiles}
+      </>
+    );
   };
 
   const renderCategorizedView = () => {
@@ -1399,7 +1480,7 @@ export default function TrackList({
                     trackQuality !== "Not Available" &&
                     !isMultiFiles)
                 }
-                disabled={isMultiFiles} // Disable when using GitHub repo
+                disabled={isMultiFiles}
               />
             </div>
             <div>
@@ -1441,7 +1522,7 @@ export default function TrackList({
                   onChange={(e) => {
                     setIsMultiFiles(e.target.checked);
                     if (!e.target.checked) {
-                      setTrackDuration(""); // Clear duration when switching off GitHub repo
+                      setTrackDuration("");
                     }
                   }}
                   className="h-4 w-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
@@ -1705,6 +1786,7 @@ export default function TrackList({
               <button
                 type="submit"
                 className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                disabled={isUpdating}
               >
                 Update Track
               </button>
@@ -1714,12 +1796,23 @@ export default function TrackList({
       </Dialog>
       <CustomAlertDialog
         isOpen={alertOpen}
-        onOpenChange={setAlertOpen}
+        onOpenChange={(open) => {
+          if (!open && !isUpdating) setAlertOpen(false);
+        }}
         title={alertTitle}
-        description={alertDescription}
-        confirmText={onConfirmAction ? "Confirm" : "OK"}
-        cancelText={onConfirmAction ? "Cancel" : undefined}
-        onConfirm={onConfirmAction ? () => onConfirmAction() : undefined}
+        description={
+          isUpdating
+            ? `${alertDescription}\nProgress: ${updateProgress}%`
+            : alertDescription
+        }
+        confirmText={
+          isUpdating ? undefined : onConfirmAction ? "Confirm" : "OK"
+        }
+        cancelText={
+          isUpdating ? "Cancel" : onConfirmAction ? "Cancel" : undefined
+        }
+        onConfirm={isUpdating ? undefined : onConfirmAction || undefined}
+        onCancel={isUpdating ? handleCancelUpdate : undefined}
         variant={alertVariant}
       />
     </div>

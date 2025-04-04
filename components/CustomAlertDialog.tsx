@@ -20,6 +20,7 @@ interface CustomAlertDialogProps {
   confirmText?: string;
   cancelText?: string;
   onConfirm?: () => void;
+  onCancel?: () => void; // Added onCancel
   variant?: "default" | "destructive";
   dialogContentClassName?: string;
   titleClassName?: string;
@@ -36,6 +37,7 @@ export function CustomAlertDialog({
   confirmText = "OK",
   cancelText,
   onConfirm,
+  onCancel,
   variant = "default",
   dialogContentClassName,
   titleClassName,
@@ -64,6 +66,7 @@ export function CustomAlertDialog({
         <AlertDialogFooter>
           {cancelText && (
             <AlertDialogCancel
+              onClick={onCancel} // Added onCancel handler
               className={`px-4 py-2 rounded transition-colors ${
                 cancelButtonClassName ||
                 "bg-gray-600 text-white hover:bg-gray-700"
