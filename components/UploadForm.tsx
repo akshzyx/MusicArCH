@@ -1,13 +1,18 @@
-// app/(site)/upload/UploadForm.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { fetchGitHubRepoContents } from "@/lib/github";
-import { Release, Era } from "@/lib/types"; // Import JsonFolder
+import { Release, Era } from "@/lib/types";
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
 import { useUser } from "@clerk/nextjs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type JsonFolder = {
   [key: string]:
@@ -96,6 +101,8 @@ export default function UploadForm() {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertDescription, setAlertDescription] = useState("");
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [progressOpen, setProgressOpen] = useState(false);
+  const [progressPercentage, setProgressPercentage] = useState(0); // Progress percentage
   const router = useRouter();
 
   const isAdmin = user?.publicMetadata?.role === "admin";
@@ -117,62 +124,101 @@ export default function UploadForm() {
   }, []);
 
   useEffect(() => {
-    tracks.forEach((track, index) => {
-      if (!track.file || track.isMultiFiles) {
-        updateTrack(index, {
-          ...track,
-          duration: "",
-          isLoadingDuration: false,
-        });
-        return;
-      }
-
-      updateTrack(index, { ...track, isLoadingDuration: true });
-      const audio = new Audio(track.file.trimEnd());
-
-      audio.onloadedmetadata = () => {
-        const durationSeconds = audio.duration;
-        if (isNaN(durationSeconds) || !isFinite(durationSeconds)) {
-          setAlertTitle("Invalid Audio File");
-          setAlertDescription(
-            `Could not determine track duration for track ${
-              index + 1
-            }. Please ensure the URL points to a valid audio file.`
-          );
-          setAlertOpen(true);
+    const processTracks = async () => {
+      for (let index = 0; index < tracks.length; index++) {
+        const track = tracks[index];
+        if (!track.file) {
           updateTrack(index, {
             ...track,
             duration: "",
             isLoadingDuration: false,
           });
-        } else {
-          const minutes = Math.floor(durationSeconds / 60);
-          const seconds = Math.floor(durationSeconds % 60)
-            .toString()
-            .padStart(2, "0");
-          updateTrack(index, {
-            ...track,
-            duration: `${minutes}:${seconds}`,
-            isLoadingDuration: false,
-          });
+          continue;
         }
-      };
 
-      audio.onerror = () => {
-        setAlertTitle("Error Loading Audio");
-        setAlertDescription(
-          `Error loading audio file for track ${
-            index + 1
-          }. Please check the URL.`
-        );
-        setAlertOpen(true);
-        updateTrack(index, {
-          ...track,
-          duration: "",
-          isLoadingDuration: false,
-        });
-      };
-    });
+        if (releaseCategory === "stems" && track.isMultiFiles) {
+          updateTrack(index, { ...track, isLoadingDuration: true });
+          setProgressOpen(true);
+          setProgressPercentage(0); // Reset progress
+          try {
+            const multiFilesData = await fetchGitHubRepoContentsWithProgress(
+              track.file,
+              githubToken,
+              (progress) => setProgressPercentage(progress)
+            );
+            const totalDuration = calculateTotalDuration(multiFilesData);
+            updateTrack(index, {
+              ...track,
+              duration: totalDuration,
+              isLoadingDuration: false,
+            });
+          } catch (error) {
+            setAlertTitle("GitHub Fetch Failed");
+            setAlertDescription(
+              `Failed to fetch GitHub repository contents for track ${
+                index + 1
+              }: ${(error as Error).message}`
+            );
+            setAlertOpen(true);
+            updateTrack(index, {
+              ...track,
+              duration: "",
+              isLoadingDuration: false,
+            });
+          } finally {
+            setProgressOpen(false);
+          }
+        } else {
+          updateTrack(index, { ...track, isLoadingDuration: true });
+          const audio = new Audio(track.file.trimEnd());
+
+          audio.onloadedmetadata = () => {
+            const durationSeconds = audio.duration;
+            if (isNaN(durationSeconds) || !isFinite(durationSeconds)) {
+              setAlertTitle("Invalid Audio File");
+              setAlertDescription(
+                `Could not determine track duration for track ${
+                  index + 1
+                }. Please ensure the URL points to a valid audio file.`
+              );
+              setAlertOpen(true);
+              updateTrack(index, {
+                ...track,
+                duration: "",
+                isLoadingDuration: false,
+              });
+            } else {
+              const minutes = Math.floor(durationSeconds / 60);
+              const seconds = Math.floor(durationSeconds % 60)
+                .toString()
+                .padStart(2, "0");
+              updateTrack(index, {
+                ...track,
+                duration: `${minutes}:${seconds}`,
+                isLoadingDuration: false,
+              });
+            }
+          };
+
+          audio.onerror = () => {
+            setAlertTitle("Error Loading Audio");
+            setAlertDescription(
+              `Error loading audio file for track ${
+                index + 1
+              }. Please check the URL.`
+            );
+            setAlertOpen(true);
+            updateTrack(index, {
+              ...track,
+              duration: "",
+              isLoadingDuration: false,
+            });
+          };
+        }
+      }
+    };
+
+    processTracks();
   }, [tracks.map((track) => `${track.file}-${track.isMultiFiles}`).join(",")]);
 
   const updateTrack = (index: number, updatedTrack: TrackFormData) => {
@@ -252,6 +298,90 @@ export default function UploadForm() {
     return undefined;
   };
 
+  const calculateTotalDuration = (multiFiles: JsonFolder): string => {
+    if (!multiFiles) return "0:00";
+
+    let totalSeconds = 0;
+
+    const traverse = (obj: JsonFolder) => {
+      for (const key in obj) {
+        const value = obj[key];
+        if (
+          value &&
+          "url" in value &&
+          "duration" in value &&
+          typeof value.duration === "string"
+        ) {
+          const [minutes, seconds] = value.duration.split(":").map(Number);
+          totalSeconds += minutes * 60 + seconds;
+        } else if (typeof value === "object" && value !== null) {
+          traverse(value as JsonFolder);
+        }
+      }
+    };
+
+    traverse(multiFiles);
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
+
+  // Wrapper for fetchGitHubRepoContents to simulate progress
+  const fetchGitHubRepoContentsWithProgress = async (
+    url: string,
+    token: string | undefined,
+    onProgress: (progress: number) => void
+  ): Promise<JsonFolder> => {
+    // Since we don't have direct control over fetchGitHubRepoContents,
+    // we'll simulate progress based on a mock file count.
+    // In a real implementation, modify fetchGitHubRepoContents to report progress.
+    const response = await fetchGitHubRepoContents(url, token);
+    const fileCount = countFiles(response);
+    let processed = 0;
+
+    // Simulate progress (replace with actual progress reporting if possible)
+    const simulateProgress = () => {
+      processed += 1;
+      const percentage = Math.min((processed / fileCount) * 100, 100);
+      onProgress(percentage);
+    };
+
+    // Mock simulation: call simulateProgress for each file
+    const traverseAndSimulate = (obj: JsonFolder) => {
+      for (const key in obj) {
+        const value = obj[key];
+        if ("url" in value) {
+          simulateProgress();
+        } else if (typeof value === "object" && value !== null) {
+          traverseAndSimulate(value as JsonFolder);
+        }
+      }
+    };
+
+    traverseAndSimulate(response);
+    onProgress(100); // Ensure it reaches 100%
+    return response;
+  };
+
+  const countFiles = (multiFiles: JsonFolder): number => {
+    let count = 0;
+    const traverse = (obj: JsonFolder) => {
+      for (const key in obj) {
+        const value = obj[key];
+        if ("url" in value) {
+          count += 1;
+        } else if (typeof value === "object" && value !== null) {
+          traverse(value as JsonFolder);
+        }
+      }
+    };
+    traverse(multiFiles);
+    return count;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isSignedIn || !isAdmin) {
@@ -329,9 +459,9 @@ export default function UploadForm() {
       ) {
         showAlert(
           "Incomplete Track Details",
-          `Please select a Release type for track ${i + 1} (${
-            releaseCategory === "unreleased" ? "unreleased" : "stems"
-          } category).`
+          `Please select an Additional Track Type for track ${
+            i + 1
+          } (${releaseCategory} category).`
         );
         return;
       }
@@ -364,15 +494,21 @@ export default function UploadForm() {
     const selectedEra = eras.find((era) => era.id === selectedEraId);
     const defaultCoverImage = selectedEra?.cover_image || "";
 
+    setProgressOpen(true);
+    setProgressPercentage(0);
     const newReleases: Omit<Release, "id">[] = await Promise.all(
       tracks.map(async (track) => {
-        let multiFilesData: JsonFolder | undefined = undefined; // Updated type to JsonFolder
+        let multiFilesData: JsonFolder | undefined = undefined;
+        let totalDuration = track.duration;
+
         if (releaseCategory === "stems" && track.isMultiFiles && track.file) {
           try {
-            multiFilesData = await fetchGitHubRepoContents(
+            multiFilesData = await fetchGitHubRepoContentsWithProgress(
               track.file,
-              githubToken
+              githubToken,
+              (progress) => setProgressPercentage(progress)
             );
+            totalDuration = calculateTotalDuration(multiFilesData);
           } catch (error) {
             showAlert(
               "GitHub Fetch Failed",
@@ -387,7 +523,7 @@ export default function UploadForm() {
         return {
           era_id: selectedEraId,
           title: track.title,
-          duration: track.isMultiFiles ? "" : track.duration,
+          duration: totalDuration,
           file: track.isMultiFiles ? "" : track.file.trimEnd(),
           multi_files: multiFilesData,
           cover_image: track.coverImage.trimEnd() || defaultCoverImage,
@@ -430,6 +566,8 @@ export default function UploadForm() {
     const { error: insertError } = await supabase
       .from("releases")
       .insert(newReleases);
+
+    setProgressOpen(false);
 
     if (insertError) {
       console.error("Error adding releases:", insertError);
@@ -726,9 +864,7 @@ export default function UploadForm() {
                   }
                   className="w-full p-2 border rounded bg-background text-foreground"
                 >
-                  <option value="" disabled>
-                    Select release type
-                  </option>
+                  <option value="">Select release type</option>
                   {releaseCategory === "released" ? (
                     <>
                       <option value="Loosie">Loosie</option>
@@ -910,6 +1046,30 @@ export default function UploadForm() {
         title={alertTitle}
         description={alertDescription}
       />
+
+      <Dialog open={progressOpen} onOpenChange={setProgressOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-[#0C1521] text-white border border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              Processing GitHub Repository
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <p className="text-gray-300">
+              Fetching repository contents and calculating total duration...
+            </p>
+            <p className="text-gray-200 mt-2">
+              Progress: {Math.round(progressPercentage)}%
+            </p>
+            <div className="mt-4 w-full bg-gray-600 rounded-full h-2.5">
+              <div
+                className="bg-blue-500 h-2.5 rounded-full"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
