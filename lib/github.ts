@@ -1,16 +1,21 @@
 // lib/github.ts
+// Define JsonFolder type to avoid 'any'
+type JsonFolder = {
+  [key: string]:
+    | JsonFolder
+    | {
+        url: string;
+        duration: string;
+        size: number;
+        type: string;
+        sha: string;
+      };
+};
+
 export const fetchGitHubRepoContents = async (
   repoUrl: string,
   token?: string // Optional GitHub token
-): Promise<
-  Record<
-    string,
-    Record<
-      string,
-      { url: string; duration: string; size: number; type: string; sha: string }
-    >
-  >
-> => {
+): Promise<JsonFolder> => {
   try {
     const urlMatch = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
     if (!urlMatch) {
@@ -33,28 +38,18 @@ export const fetchGitHubRepoContents = async (
     }
 
     const data = await response.json();
-    type TreeNode = Record<
-      string,
-      | Record<
-          string,
-          {
+    type TreeNode = {
+      [key: string]:
+        | TreeNode
+        | {
             url: string;
             duration: string;
             size: number;
             type: string;
             sha: string;
-          }
-        >
-      | FileNode
-    >;
-
-    type FileNode = {
-      url: string;
-      duration: string;
-      size: number;
-      type: string;
-      sha: string;
+          };
     };
+
     const tree: TreeNode = {};
 
     for (const item of data.tree) {
@@ -105,23 +100,10 @@ export const fetchGitHubRepoContents = async (
           size: item.size || 0,
           type: fileType || "",
           sha: item.sha || "",
-        } as FileNode;
+        };
       }
     }
-    return tree as Record<
-      string,
-      Record<
-        string,
-        {
-          url: string;
-          duration: string;
-          size: number;
-          type: string;
-          sha: string;
-        }
-      >
-    >;
-    // return tree;
+    return tree; // Matches TreeNode and JsonFolder
   } catch (error) {
     console.error("Error fetching GitHub repo:", error);
     throw error;
