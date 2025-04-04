@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Add useEffect
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import TrackList from "@/components/TrackList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,22 +27,22 @@ export default function EraContentClient({
 }: EraContentClientProps) {
   const [activeTab, setActiveTab] = useState(firstTabWithTracks);
   const [viewMode, setViewMode] = useState<
-    "default" | "trackType" | "releaseType" | "available" | "quality"
-  >("default");
+    "trackType" | "releaseType" | "available" | "quality" | "default"
+  >("trackType"); // Changed default from "default" to "trackType"
 
   // Scroll to top when the component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []); // Empty dependency array ensures it runs only on mount
 
-  // Define view modes based on tab
-  const releasedViewModes = ["default", "trackType"];
+  // Define view modes based on tab, with "default" as the last option
+  const releasedViewModes = ["trackType", "default"];
   const otherViewModes = [
-    "default",
     "trackType",
     "releaseType",
     "available",
     "quality",
+    "default",
   ];
 
   const getViewModes = (category: string) =>
@@ -54,19 +54,19 @@ export default function EraContentClient({
     const nextIndex = (currentIndex + 1) % viewModes.length;
     setViewMode(
       viewModes[nextIndex] as
-        | "default"
         | "trackType"
         | "releaseType"
         | "available"
         | "quality"
+        | "default"
     );
   };
 
-  // Handle tab change and reset viewMode to "default" if switching to "released"
+  // Handle tab change and reset viewMode to "trackType" if switching to "released"
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
     if (newTab === "released" && !releasedViewModes.includes(viewMode)) {
-      setViewMode("default");
+      setViewMode("trackType"); // Changed from "default" to "trackType"
     }
   };
 
@@ -120,15 +120,15 @@ export default function EraContentClient({
               onClick={() => nextViewMode(activeTab)}
               className="px-3 py-1 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap ml-2"
             >
-              {viewMode === "default"
-                ? "Default"
-                : viewMode === "trackType"
+              {viewMode === "trackType"
                 ? "Track Type"
                 : viewMode === "releaseType"
                 ? "Release Type"
                 : viewMode === "available"
                 ? "Available"
-                : "Quality"}
+                : viewMode === "quality"
+                ? "Quality"
+                : "Default"}
             </button>
           </div>
           {tabOrder.map(

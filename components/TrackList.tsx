@@ -18,17 +18,19 @@ import {
   faTrash,
   faPlay,
   faPause,
+  faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { useUser } from "@clerk/nextjs";
 
 export default function TrackList({
   initialTracks,
   sectionTracks,
-  viewMode = "default",
+  viewMode = "trackType", // Set trackType as the initial default
 }: {
   initialTracks: (Release & { credit?: string; og_filename?: string })[];
   sectionTracks: Release[];
-  viewMode?: "default" | "trackType" | "releaseType" | "available" | "quality";
+  // Moved "default" to the end of the union type
+  viewMode?: "trackType" | "releaseType" | "available" | "quality" | "default";
 }) {
   const { isSignedIn, user } = useUser();
   const isAdmin = isSignedIn && user?.publicMetadata?.role === "admin";
@@ -84,7 +86,11 @@ export default function TrackList({
   const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
     null
   );
-  const [hoveredTrackId, setHoveredTrackId] = useState<number | null>(null);
+  const [hoveredTrackId, setHoveredTrackId] = useState<string | null>(null);
+  const [expandedTracks, setExpandedTracks] = useState<Set<number>>(new Set());
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     setTracks(initialTracks);
@@ -104,20 +110,6 @@ export default function TrackList({
         "Production",
         "Demo",
         "Instrumental",
-      ];
-      const releaseTypeOrder = [
-        "Beat",
-        "Demo",
-        "Remix",
-        "Throwaway",
-        "Cancer",
-        "Unknown",
-        "Project File",
-        "Reference",
-        "ALT File",
-        "Feature",
-        "Cover",
-        "Voice Memo",
       ];
       const additionalTypeOrder = [
         "Fragments",
@@ -191,6 +183,33 @@ export default function TrackList({
         );
         flatTracks = flatTracks.concat(noTrackTypeTracks);
       } else if (viewMode === "releaseType") {
+        const isStemsCategory = sectionTracks[0]?.category === "stems";
+        const stemsReleaseTypeOrder = [
+          "Instrumental",
+          "Acapella",
+          "Stems",
+          "Mix",
+          "Session",
+          "TV Track",
+        ];
+        const standardReleaseTypeOrder = [
+          "Beat",
+          "Demo",
+          "Remix",
+          "Throwaway",
+          "Cancer",
+          "Unknown",
+          "Project File",
+          "Reference",
+          "ALT File",
+          "Feature",
+          "Cover",
+          "Voice Memo",
+        ];
+        const releaseTypeOrder = isStemsCategory
+          ? stemsReleaseTypeOrder
+          : standardReleaseTypeOrder;
+
         flatTracks = releaseTypeOrder
           .flatMap((type) => tracks.filter((t) => t.type === type))
           .concat(
@@ -587,6 +606,152 @@ export default function TrackList({
     }
   };
 
+  const toggleTrack = (trackId: number) => {
+    setExpandedTracks((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(trackId)) newSet.delete(trackId);
+      else newSet.add(trackId);
+      return newSet;
+    });
+  };
+
+  const toggleFolder = (folderPath: string) => {
+    setExpandedFolders((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderPath)) newSet.delete(folderPath);
+      else newSet.add(folderPath);
+      return newSet;
+    });
+  };
+
+  const renderJsonContent = (
+    json: Release["multi_files"],
+    trackId: number,
+    path: string = ""
+  ) => {
+    if (!json) return null;
+    return Object.entries(json).map(([key, value], index) => {
+      const currentPath = path ? `${path}/${key}` : key;
+      const isFolder = typeof value === "object" && !("url" in value);
+      const parentTrack = tracks.find((t) => t.id === trackId);
+
+      if (isFolder) {
+        const isExpanded = expandedFolders.has(`${trackId}-${currentPath}`);
+        return (
+          <div key={currentPath} className="ml-6 mt-2">
+            <div
+              className="flex items-center py-1 px-2 cursor-pointer hover:bg-gray-800/50 rounded-lg bg-gray-700/20"
+              onClick={() => toggleFolder(`${trackId}-${currentPath}`)}
+            >
+              <span className="w-5 h-5 flex items-center justify-center text-xs text-gray-400">
+                {isExpanded ? (
+                  <FontAwesomeIcon icon={faChevronDown} size="xs" />
+                ) : (
+                  String(index + 1).padStart(2, "0")
+                )}
+              </span>
+              <span className="ml-3 text-gray-200 font-semibold">{key}</span>
+            </div>
+            {isExpanded && (
+              <div className="ml-2 mt-2">
+                {renderJsonContent(
+                  value as Release["multi_files"],
+                  trackId,
+                  currentPath
+                )}
+              </div>
+            )}
+          </div>
+        );
+      } else {
+        const file = value as {
+          url: string;
+          duration: string;
+          size: number;
+          type: string;
+          sha: string;
+        };
+        const isPlayable = !!file.url && file.url.trim() !== "";
+        const syntheticTrack: Release = {
+          id: parseInt(`${trackId}${index}`, 10),
+          title: key,
+          file: file.url,
+          duration: file.duration,
+          era_id: parentTrack?.era_id || "",
+          category: parentTrack?.category || "unreleased",
+          cover_image: parentTrack?.cover_image || "",
+        };
+        return (
+          <div
+            key={currentPath}
+            className={`flex items-center py-1.5 px-2 ml-6 mt-2 rounded-lg transition-all duration-200 ${
+              isPlayable
+                ? currentTrack?.id === syntheticTrack.id
+                  ? "bg-gray-700/50 text-white"
+                  : "hover:bg-gray-800/50 text-gray-300"
+                : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
+            }`}
+            onMouseEnter={() =>
+              isPlayable && setHoveredTrackId(syntheticTrack.id.toString())
+            }
+            onMouseLeave={() => setHoveredTrackId(null)}
+          >
+            <button
+              onClick={() => handlePlayPause(syntheticTrack, tracks)}
+              className={`w-5 h-5 flex items-center justify-center text-xs rounded-full transition-colors ${
+                isPlayable
+                  ? currentTrack?.id === syntheticTrack.id && isPlaying
+                    ? "text-green-400"
+                    : "text-gray-400 hover:text-green-400"
+                  : "text-gray-600 cursor-not-allowed"
+              }`}
+              disabled={!isPlayable}
+            >
+              {isPlayable ? (
+                currentTrack?.id === syntheticTrack.id ? (
+                  isPlaying ? (
+                    <FontAwesomeIcon icon={faPause} size="xs" />
+                  ) : (
+                    <FontAwesomeIcon icon={faPlay} size="xs" />
+                  )
+                ) : hoveredTrackId === syntheticTrack.id.toString() ? (
+                  <FontAwesomeIcon icon={faPlay} size="xs" />
+                ) : (
+                  <span className="text-gray-400">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                )
+              ) : (
+                <span className="text-gray-600">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              )}
+            </button>
+            <span
+              className={`font-medium truncate flex-1 ml-3 ${
+                isPlayable ? "text-white" : "text-gray-500"
+              }`}
+            >
+              {key}
+              {!isPlayable && (
+                <span className="text-gray-600 text-xs ml-1">
+                  (Not Available)
+                </span>
+              )}
+            </span>
+            <span
+              className={`ml-3 text-xs tabular-nums ${
+                isPlayable ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              {file.duration}
+            </span>
+          </div>
+        );
+      }
+    });
+  };
+
   const renderCategorizedView = () => {
     const releasedTrackTypeOrder = [
       "Single",
@@ -600,7 +765,15 @@ export default function TrackList({
       "Instrumental",
     ];
 
-    const releaseTypeOrder = [
+    const stemsReleaseTypeOrder = [
+      "Instrumental",
+      "Acapella",
+      "Stems",
+      "Mix",
+      "Session",
+      "TV Track",
+    ];
+    const standardReleaseTypeOrder = [
       "Beat",
       "Demo",
       "Remix",
@@ -666,6 +839,11 @@ export default function TrackList({
         groupedTracks = [];
       }
     } else {
+      const isStemsCategory = sectionTracks[0]?.category === "stems";
+      const releaseTypeOrder = isStemsCategory
+        ? stemsReleaseTypeOrder
+        : standardReleaseTypeOrder;
+
       if (viewMode === "trackType") {
         groupedTracks = additionalTypeOrder
           .map((type) => ({
@@ -756,150 +934,180 @@ export default function TrackList({
               {group.type}
             </h3>
             <ul className="space-y-2">
-              {group.tracks.map((track, index) => (
-                <li
-                  key={track.id}
-                  className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
-                    isTrackPlayable(track)
-                      ? currentTrack?.id === track.id
-                        ? "bg-gray-700/50 text-white"
-                        : "hover:bg-gray-800/50 text-gray-300"
-                      : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
-                  }`}
-                  onMouseEnter={() =>
-                    isTrackPlayable(track) && setHoveredTrackId(track.id)
-                  }
-                  onMouseLeave={() => setHoveredTrackId(null)}
-                >
-                  <div className="flex items-center space-x-4 flex-1 min-w-0">
-                    <button
-                      onClick={() => handlePlayPause(track, group.tracks)}
-                      className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
-                        isTrackPlayable(track)
-                          ? currentTrack?.id === track.id && isPlaying
-                            ? "text-green-400"
-                            : "text-gray-400 hover:text-green-400"
-                          : "text-gray-600 cursor-not-allowed"
+              {group.tracks.map((track, index) => {
+                const isExpanded = expandedTracks.has(track.id);
+                const hasMultiFiles =
+                  track.multi_files &&
+                  Object.keys(track.multi_files).length > 0;
+                return (
+                  <li key={track.id} className="flex flex-col">
+                    <div
+                      className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
+                        isTrackPlayable(track) || hasMultiFiles
+                          ? currentTrack?.id === track.id
+                            ? "bg-gray-700/50 text-white"
+                            : "hover:bg-gray-800/50 text-gray-300"
+                          : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
                       }`}
-                      disabled={!isTrackPlayable(track)}
+                      onMouseEnter={() =>
+                        (isTrackPlayable(track) || hasMultiFiles) &&
+                        setHoveredTrackId(track.id.toString())
+                      }
+                      onMouseLeave={() => setHoveredTrackId(null)}
+                      onClick={
+                        hasMultiFiles ? () => toggleTrack(track.id) : undefined
+                      }
                     >
-                      {isTrackPlayable(track) ? (
-                        currentTrack?.id === track.id ? (
-                          isPlaying ? (
-                            <FontAwesomeIcon icon={faPause} size="xs" />
-                          ) : (
-                            <FontAwesomeIcon icon={faPlay} size="xs" />
-                          )
-                        ) : hoveredTrackId === track.id ? (
-                          <FontAwesomeIcon icon={faPlay} size="xs" />
-                        ) : (
-                          <span className="text-gray-400">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                        )
-                      ) : (
-                        <span className="text-gray-600">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <span
-                        className={`font-medium truncate block ${
-                          isTrackPlayable(track)
-                            ? "text-white"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {track.title}{" "}
-                        {track.credit && (
-                          <span
-                            className={
+                      <div className="flex items-center space-x-4 flex-1 min-w-0">
+                        {!hasMultiFiles ? (
+                          <button
+                            onClick={() => handlePlayPause(track, group.tracks)}
+                            className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                               isTrackPlayable(track)
-                                ? "text-gray-400 text-xs"
-                                : "text-gray-600 text-xs"
-                            }
+                                ? currentTrack?.id === track.id && isPlaying
+                                  ? "text-green-400"
+                                  : "text-gray-400 hover:text-green-400"
+                                : "text-gray-600 cursor-not-allowed"
+                            }`}
+                            disabled={!isTrackPlayable(track)}
                           >
-                            {track.credit}
+                            {isTrackPlayable(track) ? (
+                              currentTrack?.id === track.id ? (
+                                isPlaying ? (
+                                  <FontAwesomeIcon icon={faPause} size="xs" />
+                                ) : (
+                                  <FontAwesomeIcon icon={faPlay} size="xs" />
+                                )
+                              ) : hoveredTrackId === track.id.toString() ? (
+                                <FontAwesomeIcon icon={faPlay} size="xs" />
+                              ) : (
+                                <span className="text-gray-400">
+                                  {String(index + 1).padStart(2, "0")}
+                                </span>
+                              )
+                            ) : (
+                              <span className="text-gray-600">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+                            )}
+                          </button>
+                        ) : (
+                          <span className="w-6 h-6 flex items-center justify-center text-sm text-gray-400">
+                            {isExpanded ? (
+                              <FontAwesomeIcon icon={faChevronDown} size="xs" />
+                            ) : hoveredTrackId === track.id.toString() ? (
+                              <FontAwesomeIcon icon={faChevronDown} size="xs" />
+                            ) : (
+                              String(index + 1).padStart(2, "0")
+                            )}
                           </span>
                         )}
-                        {!isTrackPlayable(track) && (
-                          <span className="text-gray-600 text-xs ml-1">
-                            (Not Available)
+                        <div className="flex-1 min-w-0">
+                          <span
+                            className={`font-medium truncate block ${
+                              isTrackPlayable(track) || hasMultiFiles
+                                ? "text-white"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {track.title}{" "}
+                            {track.credit && (
+                              <span
+                                className={
+                                  isTrackPlayable(track) || hasMultiFiles
+                                    ? "text-gray-400 text-xs"
+                                    : "text-gray-600 text-xs"
+                                }
+                              >
+                                {track.credit}
+                              </span>
+                            )}
+                            {!isTrackPlayable(track) && !hasMultiFiles && (
+                              <span className="text-gray-600 text-xs ml-1">
+                                (Not Available)
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {track.type && (
+                          <span
+                            className={`${getBadgeStyles(
+                              "type",
+                              track.type
+                            )} hidden sm:inline-block`}
+                          >
+                            {track.type}
                           </span>
                         )}
-                      </span>
+                        {track.category !== "released" && track.available && (
+                          <span
+                            className={`${getBadgeStyles(
+                              "available",
+                              track.available
+                            )} hidden sm:inline-block`}
+                          >
+                            {track.available}
+                          </span>
+                        )}
+                        {track.category !== "released" && track.quality && (
+                          <span
+                            className={`${getBadgeStyles(
+                              "quality",
+                              track.quality
+                            )} hidden sm:inline-block`}
+                          >
+                            {track.quality}
+                          </span>
+                        )}
+                        {!hasMultiFiles && (
+                          <span
+                            className={`ml-3 text-xs tabular-nums ${
+                              isTrackPlayable(track)
+                                ? "text-gray-400"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {track.duration}
+                          </span>
+                        )}
+                        {isAdmin && (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEdit(track)}
+                              className={
+                                isTrackPlayable(track) || hasMultiFiles
+                                  ? "text-blue-400 hover:text-blue-300 transition-colors p-1"
+                                  : "text-blue-600 p-1"
+                              }
+                              title="Edit Track"
+                            >
+                              <FontAwesomeIcon icon={faPencil} size="sm" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(track)}
+                              className={
+                                isTrackPlayable(track) || hasMultiFiles
+                                  ? "text-red-400 hover:text-red-300 transition-colors p-1"
+                                  : "text-red-600 p-1"
+                              }
+                              title="Delete Track"
+                            >
+                              <FontAwesomeIcon icon={faTrash} size="sm" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {track.type && (
-                      <span
-                        className={`${getBadgeStyles(
-                          "type",
-                          track.type
-                        )} hidden sm:inline-block`}
-                      >
-                        {track.type}
-                      </span>
-                    )}
-                    {track.category !== "released" && track.available && (
-                      <span
-                        className={`${getBadgeStyles(
-                          "available",
-                          track.available
-                        )} hidden sm:inline-block`}
-                      >
-                        {track.available}
-                      </span>
-                    )}
-                    {track.category !== "released" && track.quality && (
-                      <span
-                        className={`${getBadgeStyles(
-                          "quality",
-                          track.quality
-                        )} hidden sm:inline-block`}
-                      >
-                        {track.quality}
-                      </span>
-                    )}
-                    <span
-                      className={`ml-3 text-xs tabular-nums ${
-                        isTrackPlayable(track)
-                          ? "text-gray-400"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      {track.duration}
-                    </span>
-                    {isAdmin && (
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(track)}
-                          className={
-                            isTrackPlayable(track)
-                              ? "text-blue-400 hover:text-blue-300 transition-colors p-1"
-                              : "text-blue-600 p-1"
-                          }
-                          title="Edit Track"
-                        >
-                          <FontAwesomeIcon icon={faPencil} size="sm" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(track)}
-                          className={
-                            isTrackPlayable(track)
-                              ? "text-red-400 hover:text-red-300 transition-colors p-1"
-                              : "text-red-600 p-1"
-                          }
-                          title="Delete Track"
-                        >
-                          <FontAwesomeIcon icon={faTrash} size="sm" />
-                        </button>
+                    {hasMultiFiles && isExpanded && (
+                      <div className="mt-2">
+                        {renderJsonContent(track.multi_files, track.id)}
                       </div>
                     )}
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
@@ -909,146 +1117,175 @@ export default function TrackList({
 
   const renderDefaultView = () => (
     <ul className="space-y-2">
-      {tracks.map((track, index) => (
-        <li
-          key={track.id}
-          className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
-            isTrackPlayable(track)
-              ? currentTrack?.id === track.id
-                ? "bg-gray-700/50 text-white"
-                : "hover:bg-gray-800/50 text-gray-300"
-              : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
-          }`}
-          onMouseEnter={() =>
-            isTrackPlayable(track) && setHoveredTrackId(track.id)
-          }
-          onMouseLeave={() => setHoveredTrackId(null)}
-        >
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
-            <button
-              onClick={() => handlePlayPause(track, tracks)}
-              className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
-                isTrackPlayable(track)
-                  ? currentTrack?.id === track.id && isPlaying
-                    ? "text-green-400"
-                    : "text-gray-400 hover:text-green-400"
-                  : "text-gray-600 cursor-not-allowed"
+      {tracks.map((track, index) => {
+        const isExpanded = expandedTracks.has(track.id);
+        const hasMultiFiles =
+          track.multi_files && Object.keys(track.multi_files).length > 0;
+        return (
+          <li key={track.id} className="flex flex-col">
+            <div
+              className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
+                isTrackPlayable(track) || hasMultiFiles
+                  ? currentTrack?.id === track.id
+                    ? "bg-gray-700/50 text-white"
+                    : "hover:bg-gray-800/50 text-gray-300"
+                  : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
               }`}
-              disabled={!isTrackPlayable(track)}
+              onMouseEnter={() =>
+                (isTrackPlayable(track) || hasMultiFiles) &&
+                setHoveredTrackId(track.id.toString())
+              }
+              onMouseLeave={() => setHoveredTrackId(null)}
+              onClick={hasMultiFiles ? () => toggleTrack(track.id) : undefined}
             >
-              {isTrackPlayable(track) ? (
-                currentTrack?.id === track.id ? (
-                  isPlaying ? (
-                    <FontAwesomeIcon icon={faPause} size="xs" />
-                  ) : (
-                    <FontAwesomeIcon icon={faPlay} size="xs" />
-                  )
-                ) : hoveredTrackId === track.id ? (
-                  <FontAwesomeIcon icon={faPlay} size="xs" />
-                ) : (
-                  <span className="text-gray-400">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                )
-              ) : (
-                <span className="text-gray-600">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-              )}
-            </button>
-            <div className="flex-1 min-w-0">
-              <span
-                className={`font-medium truncate block ${
-                  isTrackPlayable(track) ? "text-white" : "text-gray-500"
-                }`}
-              >
-                {track.title}{" "}
-                {track.credit && (
-                  <span
-                    className={
+              <div className="flex items-center space-x-4 flex-1 min-w-0">
+                {!hasMultiFiles ? (
+                  <button
+                    onClick={() => handlePlayPause(track, tracks)}
+                    className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                       isTrackPlayable(track)
-                        ? "text-gray-400 text-xs"
-                        : "text-gray-600 text-xs"
-                    }
+                        ? currentTrack?.id === track.id && isPlaying
+                          ? "text-green-400"
+                          : "text-gray-400 hover:text-green-400"
+                        : "text-gray-600 cursor-not-allowed"
+                    }`}
+                    disabled={!isTrackPlayable(track)}
                   >
-                    {track.credit}
+                    {isTrackPlayable(track) ? (
+                      currentTrack?.id === track.id ? (
+                        isPlaying ? (
+                          <FontAwesomeIcon icon={faPause} size="xs" />
+                        ) : (
+                          <FontAwesomeIcon icon={faPlay} size="xs" />
+                        )
+                      ) : hoveredTrackId === track.id.toString() ? (
+                        <FontAwesomeIcon icon={faPlay} size="xs" />
+                      ) : (
+                        <span className="text-gray-400">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-gray-600">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <span className="w-6 h-6 flex items-center justify-center text-sm text-gray-400">
+                    {isExpanded ? (
+                      <FontAwesomeIcon icon={faChevronDown} size="xs" />
+                    ) : hoveredTrackId === track.id.toString() ? (
+                      <FontAwesomeIcon icon={faChevronDown} size="xs" />
+                    ) : (
+                      String(index + 1).padStart(2, "0")
+                    )}
                   </span>
                 )}
-                {!isTrackPlayable(track) && (
-                  <span className="text-gray-600 text-xs ml-1">
-                    (Not Available)
+                <div className="flex-1 min-w-0">
+                  <span
+                    className={`font-medium truncate block ${
+                      isTrackPlayable(track) || hasMultiFiles
+                        ? "text-white"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {track.title}{" "}
+                    {track.credit && (
+                      <span
+                        className={
+                          isTrackPlayable(track) || hasMultiFiles
+                            ? "text-gray-400 text-xs"
+                            : "text-gray-600 text-xs"
+                        }
+                      >
+                        {track.credit}
+                      </span>
+                    )}
+                    {!isTrackPlayable(track) && !hasMultiFiles && (
+                      <span className="text-gray-600 text-xs ml-1">
+                        (Not Available)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                {track.type && (
+                  <span
+                    className={`${getBadgeStyles(
+                      "type",
+                      track.type
+                    )} hidden sm:inline-block`}
+                  >
+                    {track.type}
                   </span>
                 )}
-              </span>
+                {track.category !== "released" && track.available && (
+                  <span
+                    className={`${getBadgeStyles(
+                      "available",
+                      track.available
+                    )} hidden sm:inline-block`}
+                  >
+                    {track.available}
+                  </span>
+                )}
+                {track.category !== "released" && track.quality && (
+                  <span
+                    className={`${getBadgeStyles(
+                      "quality",
+                      track.quality
+                    )} hidden sm:inline-block`}
+                  >
+                    {track.quality}
+                  </span>
+                )}
+                {!hasMultiFiles && (
+                  <span
+                    className={`ml-3 text-xs tabular-nums ${
+                      isTrackPlayable(track) ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    {track.duration}
+                  </span>
+                )}
+                {isAdmin && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEdit(track)}
+                      className={
+                        isTrackPlayable(track) || hasMultiFiles
+                          ? "text-blue-400 hover:text-blue-300 transition-colors p-1"
+                          : "text-blue-600 p-1"
+                      }
+                      title="Edit Track"
+                    >
+                      <FontAwesomeIcon icon={faPencil} size="sm" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(track)}
+                      className={
+                        isTrackPlayable(track) || hasMultiFiles
+                          ? "text-red-400 hover:text-red-300 transition-colors p-1"
+                          : "text-red-600 p-1"
+                      }
+                      title="Delete Track"
+                    >
+                      <FontAwesomeIcon icon={faTrash} size="sm" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            {track.type && (
-              <span
-                className={`${getBadgeStyles(
-                  "type",
-                  track.type
-                )} hidden sm:inline-block`}
-              >
-                {track.type}
-              </span>
-            )}
-            {track.category !== "released" && track.available && (
-              <span
-                className={`${getBadgeStyles(
-                  "available",
-                  track.available
-                )} hidden sm:inline-block`}
-              >
-                {track.available}
-              </span>
-            )}
-            {track.category !== "released" && track.quality && (
-              <span
-                className={`${getBadgeStyles(
-                  "quality",
-                  track.quality
-                )} hidden sm:inline-block`}
-              >
-                {track.quality}
-              </span>
-            )}
-            <span
-              className={`ml-3 text-xs tabular-nums ${
-                isTrackPlayable(track) ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              {track.duration}
-            </span>
-            {isAdmin && (
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleEdit(track)}
-                  className={
-                    isTrackPlayable(track)
-                      ? "text-blue-400 hover:text-blue-300 transition-colors p-1"
-                      : "text-blue-600 p-1"
-                  }
-                  title="Edit Track"
-                >
-                  <FontAwesomeIcon icon={faPencil} size="sm" />
-                </button>
-                <button
-                  onClick={() => handleDelete(track)}
-                  className={
-                    isTrackPlayable(track)
-                      ? "text-red-400 hover:text-red-300 transition-colors p-1"
-                      : "text-red-600 p-1"
-                  }
-                  title="Delete Track"
-                >
-                  <FontAwesomeIcon icon={faTrash} size="sm" />
-                </button>
+            {hasMultiFiles && isExpanded && (
+              <div className="mt-2">
+                {renderJsonContent(track.multi_files, track.id)}
               </div>
             )}
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   );
 

@@ -1,19 +1,33 @@
+// app/(site)/upload/UploadForm.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Release, Era } from "@/lib/types";
+import { fetchGitHubRepoContents } from "@/lib/github";
+import { Release, Era } from "@/lib/types"; // Import JsonFolder
 import { CustomAlertDialog } from "@/components/CustomAlertDialog";
 import { useUser } from "@clerk/nextjs";
+
+type JsonFolder = {
+  [key: string]:
+    | JsonFolder
+    | {
+        url: string;
+        duration: string;
+        size: number;
+        type: string;
+        sha: string;
+      };
+};
 
 interface TrackFormData {
   title: string;
   file: string;
   duration: string;
   coverImage: string;
-  fileDate: string; // e.g., "Oct 1, 2013" or "2013"
-  leakDate: string; // e.g., "Oct 1, 2013" or "2013"
+  fileDate: string;
+  leakDate: string;
   type: string;
   trackType?:
     | "Music"
@@ -48,6 +62,7 @@ interface TrackFormData {
   credit?: string;
   og_filename?: string;
   aka?: string;
+  isMultiFiles?: boolean;
 }
 
 export default function UploadForm() {
@@ -74,6 +89,7 @@ export default function UploadForm() {
       credit: "",
       og_filename: "",
       aka: "",
+      isMultiFiles: false,
     },
   ]);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -83,6 +99,7 @@ export default function UploadForm() {
   const router = useRouter();
 
   const isAdmin = user?.publicMetadata?.role === "admin";
+  const githubToken = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,7 +118,7 @@ export default function UploadForm() {
 
   useEffect(() => {
     tracks.forEach((track, index) => {
-      if (!track.file) {
+      if (!track.file || track.isMultiFiles) {
         updateTrack(index, {
           ...track,
           duration: "",
@@ -156,7 +173,7 @@ export default function UploadForm() {
         });
       };
     });
-  }, [tracks.map((track) => track.file).join(",")]);
+  }, [tracks.map((track) => `${track.file}-${track.isMultiFiles}`).join(",")]);
 
   const updateTrack = (index: number, updatedTrack: TrackFormData) => {
     setTracks((prevTracks) => {
@@ -185,6 +202,7 @@ export default function UploadForm() {
         credit: "",
         og_filename: "",
         aka: "",
+        isMultiFiles: false,
       },
     ]);
   };
@@ -249,6 +267,7 @@ export default function UploadForm() {
       showAlert("No Tracks", "Please add at least one track.");
       return;
     }
+
     for (let i = 0; i < tracks.length; i++) {
       const track = tracks[i];
       if (!track.title) {
@@ -271,16 +290,18 @@ export default function UploadForm() {
         releaseCategory === "released" ||
         (releaseCategory !== "released" &&
           track.quality !== "Not Available" &&
-          releaseCategory !== "")
+          !track.isMultiFiles)
       ) {
         if (!track.file) {
           showAlert(
             "Incomplete Track Details",
-            `Please provide a track URL for track ${i + 1}.`
+            `Please provide a ${
+              track.isMultiFiles ? "GitHub repository URL" : "track URL"
+            } for track ${i + 1}.`
           );
           return;
         }
-        if (!track.duration) {
+        if (!track.duration && !track.isMultiFiles) {
           showAlert(
             "Incomplete Track Details",
             `Please ensure a valid track URL is provided to calculate duration for track ${
@@ -343,43 +364,68 @@ export default function UploadForm() {
     const selectedEra = eras.find((era) => era.id === selectedEraId);
     const defaultCoverImage = selectedEra?.cover_image || "";
 
-    const newReleases: Omit<Release, "id">[] = tracks.map((track) => ({
-      era_id: selectedEraId,
-      title: track.title,
-      duration: track.duration,
-      file: track.file.trimEnd(),
-      cover_image: track.coverImage.trimEnd() || defaultCoverImage,
-      file_date:
-        releaseCategory === "released"
-          ? parseDate(track.leakDate)
-          : parseDate(track.fileDate),
-      leak_date:
-        releaseCategory !== "released" ? parseDate(track.leakDate) : undefined,
-      category: releaseCategory as "released" | "unreleased" | "stems",
-      type: track.type || undefined,
-      track_type: track.trackType || undefined,
-      available:
-        releaseCategory !== "released" &&
-        track.available !== "" &&
-        [
-          "Confirmed",
-          "Partial",
-          "Snippet",
-          "Full",
-          "Rumored",
-          "OG File",
-        ].includes(track.available)
-          ? track.available
-          : undefined,
-      quality:
-        releaseCategory !== "released" && track.quality !== ""
-          ? track.quality
-          : undefined,
-      notes: track.notes || undefined,
-      credit: track.credit || undefined,
-      og_filename: track.og_filename || undefined,
-      aka: track.aka || undefined,
-    }));
+    const newReleases: Omit<Release, "id">[] = await Promise.all(
+      tracks.map(async (track) => {
+        let multiFilesData: JsonFolder | undefined = undefined; // Updated type to JsonFolder
+        if (releaseCategory === "stems" && track.isMultiFiles && track.file) {
+          try {
+            multiFilesData = await fetchGitHubRepoContents(
+              track.file,
+              githubToken
+            );
+          } catch (error) {
+            showAlert(
+              "GitHub Fetch Failed",
+              `Failed to fetch GitHub repository contents for track ${
+                tracks.indexOf(track) + 1
+              }: ${(error as Error).message}`
+            );
+            throw error;
+          }
+        }
+
+        return {
+          era_id: selectedEraId,
+          title: track.title,
+          duration: track.isMultiFiles ? "" : track.duration,
+          file: track.isMultiFiles ? "" : track.file.trimEnd(),
+          multi_files: multiFilesData,
+          cover_image: track.coverImage.trimEnd() || defaultCoverImage,
+          file_date:
+            releaseCategory === "released"
+              ? parseDate(track.leakDate)
+              : parseDate(track.fileDate),
+          leak_date:
+            releaseCategory !== "released"
+              ? parseDate(track.leakDate)
+              : undefined,
+          category: releaseCategory as "released" | "unreleased" | "stems",
+          type: track.type || undefined,
+          track_type: track.trackType || undefined,
+          available:
+            releaseCategory !== "released" &&
+            track.available !== "" &&
+            [
+              "Confirmed",
+              "Partial",
+              "Snippet",
+              "Full",
+              "Rumored",
+              "OG File",
+            ].includes(track.available)
+              ? track.available
+              : undefined,
+          quality:
+            releaseCategory !== "released" && track.quality !== ""
+              ? track.quality
+              : undefined,
+          notes: track.notes || undefined,
+          credit: track.credit || undefined,
+          og_filename: track.og_filename || undefined,
+          aka: track.aka || undefined,
+        };
+      })
+    );
 
     const { error: insertError } = await supabase
       .from("releases")
@@ -418,6 +464,7 @@ export default function UploadForm() {
           credit: "",
           og_filename: "",
           aka: "",
+          isMultiFiles: false,
         },
       ]);
     }
@@ -518,27 +565,61 @@ export default function UploadForm() {
                   className="p-2 border rounded flex-1 bg-background text-foreground"
                   required
                 />
-                <input
-                  type="url"
-                  placeholder="Track URL (GitHub)"
-                  value={track.file}
-                  onChange={(e) =>
-                    updateTrack(index, { ...track, file: e.target.value })
-                  }
-                  onKeyDown={handleKeyDown}
-                  className="p-2 border rounded flex-1 bg-background text-foreground"
-                  required={
-                    releaseCategory === "released" ||
-                    (releaseCategory !== "released" &&
-                      track.quality !== "Not Available")
-                  }
-                />
+                {releaseCategory === "stems" && track.isMultiFiles ? (
+                  <input
+                    type="url"
+                    placeholder="GitHub Repository URL"
+                    value={track.file}
+                    onChange={(e) =>
+                      updateTrack(index, { ...track, file: e.target.value })
+                    }
+                    onKeyDown={handleKeyDown}
+                    className="p-2 border rounded flex-1 bg-background text-foreground"
+                    required
+                  />
+                ) : (
+                  <input
+                    type="url"
+                    placeholder="Track URL (GitHub)"
+                    value={track.file}
+                    onChange={(e) =>
+                      updateTrack(index, { ...track, file: e.target.value })
+                    }
+                    onKeyDown={handleKeyDown}
+                    className="p-2 border rounded flex-1 bg-background text-foreground"
+                    required={
+                      releaseCategory === "released" ||
+                      (releaseCategory !== "released" &&
+                        track.quality !== "Not Available" &&
+                        !track.isMultiFiles)
+                    }
+                  />
+                )}
                 <div className="p-2 w-24 text-foreground">
                   {track.isLoadingDuration
                     ? "Loading..."
                     : track.duration || "Duration"}
                 </div>
               </div>
+              {releaseCategory === "stems" && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={track.isMultiFiles}
+                    onChange={(e) =>
+                      updateTrack(index, {
+                        ...track,
+                        isMultiFiles: e.target.checked,
+                        duration: e.target.checked ? "" : track.duration,
+                      })
+                    }
+                    className="h-4 w-4 text-blue-600 bg-background border-gray-300 rounded"
+                  />
+                  <label className="text-sm font-medium text-foreground">
+                    Use GitHub Repository
+                  </label>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-foreground">
                   Cover Image URL (GitHub, optional)

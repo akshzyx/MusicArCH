@@ -1,3 +1,15 @@
+export interface JsonFolder {
+  [key: string]:
+    | JsonFolder
+    | {
+        url: string;
+        duration: string;
+        size: number;
+        type: string;
+        sha: string;
+      };
+}
+
 export interface Release {
   id: number;
   era_id: string;
@@ -12,6 +24,7 @@ export interface Release {
   type?: string;
   track_type?: string;
   credit?: string;
+  multi_files?: JsonFolder;
   available?:
     | "Confirmed"
     | "Partial"
