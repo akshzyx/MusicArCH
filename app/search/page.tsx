@@ -1,30 +1,62 @@
 import { supabase } from "@/lib/supabase";
-import TrackList from "@/components/TrackList"; // Adjust path as needed
+import TrackList from "@/components/TrackList";
 import { Release } from "@/lib/types";
+import { Metadata } from "next";
 
-// Define the props type explicitly to satisfy Next.js App Router
+// Define props type for Next.js App Router
 type SearchPageProps = {
-  searchParams: Promise<{ q?: string }>; // searchParams is a Promise
+  searchParams: Promise<{ q?: string }>;
 };
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  // Await the searchParams promise to get the actual query object
+// Dynamic metadata for SEO
+export async function generateMetadata({
+  searchParams,
+}: SearchPageProps): Promise<Metadata> {
   const resolvedParams = await searchParams;
   const query = resolvedParams.q || "";
+  return {
+    title: query ? `Search "${query}" - JojiArCH` : "Search - JojiArCH",
+    description: `Search results for "${query}" in Joji & his aliases discography.`,
+  };
+}
 
-  // Fetch tracks from Supabase matching the query
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolvedParams = await searchParams;
+  const query = resolvedParams.q?.trim() || "";
+
+  // Handle empty query upfront
+  if (!query) {
+    return (
+      <div className="p-4 text-white sm:px-6">
+        <h1 className="text-2xl font-bold mb-4">Search Results</h1>
+        <p className="text-gray-400">
+          Please enter a search term to find tracks.
+        </p>
+      </div>
+    );
+  }
+
+  // Fetch tracks with broader search (title, credit, notes)
   const { data: tracks, error } = await supabase
     .from("releases")
     .select("*")
-    .ilike("title", `%${query}%`)
-    .order("title", { ascending: true });
+    .or(`title.ilike.%${query}%,credit.ilike.%${query}%,notes.ilike.%${query}%`) // Multi-field search
+    .order("title", { ascending: true })
+    .limit(50); // Pagination: limit to 50 results
 
   if (error) {
     console.error("Error fetching search results:", error);
     return (
       <div className="p-4 text-white sm:px-6">
-        <h1 className="text-2xl font-bold">Search Results</h1>
-        <p>Error loading search results. Please try again.</p>
+        <h1 className="text-2xl font-bold mb-4">
+          Search Results for &quot;{query}&quot;
+        </h1>
+        <div className="bg-red-900/20 border border-red-700 p-4 rounded-lg">
+          <p className="text-red-300">
+            Error loading search results: {error.message}. Please try again
+            later.
+          </p>
+        </div>
       </div>
     );
   }
@@ -34,7 +66,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <div className="p-4 text-white sm:px-6">
       <h1 className="text-2xl font-bold mb-4">
-        Search Results for &quot;{query}&quot;
+        Search Results for &quot;{query}&quot; ({searchResults.length} found)
       </h1>
       {searchResults.length > 0 ? (
         <TrackList
@@ -43,8 +75,19 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           viewMode="default"
         />
       ) : (
-        <p>No tracks found matching your search.</p>
+        <div className="text-center py-8">
+          <p className="text-gray-400 text-lg">
+            No tracks found matching
+            <span className="font-semibold">{query}</span>.
+          </p>
+          <p className="text-gray-500 mt-2">
+            Try a different search term or check back later!
+          </p>
+        </div>
       )}
     </div>
   );
 }
+
+// Optional: Revalidation for caching
+export const revalidate = 60; // Revalidate every 60 seconds
