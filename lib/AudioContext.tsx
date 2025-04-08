@@ -143,7 +143,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const stopTrack = () => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audio.ref.current.currentTime = 0;
+      audioRef.current.currentTime = 0;
     }
     setIsPlaying(false);
     setCurrentTime(0);
