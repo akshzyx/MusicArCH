@@ -8,12 +8,13 @@ import {
   useRef,
   ReactNode,
 } from "react";
-import { Release } from "@/lib/types"; // Changed from Track
+import { Release } from "@/lib/types";
 
 interface AudioContextType {
   currentTrack: Release | null;
   isPlaying: boolean;
   sectionTracks: Release[];
+  activePlaylist: Release[];
   isRepeat: boolean;
   isShuffle: boolean;
   currentTime: number;
@@ -25,7 +26,7 @@ interface AudioContextType {
   prevTrack: () => void;
   toggleRepeat: () => void;
   toggleShuffle: () => void;
-  setAudioTime: (timeOrOptions: number | { volume?: number }) => void; // Updated type
+  setAudioTime: (timeOrOptions: number | { volume?: number }) => void;
   setSectionTracks: (tracks: Release[]) => void;
 }
 
@@ -35,6 +36,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [currentTrack, setCurrentTrack] = useState<Release | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sectionTracks, setSectionTracks] = useState<Release[]>([]);
+  const [activePlaylist, setActivePlaylist] = useState<Release[]>([]); // New state for the active playlist
   const [isRepeat, setIsRepeat] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -51,8 +53,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       console.log(
         "Audio ended, isRepeat:",
         isRepeat,
-        "sectionTracks:",
-        sectionTracks
+        "activePlaylist:",
+        activePlaylist
       );
       if (isRepeat) {
         console.log("Repeating current track:", currentTrack);
@@ -115,11 +117,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       }
     } else {
       setCurrentTrack(track);
-      // Only update sectionTracks if a new list is provided, otherwise keep existing
+      // Update activePlaylist only when explicitly playing a new track with a provided tracklist
       if (tracks.length > 0) {
-        setSectionTracks(tracks);
-      } else if (sectionTracks.length === 0) {
-        setSectionTracks([track]); // Fallback to single track if no list provided
+        setActivePlaylist(tracks);
+      } else if (activePlaylist.length === 0) {
+        setActivePlaylist([track]); // Fallback to single track if no list provided
       }
       setCurrentTime(0);
       audio.src = track.file;
@@ -141,7 +143,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const stopTrack = () => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+      audio.ref.current.currentTime = 0;
     }
     setIsPlaying(false);
     setCurrentTime(0);
@@ -152,44 +154,44 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   };
 
   const getTrackIndex = () => {
-    return sectionTracks.findIndex((t) => t.id === currentTrack?.id);
+    return activePlaylist.findIndex((t) => t.id === currentTrack?.id);
   };
 
   const nextTrack = () => {
-    if (!currentTrack || sectionTracks.length === 0) {
-      console.log("No next track: currentTrack or sectionTracks empty");
+    if (!currentTrack || activePlaylist.length === 0) {
+      console.log("No next track: currentTrack or activePlaylist empty");
       return;
     }
     const currentIndex = getTrackIndex();
     if (currentIndex === -1) {
       console.log(
-        "Current track not found in sectionTracks, finding first playable track"
+        "Current track not found in activePlaylist, finding first playable track"
       );
-      const firstPlayable = sectionTracks.find(isTrackPlayable);
+      const firstPlayable = activePlaylist.find(isTrackPlayable);
       if (firstPlayable) {
-        playTrack(firstPlayable, sectionTracks);
+        playTrack(firstPlayable, []);
       }
       return;
     }
 
     let nextIndex = isShuffle
-      ? Math.floor(Math.random() * sectionTracks.length)
-      : (currentIndex + 1) % sectionTracks.length;
+      ? Math.floor(Math.random() * activePlaylist.length)
+      : (currentIndex + 1) % activePlaylist.length;
 
     // Skip unavailable tracks
     let attempts = 0;
     while (
-      !isTrackPlayable(sectionTracks[nextIndex]) &&
-      attempts < sectionTracks.length
+      !isTrackPlayable(activePlaylist[nextIndex]) &&
+      attempts < activePlaylist.length
     ) {
       nextIndex = isShuffle
-        ? Math.floor(Math.random() * sectionTracks.length)
-        : (nextIndex + 1) % sectionTracks.length;
+        ? Math.floor(Math.random() * activePlaylist.length)
+        : (nextIndex + 1) % activePlaylist.length;
       attempts++;
     }
 
-    if (attempts >= sectionTracks.length) {
-      console.log("No playable tracks found in sectionTracks");
+    if (attempts >= activePlaylist.length) {
+      console.log("No playable tracks found in activePlaylist");
       stopTrack();
       return;
     }
@@ -198,39 +200,41 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       "Next playable track index:",
       nextIndex,
       "track:",
-      sectionTracks[nextIndex]
+      activePlaylist[nextIndex]
     );
-    playTrack(sectionTracks[nextIndex], sectionTracks);
+    // Pass an empty array to avoid updating activePlaylist
+    playTrack(activePlaylist[nextIndex], []);
   };
 
   const prevTrack = () => {
-    if (!currentTrack || sectionTracks.length === 0) return;
+    if (!currentTrack || activePlaylist.length === 0) return;
     const currentIndex = getTrackIndex();
     if (currentIndex === -1) return;
 
     let prevIndex = isShuffle
-      ? Math.floor(Math.random() * sectionTracks.length)
-      : (currentIndex - 1 + sectionTracks.length) % sectionTracks.length;
+      ? Math.floor(Math.random() * activePlaylist.length)
+      : (currentIndex - 1 + activePlaylist.length) % activePlaylist.length;
 
     // Skip unavailable tracks
     let attempts = 0;
     while (
-      !isTrackPlayable(sectionTracks[prevIndex]) &&
-      attempts < sectionTracks.length
+      !isTrackPlayable(activePlaylist[prevIndex]) &&
+      attempts < activePlaylist.length
     ) {
       prevIndex = isShuffle
-        ? Math.floor(Math.random() * sectionTracks.length)
-        : (prevIndex - 1 + sectionTracks.length) % sectionTracks.length;
+        ? Math.floor(Math.random() * activePlaylist.length)
+        : (prevIndex - 1 + activePlaylist.length) % activePlaylist.length;
       attempts++;
     }
 
-    if (attempts >= sectionTracks.length) {
-      console.log("No playable tracks found in sectionTracks");
+    if (attempts >= activePlaylist.length) {
+      console.log("No playable tracks found in activePlaylist");
       stopTrack();
       return;
     }
 
-    playTrack(sectionTracks[prevIndex], sectionTracks);
+    // Pass an empty array to avoid updating activePlaylist
+    playTrack(activePlaylist[prevIndex], []);
   };
 
   const toggleRepeat = () => {
@@ -251,7 +255,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audio.currentTime = timeOrOptions;
       setCurrentTime(timeOrOptions);
     } else if (timeOrOptions.volume !== undefined) {
-      audio.volume = Math.max(0, Math.min(1, timeOrOptions.volume)); // Clamp volume between 0 and 1
+      audio.volume = Math.max(0, Math.min(1, timeOrOptions.volume));
     }
   };
 
@@ -261,6 +265,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         currentTrack,
         isPlaying,
         sectionTracks,
+        activePlaylist, // Expose activePlaylist for debugging if needed
         isRepeat,
         isShuffle,
         currentTime,
