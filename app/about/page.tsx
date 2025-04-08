@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function AboutPage() {
   return (
-    <div className="bg-[#0C1521] text-white min-h-screen">
+    <div className="bg-[#0C1521] text-white min-h-screen pb-10">
       <div className="max-w-4xl mx-auto pt-12 px-4 sm:px-6 md:px-8">
         {/* Header Section */}
         <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-center">
@@ -33,6 +33,18 @@ export default function AboutPage() {
             into his creative journey. Whether you’re a longtime fan or a new
             listener, JojiArCH is your gateway to discovering the depth of his
             music.
+          </p>
+          <p className="text-gray-300 leading-relaxed mt-4">
+            All the data was taken from the latest{" "}
+            <a
+              href="https://docs.google.com/spreadsheets/d/1FPlWbXnx94y5FODJ2qniLf0BzViNSAmj6Xdfw1ZNwQ4/htmlview#"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:underline"
+            >
+              Joji Tracker
+            </a>
+            .
           </p>
         </section>
 
@@ -87,7 +99,8 @@ export default function AboutPage() {
               <span className="text-green-400">•</span>
               <span>
                 <strong>Interactive Experience:</strong> Play tracks directly on
-                the site and create your own Joji playlist.
+                the site (and create your own Joji playlist - in near futute
+                hopefully).
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -100,15 +113,40 @@ export default function AboutPage() {
           </ul>
         </section>
 
+        {/* Currently Working On */}
+        <section className="mb-12">
+          <h2 className="text-2xl sm:text-3xl font-semibold mb-4">
+            Currently Working On
+          </h2>
+          <ul className="text-gray-300 space-y-3">
+            <li className="flex items-start gap-2">
+              <span className="text-green-400">•</span>
+              <span>
+                <strong>Adding Songs:</strong> Working on adding new songs and
+                tracks to the archive, ensuring that you have access to the most
+                comprehensive collection of Joji’s music.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-400">•</span>
+              <span>
+                <strong>Playback Controls:</strong> Working to enhnacing the
+                plaback controls for a smoother listening experience. Only next,
+                previous & pause buttons works rn.
+              </span>
+            </li>
+          </ul>
+        </section>
+
         {/* Team/Contact Section */}
         <section className="mb-12">
           <h2 className="text-2xl sm:text-3xl font-semibold mb-4">
             Get in Touch
           </h2>
           <p className="text-gray-300 leading-relaxed">
-            JojiArCH was created by a small team of passionate fans dedicated to
-            preserving Joji’s legacy. We’re always looking to improve the site
-            and add new features.
+            JojiArCH was created to preserve Joji’s legacy. As scrolling through
+            the tracker was sometimes frustating so I worked on this project.
+            We’re always looking to improve the site and add new features.
           </p>
           <p className="text-gray-300 leading-relaxed mt-4">
             Have feedback, suggestions, or want to contribute? Reach out to us
