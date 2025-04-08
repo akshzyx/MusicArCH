@@ -147,6 +147,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setCurrentTime(0);
   };
 
+  const isTrackPlayable = (track: Release) => {
+    return !!track.file && track.file.trim() !== "";
+  };
+
   const getTrackIndex = () => {
     return sectionTracks.findIndex((t) => t.id === currentTrack?.id);
   };
@@ -159,17 +163,39 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const currentIndex = getTrackIndex();
     if (currentIndex === -1) {
       console.log(
-        "Current track not found in sectionTracks, playing first track"
+        "Current track not found in sectionTracks, finding first playable track"
       );
-      playTrack(sectionTracks[0], sectionTracks);
+      const firstPlayable = sectionTracks.find(isTrackPlayable);
+      if (firstPlayable) {
+        playTrack(firstPlayable, sectionTracks);
+      }
       return;
     }
 
-    const nextIndex = isShuffle
+    let nextIndex = isShuffle
       ? Math.floor(Math.random() * sectionTracks.length)
       : (currentIndex + 1) % sectionTracks.length;
+
+    // Skip unavailable tracks
+    let attempts = 0;
+    while (
+      !isTrackPlayable(sectionTracks[nextIndex]) &&
+      attempts < sectionTracks.length
+    ) {
+      nextIndex = isShuffle
+        ? Math.floor(Math.random() * sectionTracks.length)
+        : (nextIndex + 1) % sectionTracks.length;
+      attempts++;
+    }
+
+    if (attempts >= sectionTracks.length) {
+      console.log("No playable tracks found in sectionTracks");
+      stopTrack();
+      return;
+    }
+
     console.log(
-      "Next track index:",
+      "Next playable track index:",
       nextIndex,
       "track:",
       sectionTracks[nextIndex]
@@ -182,9 +208,28 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const currentIndex = getTrackIndex();
     if (currentIndex === -1) return;
 
-    const prevIndex = isShuffle
+    let prevIndex = isShuffle
       ? Math.floor(Math.random() * sectionTracks.length)
       : (currentIndex - 1 + sectionTracks.length) % sectionTracks.length;
+
+    // Skip unavailable tracks
+    let attempts = 0;
+    while (
+      !isTrackPlayable(sectionTracks[prevIndex]) &&
+      attempts < sectionTracks.length
+    ) {
+      prevIndex = isShuffle
+        ? Math.floor(Math.random() * sectionTracks.length)
+        : (prevIndex - 1 + sectionTracks.length) % sectionTracks.length;
+      attempts++;
+    }
+
+    if (attempts >= sectionTracks.length) {
+      console.log("No playable tracks found in sectionTracks");
+      stopTrack();
+      return;
+    }
+
     playTrack(sectionTracks[prevIndex], sectionTracks);
   };
 
