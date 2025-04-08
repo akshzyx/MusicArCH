@@ -5,13 +5,14 @@ import ClientWrapper from "@/components/ClientWrapper";
 import Navbar from "@/components/Navbar";
 import { ReactNode } from "react";
 import { AudioProvider } from "@/lib/AudioContext";
-import { ClerkProvider } from "@clerk/nextjs"; // Add ClerkProvider
+import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/react"; // Add Analytics import
 
 export const metadata: Metadata = {
   title: "JojiArCH",
   description: "Complete Joji & his aliases discography",
   icons: {
-    icon: "/favicon.svg", // Direct path to SVG
+    icon: "/favicon.svg",
   },
 };
 
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <div className="sticky top-0 w-full z-50">
               <Navbar />
             </div>
-            <ClientWrapper>{children}</ClientWrapper>
+            <ClientWrapper>
+              {children}
+              <Analytics /> {/* Add Analytics here */}
+            </ClientWrapper>
           </AudioProvider>
         </body>
       </html>
