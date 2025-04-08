@@ -111,7 +111,7 @@ const NavBar = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Search for songs, artists"
+                  placeholder="Search for songs..."
                   className="bg-transparent border-none text-white focus:outline-none w-full placeholder-gray-400"
                   autoFocus={isSearchHovered}
                 />
