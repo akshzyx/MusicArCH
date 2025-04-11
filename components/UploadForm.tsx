@@ -102,7 +102,7 @@ export default function UploadForm() {
   const [alertDescription, setAlertDescription] = useState("");
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const [progressOpen, setProgressOpen] = useState(false);
-  const [progressPercentage, setProgressPercentage] = useState(0); // Progress percentage
+  const [progressPercentage, setProgressPercentage] = useState(0);
   const router = useRouter();
 
   const isAdmin = user?.publicMetadata?.role === "admin";
@@ -136,85 +136,61 @@ export default function UploadForm() {
           continue;
         }
 
+        // Skip processing for stems with GitHub repo (isMultiFiles)
         if (releaseCategory === "stems" && track.isMultiFiles) {
-          updateTrack(index, { ...track, isLoadingDuration: true });
-          setProgressOpen(true);
-          setProgressPercentage(0); // Reset progress
-          try {
-            const multiFilesData = await fetchGitHubRepoContentsWithProgress(
-              track.file,
-              githubToken,
-              (progress) => setProgressPercentage(progress)
-            );
-            const totalDuration = calculateTotalDuration(multiFilesData);
-            updateTrack(index, {
-              ...track,
-              duration: totalDuration,
-              isLoadingDuration: false,
-            });
-          } catch (error) {
-            setAlertTitle("GitHub Fetch Failed");
-            setAlertDescription(
-              `Failed to fetch GitHub repository contents for track ${
-                index + 1
-              }: ${(error as Error).message}`
-            );
-            setAlertOpen(true);
-            updateTrack(index, {
-              ...track,
-              duration: "",
-              isLoadingDuration: false,
-            });
-          } finally {
-            setProgressOpen(false);
-          }
-        } else {
-          updateTrack(index, { ...track, isLoadingDuration: true });
-          const audio = new Audio(track.file.trimEnd());
-
-          audio.onloadedmetadata = () => {
-            const durationSeconds = audio.duration;
-            if (isNaN(durationSeconds) || !isFinite(durationSeconds)) {
-              setAlertTitle("Invalid Audio File");
-              setAlertDescription(
-                `Could not determine track duration for track ${
-                  index + 1
-                }. Please ensure the URL points to a valid audio file.`
-              );
-              setAlertOpen(true);
-              updateTrack(index, {
-                ...track,
-                duration: "",
-                isLoadingDuration: false,
-              });
-            } else {
-              const minutes = Math.floor(durationSeconds / 60);
-              const seconds = Math.floor(durationSeconds % 60)
-                .toString()
-                .padStart(2, "0");
-              updateTrack(index, {
-                ...track,
-                duration: `${minutes}:${seconds}`,
-                isLoadingDuration: false,
-              });
-            }
-          };
-
-          audio.onerror = () => {
-            setAlertTitle("Error Loading Audio");
-            setAlertDescription(
-              `Error loading audio file for track ${
-                index + 1
-              }. Please check the URL.`
-            );
-            setAlertOpen(true);
-            updateTrack(index, {
-              ...track,
-              duration: "",
-              isLoadingDuration: false,
-            });
-          };
+          updateTrack(index, {
+            ...track,
+            duration: "",
+            isLoadingDuration: false,
+          });
+          continue;
         }
+
+        updateTrack(index, { ...track, isLoadingDuration: true });
+        const audio = new Audio(track.file.trimEnd());
+
+        audio.onloadedmetadata = () => {
+          const durationSeconds = audio.duration;
+          if (isNaN(durationSeconds) || !isFinite(durationSeconds)) {
+            setAlertTitle("Invalid Audio File");
+            setAlertDescription(
+              `Could not determine track duration for track ${
+                index + 1
+              }. Please ensure the URL points to a valid audio file.`
+            );
+            setAlertOpen(true);
+            updateTrack(index, {
+              ...track,
+              duration: "",
+              isLoadingDuration: false,
+            });
+          } else {
+            const minutes = Math.floor(durationSeconds / 60);
+            const seconds = Math.floor(durationSeconds % 60)
+              .toString()
+              .padStart(2, "0");
+            updateTrack(index, {
+              ...track,
+              duration: `${minutes}:${seconds}`,
+              isLoadingDuration: false,
+            });
+          }
+        };
+
+        audio.onerror = () => {
+          setAlertTitle("Error Loading Audio");
+          setAlertDescription(
+            `Error loading audio file for track ${
+              index + 1
+            }. Please check the URL.`
+          );
+          setAlertOpen(true);
+          updateTrack(index, {
+            ...track,
+            duration: "",
+            isLoadingDuration: false,
+          });
+        };
       }
     };
 
@@ -329,27 +305,21 @@ export default function UploadForm() {
     return `${minutes}:${seconds}`;
   };
 
-  // Wrapper for fetchGitHubRepoContents to simulate progress
   const fetchGitHubRepoContentsWithProgress = async (
     url: string,
     token: string | undefined,
     onProgress: (progress: number) => void
   ): Promise<JsonFolder> => {
-    // Since we don't have direct control over fetchGitHubRepoContents,
-    // we'll simulate progress based on a mock file count.
-    // In a real implementation, modify fetchGitHubRepoContents to report progress.
     const response = await fetchGitHubRepoContents(url, token);
     const fileCount = countFiles(response);
     let processed = 0;
 
-    // Simulate progress (replace with actual progress reporting if possible)
     const simulateProgress = () => {
       processed += 1;
       const percentage = Math.min((processed / fileCount) * 100, 100);
       onProgress(percentage);
     };
 
-    // Mock simulation: call simulateProgress for each file
     const traverseAndSimulate = (obj: JsonFolder) => {
       for (const key in obj) {
         const value = obj[key];
@@ -362,7 +332,7 @@ export default function UploadForm() {
     };
 
     traverseAndSimulate(response);
-    onProgress(100); // Ensure it reaches 100%
+    onProgress(100);
     return response;
   };
 
@@ -503,13 +473,26 @@ export default function UploadForm() {
 
         if (releaseCategory === "stems" && track.isMultiFiles && track.file) {
           try {
+            updateTrack(tracks.indexOf(track), {
+              ...track,
+              isLoadingDuration: true,
+            });
             multiFilesData = await fetchGitHubRepoContentsWithProgress(
               track.file,
               githubToken,
               (progress) => setProgressPercentage(progress)
             );
             totalDuration = calculateTotalDuration(multiFilesData);
+            updateTrack(tracks.indexOf(track), {
+              ...track,
+              duration: totalDuration,
+              isLoadingDuration: false,
+            });
           } catch (error) {
+            updateTrack(tracks.indexOf(track), {
+              ...track,
+              isLoadingDuration: false,
+            });
             showAlert(
               "GitHub Fetch Failed",
               `Failed to fetch GitHub repository contents for track ${
