@@ -39,6 +39,13 @@ interface TrackFormData {
     | "Features With"
     | "Features Without"
     | "Early Sessions"
+    | "Blackpond Studio Sessions"
+    | "The CRC Sessions"
+    | "Timeshift Studios Sessions"
+    | "No Name Studios Sessions"
+    | "The Fab Factory Recording Studio Sessions"
+    | "WeDidIt Studios Sessions"
+    | "Songs from Unknown Studio Sessions"
     | "Instrumentals"
     | "Acapellas"
     | "Stems"
@@ -915,6 +922,27 @@ export default function UploadForm() {
                           Features Without
                         </option>
                         <option value="Early Sessions">Early Sessions</option>
+                        <option value="Blackpond Studio Sessions">
+                          Blackpond Studio Sessions
+                        </option>
+                        <option value="The CRC Sessions">
+                          The CRC Sessions
+                        </option>
+                        <option value="Timeshift Studios Sessions">
+                          Timeshift Studios Sessions
+                        </option>
+                        <option value="No Name Studios Sessions">
+                          No Name Studios Sessions
+                        </option>
+                        <option value="The Fab Factory Recording Studio Sessions">
+                          The Fab Factory Recording Studio Sessions
+                        </option>
+                        <option value="WeDidIt Studios Sessions">
+                          WeDidIt Studios Sessions
+                        </option>
+                        <option value="Songs from Unknown Studio Sessions">
+                          Songs from Unknown Studio Sessions
+                        </option>
                       </>
                     ) : (
                       <>
