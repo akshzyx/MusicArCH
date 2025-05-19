@@ -28,9 +28,9 @@ export default function AboutPage() {
             eras, each marked by unique sounds, themes, and releases.
           </p>
           <p className="text-gray-300 leading-relaxed mt-4">
-            Our mission is to provide a comprehensive and immersive experience
-            for Joji fans, offering access to tracks, releases, and insights
-            into his creative journey. Whether you’re a longtime fan or a new
+            I wanted to provide a comprehensive and immersive experience for
+            Joji fans, offering access to tracks, releases, and insights into
+            his creative journey. Whether you’re a longtime fan or a new
             listener, JojiArCH is your gateway to discovering the depth of his
             music.
           </p>
@@ -145,12 +145,19 @@ export default function AboutPage() {
           </h2>
           <p className="text-gray-300 leading-relaxed">
             JojiArCH was created to preserve Joji’s legacy. As scrolling through
-            the tracker was sometimes frustating so I worked on this project.
-            We’re always looking to improve the site and add new features.
+            the tracker was sometimes frustating so I worked on this project,
+            making it easy to explore the discography easily.
           </p>
           <p className="text-gray-300 leading-relaxed mt-4">
-            Have feedback, suggestions, or want to contribute? Reach out to us
-            at{" "}
+            Have feedback, suggestions, or want to contribute? Reach out to me
+            on{" "}
+            <a
+              href="https://www.reddit.com/user/FewSong1527/"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Reddit (u/FewSong1527)
+            </a>{" "}
+            or at{" "}
             <a
               href="mailto:tres.suing503@passfwd.com"
               className="text-blue-400 hover:text-blue-300 transition-colors"
