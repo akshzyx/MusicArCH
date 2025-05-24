@@ -20,6 +20,7 @@ import {
   faPlay,
   faPause,
   faChevronDown,
+  faDownload, // Added download icon
 } from "@fortawesome/free-solid-svg-icons";
 import { useUser } from "@clerk/nextjs";
 
@@ -96,6 +97,16 @@ export default function TrackList({
     new Set()
   );
   const githubToken = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+
+  // Function to handle download
+  const handleDownload = (url: string, filename: string) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename || "track"; // Fallback filename if none provided
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     setTracks(initialTracks);
@@ -898,6 +909,15 @@ export default function TrackList({
           >
             {file.duration}
           </span>
+          {isPlayable && (
+            <button
+              onClick={() => handleDownload(file.url, key)}
+              className="ml-3 text-blue-400 hover:text-blue-300 transition-colors p-1"
+              title="Download Track"
+            >
+              <FontAwesomeIcon icon={faDownload} size="sm" />
+            </button>
+          )}
         </div>
       );
     });
@@ -1242,6 +1262,17 @@ export default function TrackList({
                         >
                           {track.duration}
                         </span>
+                        {isTrackPlayable(track) && (
+                          <button
+                            onClick={() =>
+                              handleDownload(track.file, track.title)
+                            }
+                            className="ml-3 text-blue-400 hover:text-blue-300 transition-colors p-1"
+                            title="Download Track"
+                          >
+                            <FontAwesomeIcon icon={faDownload} size="sm" />
+                          </button>
+                        )}
                         {isAdmin && (
                           <div className="flex space-x-2">
                             <button
@@ -1420,6 +1451,15 @@ export default function TrackList({
                 >
                   {track.duration}
                 </span>
+                {isTrackPlayable(track) && (
+                  <button
+                    onClick={() => handleDownload(track.file, track.title)}
+                    className="ml-3 text-blue-400 hover:text-blue-300 transition-colors p-1"
+                    title="Download Track"
+                  >
+                    <FontAwesomeIcon icon={faDownload} size="sm" />
+                  </button>
+                )}
                 {isAdmin && (
                   <div className="flex space-x-2">
                     <button
