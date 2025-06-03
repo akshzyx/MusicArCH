@@ -7,6 +7,7 @@ import { ReactNode } from "react";
 import { AudioProvider } from "@/lib/AudioContext";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/react"; // Add Analytics import
+import { SpeedInsights } from "@vercel/speed-insights/next"; // Add SpeedInsights import
 
 export const metadata: Metadata = {
   title: "JojiArCH",
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <ClientWrapper>
               {children}
               <Analytics /> {/* Add Analytics here */}
+              <SpeedInsights /> {/* Add SpeedInsights here */}
             </ClientWrapper>
           </AudioProvider>
         </body>
