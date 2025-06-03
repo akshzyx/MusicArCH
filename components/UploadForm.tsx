@@ -84,6 +84,7 @@ export default function UploadForm() {
   const [releaseCategory, setReleaseCategory] = useState<
     "released" | "unreleased" | "stems" | string
   >("released");
+  const [trackType, setTrackType] = useState<TrackFormData["trackType"]>("");
   const [tracks, setTracks] = useState<TrackFormData[]>([
     {
       title: "",
@@ -223,7 +224,7 @@ export default function UploadForm() {
         fileDate: "",
         leakDate: "",
         type: "",
-        trackType: "",
+        trackType: trackType,
         available: "",
         quality: "",
         notes: "",
@@ -575,6 +576,7 @@ export default function UploadForm() {
       const redirectTo = `/eras/${selectedEraId}#${releaseCategory}`;
       setRedirectUrl(redirectTo);
       setReleaseCategory("released");
+      setTrackType("");
       setTracks([
         {
           title: "",
@@ -661,6 +663,69 @@ export default function UploadForm() {
             <option value="stems">Stems</option>
           </select>
         </div>
+
+        {(releaseCategory === "unreleased" || releaseCategory === "stems") && (
+          <div>
+            <label className="block text-sm font-medium text-foreground">
+              Additional Track Type
+            </label>
+            <select
+              value={trackType}
+              onChange={(e) => {
+                setTrackType(e.target.value as TrackFormData["trackType"]);
+                setTracks((prevTracks) =>
+                  prevTracks.map((track) => ({
+                    ...track,
+                    trackType: e.target.value as TrackFormData["trackType"],
+                  }))
+                );
+              }}
+              className="w-full p-2 border rounded bg-background text-foreground"
+              required
+            >
+              <option value="" disabled>
+                Select additional track type
+              </option>
+              {releaseCategory === "unreleased" ? (
+                <>
+                  <option value="Music">Fragments</option>
+                  <option value="Features With">Features With</option>
+                  <option value="Features Without">Features Without</option>
+                  <option value="Early Sessions">Early Sessions</option>
+                  <option value="Blackpond Studio Sessions">
+                    Blackpond Studio Sessions
+                  </option>
+                  <option value="The CRC Sessions">The CRC Sessions</option>
+                  <option value="Timeshift Studios Sessions">
+                    Timeshift Studios Sessions
+                  </option>
+                  <option value="No Name Studios Sessions">
+                    No Name Studios Sessions
+                  </option>
+                  <option value="The Fab Factory Recording Studio Sessions">
+                    The Fab Factory Recording Studio Sessions
+                  </option>
+                  <option value="WeDidIt Studios Sessions">
+                    WeDidIt Studios Sessions
+                  </option>
+                  <option value="Songs from Unknown Studio Sessions">
+                    Songs from Unknown Studio Sessions
+                  </option>
+                </>
+              ) : (
+                <>
+                  <option value="Instrumentals">Instrumentals</option>
+                  <option value="Acapellas">Acapellas</option>
+                  <option value="Stems">Stems</option>
+                  <option value="Dolby Atmos">Dolby Atmos</option>
+                  <option value="Sessions">Sessions</option>
+                  <option value="TV Tracks">TV Tracks</option>
+                  <option value="Voice Memo">Voice Memo</option>
+                </>
+              )}
+            </select>
+          </div>
+        )}
 
         <div className="space-y-2">
           <h3 className="font-semibold text-foreground">Add Tracks</h3>
@@ -894,70 +959,6 @@ export default function UploadForm() {
                   )}
                 </select>
               </div>
-              {(releaseCategory === "unreleased" ||
-                releaseCategory === "stems") && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Additional Track Type
-                  </label>
-                  <select
-                    value={track.trackType}
-                    onChange={(e) =>
-                      updateTrack(index, {
-                        ...track,
-                        trackType: e.target.value as TrackFormData["trackType"],
-                      })
-                    }
-                    className="w-full p-2 border rounded bg-background text-foreground"
-                    required
-                  >
-                    <option value="" disabled>
-                      Select additional track type
-                    </option>
-                    {releaseCategory === "unreleased" ? (
-                      <>
-                        <option value="Music">Fragments</option>
-                        <option value="Features With">Features With</option>
-                        <option value="Features Without">
-                          Features Without
-                        </option>
-                        <option value="Early Sessions">Early Sessions</option>
-                        <option value="Blackpond Studio Sessions">
-                          Blackpond Studio Sessions
-                        </option>
-                        <option value="The CRC Sessions">
-                          The CRC Sessions
-                        </option>
-                        <option value="Timeshift Studios Sessions">
-                          Timeshift Studios Sessions
-                        </option>
-                        <option value="No Name Studios Sessions">
-                          No Name Studios Sessions
-                        </option>
-                        <option value="The Fab Factory Recording Studio Sessions">
-                          The Fab Factory Recording Studio Sessions
-                        </option>
-                        <option value="WeDidIt Studios Sessions">
-                          WeDidIt Studios Sessions
-                        </option>
-                        <option value="Songs from Unknown Studio Sessions">
-                          Songs from Unknown Studio Sessions
-                        </option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="Instrumentals">Instrumentals</option>
-                        <option value="Acapellas">Acapellas</option>
-                        <option value="Stems">Stems</option>
-                        <option value="Dolby Atmos">Dolby Atmos</option>
-                        <option value="Sessions">Sessions</option>
-                        <option value="TV Tracks">TV Tracks</option>
-                        <option value="Voice Memo">Voice Memo</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-              )}
               {releaseCategory !== "released" && (
                 <>
                   <div>
