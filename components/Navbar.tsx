@@ -29,11 +29,7 @@ const NavBar = () => {
     setIsMounted(true);
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY) {
-        setIsNavVisible(false);
-      } else {
-        setIsNavVisible(true);
-      }
+      setIsNavVisible(currentScrollY <= lastScrollY);
       setLastScrollY(currentScrollY);
     };
 
@@ -69,19 +65,21 @@ const NavBar = () => {
       }`}
     >
       <header className="absolute top-1/2 w-full -translate-y-1/2">
-        <nav className="flex size-full items-center justify-between p-4 bg-black rounded-lg shadow-lg">
-          <Link href="/" prefetch className="flex items-center gap-7">
+        <nav className="flex w-full items-center justify-between px-6 py-3 bg-black rounded-lg shadow-lg">
+          {/* Logo Section */}
+          <Link href="/" prefetch className="flex items-center gap-4">
             <FontAwesomeIcon icon={faSkull} size="2x" color="white" />
-            <p className="font-bold text-white">JojiArCH</p>
+            <p className="font-bold text-white text-lg">JojiArCH</p>
           </Link>
-          <div className="flex h-full items-center">
-            {/* Search Component - Icon only by default */}
+
+          {/* Right Side: Search, Nav Items, Upload, Sign In/User */}
+          <div className="flex items-center gap-6">
+            {/* Search Component */}
             <div
-              className="relative flex items-center mr-4 h-10"
+              className="relative flex items-center h-10"
               onMouseEnter={() => setIsSearchHovered(true)}
               onMouseLeave={() => !searchQuery && setIsSearchHovered(false)}
             >
-              {/* Default icon state (no background) */}
               <button
                 onClick={() => setIsSearchHovered(true)}
                 className={`absolute right-0 text-gray-400 hover:text-white transition-colors z-10 ${
@@ -90,8 +88,6 @@ const NavBar = () => {
               >
                 <FontAwesomeIcon icon={faSearch} size="lg" />
               </button>
-
-              {/* Expanding search box */}
               <form
                 onSubmit={handleSearch}
                 className={`absolute right-0 flex items-center bg-gray-800 rounded-full transition-all duration-300 overflow-hidden ${
@@ -126,27 +122,31 @@ const NavBar = () => {
             </div>
 
             {/* Nav Items */}
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center gap-6">
               {navItems.map((item, index) => (
                 <Link
                   key={index}
                   href={`/${item.toLowerCase()}`}
-                  className="text-white mx-3 font-medium hover:text-blue-400 transition-colors duration-200"
+                  className="text-white font-medium hover:text-blue-400 transition-colors duration-200"
                 >
                   {item}
                 </Link>
               ))}
             </div>
+
+            {/* Admin Upload Button */}
             {isAdmin && (
               <Link
                 href="/upload"
                 prefetch
-                className="ml-10 font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                className="flex items-center font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
               >
                 Upload
               </Link>
             )}
-            <div className="ml-4">
+
+            {/* Sign In / User Profile */}
+            <div className="flex items-center">
               {isSignedIn ? (
                 <UserButton afterSignOutUrl="/" />
               ) : (
