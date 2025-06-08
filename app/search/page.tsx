@@ -78,7 +78,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <div className="text-center py-8">
           <p className="text-gray-400 text-lg">
             No tracks found matching
-            <span className="font-semibold">{query}</span>.
+            <span className="font-semibold"> {query}</span>.
           </p>
           <p className="text-gray-500 mt-2">
             Try a different search term or check back later!
