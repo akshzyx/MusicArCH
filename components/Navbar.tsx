@@ -8,6 +8,8 @@ import {
   faSkull,
   faSearch,
   faSpinner,
+  faBars,
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 
@@ -21,6 +23,7 @@ const NavBar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchHovered, setIsSearchHovered] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isSignedIn, user } = useUser();
   const isAdmin = isSignedIn && user?.publicMetadata?.role === "admin";
   const router = useRouter();
@@ -44,6 +47,7 @@ const NavBar = () => {
       await router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
       setIsLoading(false);
+      setIsMenuOpen(false); // Close menu after search
     }
   };
 
@@ -51,6 +55,10 @@ const NavBar = () => {
     if (e.key === " ") {
       e.stopPropagation();
     }
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   if (!isMounted) {
@@ -72,9 +80,9 @@ const NavBar = () => {
             <p className="font-bold text-white text-lg">JojiArCH</p>
           </Link>
 
-          {/* Right Side: Search, Nav Items, Upload, Sign In/User */}
+          {/* Right Side: Search and Menu (Mobile) or Full Nav (Desktop) */}
           <div className="flex items-center gap-6">
-            {/* Search Component */}
+            {/* Search Component - Visible on all screens */}
             <div
               className="relative flex items-center h-10"
               onMouseEnter={() => setIsSearchHovered(true)}
@@ -92,7 +100,7 @@ const NavBar = () => {
                 onSubmit={handleSearch}
                 className={`absolute right-0 flex items-center bg-gray-800 rounded-full transition-all duration-300 overflow-hidden ${
                   isSearchHovered
-                    ? "w-64 px-4 py-2 opacity-100"
+                    ? "w-48 sm:w-64 px-4 py-2 opacity-100"
                     : "w-0 opacity-0"
                 }`}
               >
@@ -121,7 +129,7 @@ const NavBar = () => {
               </form>
             </div>
 
-            {/* Nav Items */}
+            {/* Desktop: Nav Items, Upload, Sign In/User */}
             <div className="hidden md:flex items-center gap-6">
               {navItems.map((item, index) => (
                 <Link
@@ -132,33 +140,79 @@ const NavBar = () => {
                   {item}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link
+                  href="/upload"
+                  prefetch
+                  className="flex items-center font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  Upload
+                </Link>
+              )}
+              <div className="flex items-center">
+                {isSignedIn ? (
+                  <UserButton afterSignOutUrl="/" />
+                ) : (
+                  <SignInButton mode="modal">
+                    <button className="font-bold text-white bg-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                      Sign In
+                    </button>
+                  </SignInButton>
+                )}
+              </div>
             </div>
 
-            {/* Admin Upload Button */}
+            {/* Mobile: Hamburger Menu */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={toggleMenu}
+                className="text-white hover:text-blue-400 transition-colors"
+              >
+                <FontAwesomeIcon
+                  icon={isMenuOpen ? faTimes : faBars}
+                  size="lg"
+                />
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Mobile Dropdown Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden absolute top-16 right-6 w-48 bg-black rounded-lg shadow-lg py-4 z-50">
+            {navItems.map((item, index) => (
+              <Link
+                key={index}
+                href={`/${item.toLowerCase()}`}
+                className="block px-4 py-2 text-white hover:bg-gray-800 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item}
+              </Link>
+            ))}
             {isAdmin && (
               <Link
                 href="/upload"
                 prefetch
-                className="flex items-center font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                className="block px-4 py-2 text-white hover:bg-gray-800 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Upload
               </Link>
             )}
-
-            {/* Sign In / User Profile */}
-            <div className="flex items-center">
+            <div className="px-4 py-2">
               {isSignedIn ? (
                 <UserButton afterSignOutUrl="/" />
               ) : (
                 <SignInButton mode="modal">
-                  <button className="font-bold text-white bg-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                  <button className="w-full text-left text-white hover:bg-gray-800 px-4 py-2 rounded transition-colors">
                     Sign In
                   </button>
                 </SignInButton>
               )}
             </div>
           </div>
-        </nav>
+        )}
       </header>
     </div>
   );
