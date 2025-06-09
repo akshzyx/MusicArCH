@@ -15,7 +15,6 @@ export default function UploadFormVid() {
       key: Date.now(),
       title: "",
       description: "",
-      videoId: "",
       videoUrl: "",
       episodeNumber: "",
       type: "main",
@@ -46,10 +45,32 @@ export default function UploadFormVid() {
     fetchSeasons();
   }, [seasonId]);
 
-  // Function to extract video ID from YouTube URL
-  const extractVideoId = (url: string) => {
-    const urlParams = new URLSearchParams(new URL(url).search);
-    return urlParams.get("v") || ""; // Extracts 'v' parameter from YouTube URL
+  // Enhanced function to extract video ID from YouTube URL
+  const extractVideoId = (url: string): string => {
+    try {
+      // Handle empty or invalid input
+      if (!url || typeof url !== "string") return "";
+
+      // Normalize URL by adding https:// if missing
+      const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
+      const urlObj = new URL(normalizedUrl);
+
+      // Check for youtube.com/watch?v=
+      const searchParams = new URLSearchParams(urlObj.search);
+      if (urlObj.hostname.includes("youtube.com") && searchParams.has("v")) {
+        return searchParams.get("v") || "";
+      }
+      // Check for youtu.be/ short URL
+      else if (urlObj.hostname.includes("youtu.be")) {
+        const pathSegments = urlObj.pathname.split("/").filter(Boolean);
+        return pathSegments.length > 0 ? pathSegments[0] : "";
+      }
+
+      return ""; // Return empty string if no valid ID found
+    } catch (e) {
+      console.error("Invalid URL format:", e, "URL:", url);
+      return ""; // Return empty string for malformed URLs
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,18 +84,20 @@ export default function UploadFormVid() {
     }
 
     const videoData = videoForms
-      .map((form) => {
+      .map((form, index) => {
         const extractedVideoId = extractVideoId(form.videoUrl);
         if (!extractedVideoId) {
           setError(
-            "Invalid YouTube URL. Please provide a valid URL with a video ID."
+            `Invalid YouTube URL for Video ${
+              index + 1
+            }. Please provide a valid URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ or https://youtu.be/dQw4w9WgXcQ).`
           );
           return null;
         }
         return {
           title: form.title,
           description: form.description,
-          video_id: extractedVideoId,
+          video_id: extractedVideoId, // Automatically extracted and included
           video_url: form.videoUrl,
           episode_number: form.episodeNumber,
           type: form.type,
@@ -106,7 +129,6 @@ export default function UploadFormVid() {
           key: Date.now(),
           title: "",
           description: "",
-          videoId: "",
           videoUrl: "",
           episodeNumber: "",
           type: "main",
@@ -117,7 +139,7 @@ export default function UploadFormVid() {
       if (seasons.length > 0) {
         setSeasonId(seasons[0].id);
       } else {
-        setSeasonId(null);
+        setError(null);
       }
     }
   };
@@ -129,7 +151,6 @@ export default function UploadFormVid() {
         key: Date.now(),
         title: "",
         description: "",
-        videoId: "",
         videoUrl: "",
         episodeNumber: "",
         type: "main",
@@ -142,10 +163,12 @@ export default function UploadFormVid() {
   const updateVideoForm = (index: number, field: string, value: string) => {
     const newForms = [...videoForms];
     newForms[index] = { ...newForms[index], [field]: value };
-    // If videoUrl changes, extract and update videoId
+    // Automatically extract and update videoId when videoUrl changes
     if (field === "videoUrl") {
       const extractedId = extractVideoId(value);
-      newForms[index] = { ...newForms[index], videoId: extractedId };
+      if (!extractedId) {
+        console.warn(`No valid video ID extracted for URL: ${value}`);
+      }
     }
     setVideoForms(newForms);
   };
@@ -279,7 +302,7 @@ export default function UploadFormVid() {
               }
               className="w-full p-2 rounded bg-gray-700 text-white"
               required
-              placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+              placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ or https://youtu.be/dQw4w9WgXcQ"
             />
           </div>
           <div>
