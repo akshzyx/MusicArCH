@@ -1,6 +1,8 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type Video = {
   id: string;
@@ -17,46 +19,36 @@ type Video = {
   type: string;
 };
 
-type SeasonVideoListProps = {
-  videos: Video[];
-};
+export default function SeasonVideoList({ videos }: { videos: Video[] }) {
+  const handleImageError = (
+    e: React.SyntheticEvent<HTMLImageElement>,
+    videoId: string
+  ) => {
+    const target = e.currentTarget as HTMLImageElement;
+    target.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+    target.alt = "Image failed to load";
+  };
 
-export default function SeasonVideoList({ videos }: SeasonVideoListProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {videos.map((video) => (
-        <div
-          key={video.id}
-          className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
-        >
+        <div key={video.id} className="bg-gray-800 p-4 rounded-lg">
           <Link href={`/videos/${video.id}`}>
-            <div className="aspect-video bg-gray-700">
-              <img
-                src={`https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg`}
-                alt={`${video.title} thumbnail`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = `https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`;
-                }}
-              />
-            </div>
+            <Image
+              src={`https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg`}
+              alt={video.title || "Video thumbnail"}
+              className="w-full h-48 object-cover rounded"
+              width={320}
+              height={180}
+              onError={(e) => handleImageError(e, video.video_id)}
+              unoptimized
+            />
           </Link>
-          <div className="p-4">
-            <h3 className="text-lg font-semibold text-white truncate">
-              {video.title || "Untitled"} (Ep {video.episode_number}){" "}
-              {video.type === "extra" && "(Extra)"}
-            </h3>
-            {video.channel && (
-              <p className="text-gray-400 text-sm mt-1">
-                Channel: {video.channel}
-              </p>
-            )}
-            {video.upload_date && (
-              <p className="text-gray-400 text-sm mt-1">
-                Uploaded: {new Date(video.upload_date).toLocaleDateString()}
-              </p>
-            )}
-          </div>
+          <h3 className="text-white mt-2">{video.title || "Untitled"}</h3>
+          <p className="text-gray-400 text-sm">
+            Episode: {video.episode_number}
+          </p>
+          <p className="text-gray-400 text-sm">Channel: {video.channel}</p>
         </div>
       ))}
     </div>

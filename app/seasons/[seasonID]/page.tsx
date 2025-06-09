@@ -5,7 +5,7 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SeasonVideoList from "@/components/SeasonVideoList";
 
-// Suppress the unused variable warning for Season type since it's used indirectly via season variable
+// Suppress the unused variable warning for Season type
 /* eslint-disable @typescript-eslint/no-unused-vars */
 type Video = {
   id: string;
@@ -37,7 +37,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ seasonID: string }>;
 }): Promise<Metadata> {
-  const resolvedParams = await params; // Await the params
+  const resolvedParams = await params;
   const { data: season, error } = await supabase
     .from("seasons")
     .select("season_name")
@@ -104,7 +104,6 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
     );
   }
 
-  // Format year if it exists
   const yearDisplay = season.year ? `${season.year}` : "N/A";
 
   return (
@@ -135,14 +134,13 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
   );
 }
 
-// Define PageProps with Promise for params
 interface PageProps {
   params: Promise<{ seasonID: string }>;
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function SeasonPage({ params }: PageProps) {
-  const resolvedParams = await params; // Await the params Promise
+  const resolvedParams = await params;
   return (
     <Suspense
       fallback={

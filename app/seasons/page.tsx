@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabase";
 import { Metadata } from "next";
 import { Suspense } from "react";
-import VideoListClient from "@/components/VideoListClient"; // New Client Component
+import VideoListClient from "@/components/VideoListClient";
 
 type Season = {
   id: string;
