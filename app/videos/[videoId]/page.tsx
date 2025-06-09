@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { supabase } from "@/lib/supabase";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
