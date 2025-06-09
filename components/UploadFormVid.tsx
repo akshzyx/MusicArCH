@@ -1,59 +1,156 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function UploadFormVid() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [videoId, setVideoId] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [episodeNumber, setEpisodeNumber] = useState("");
-  const [type, setType] = useState("main");
-  const [uploadDate, setUploadDate] = useState("");
-  const [channel, setChannel] = useState("DizastaMusic"); // Default channel
   const [seasonId, setSeasonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [seasons, setSeasons] = useState<{ id: string; season_name: string }[]>(
+    []
+  );
+  const [videoForms, setVideoForms] = useState([
+    {
+      key: Date.now(),
+      title: "",
+      description: "",
+      videoId: "",
+      videoUrl: "",
+      episodeNumber: "",
+      type: "main",
+      uploadDate: "",
+      channel: "DizastaMusic",
+    },
+  ]);
+
+  // Fetch seasons from Supabase on component mount
+  useEffect(() => {
+    const fetchSeasons = async () => {
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("id, season_name")
+        .order("season_name", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching seasons:", error.message);
+        setError("Failed to load seasons. Please try again later.");
+      } else {
+        setSeasons(data || []);
+        if (data && data.length > 0 && !seasonId) {
+          setSeasonId(data[0].id);
+        }
+      }
+    };
+
+    fetchSeasons();
+  }, [seasonId]);
+
+  // Function to extract video ID from YouTube URL
+  const extractVideoId = (url: string) => {
+    const urlParams = new URLSearchParams(new URL(url).search);
+    return urlParams.get("v") || ""; // Extracts 'v' parameter from YouTube URL
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
 
-    const { error: insertError } = await supabase.from("videos").insert({
-      title,
-      description,
-      video_id: videoId,
-      video_url: videoUrl,
-      episode_number: episodeNumber,
-      type,
-      upload_date: uploadDate
-        ? new Date(uploadDate).toISOString().split("T")[0]
-        : null,
-      channel,
-      season_id: seasonId,
-      created_at: new Date().toISOString(),
-    });
+    if (!seasonId) {
+      setError("Season ID is required.");
+      return;
+    }
+
+    const videoData = videoForms
+      .map((form) => {
+        const extractedVideoId = extractVideoId(form.videoUrl);
+        if (!extractedVideoId) {
+          setError(
+            "Invalid YouTube URL. Please provide a valid URL with a video ID."
+          );
+          return null;
+        }
+        return {
+          title: form.title,
+          description: form.description,
+          video_id: extractedVideoId,
+          video_url: form.videoUrl,
+          episode_number: form.episodeNumber,
+          type: form.type,
+          upload_date: form.uploadDate
+            ? new Date(form.uploadDate).toISOString().split("T")[0]
+            : null,
+          channel: form.channel,
+          season_id: seasonId,
+          created_at: new Date().toISOString(),
+        };
+      })
+      .filter((item) => item !== null);
+
+    if (videoData.length !== videoForms.length) {
+      return; // Stop submission if any URL is invalid
+    }
+
+    const { error: insertError } = await supabase
+      .from("videos")
+      .insert(videoData);
 
     if (insertError) {
       setError(insertError.message);
     } else {
       setSuccess(true);
       // Reset form
-      setTitle("");
-      setDescription("");
-      setVideoId("");
-      setVideoUrl("");
-      setEpisodeNumber("");
-      setType("main");
-      setUploadDate("");
-      setChannel("DizastaMusic"); // Reset to default channel
-      setSeasonId(null);
+      setVideoForms([
+        {
+          key: Date.now(),
+          title: "",
+          description: "",
+          videoId: "",
+          videoUrl: "",
+          episodeNumber: "",
+          type: "main",
+          uploadDate: "",
+          channel: "DizastaMusic",
+        },
+      ]);
+      if (seasons.length > 0) {
+        setSeasonId(seasons[0].id);
+      } else {
+        setSeasonId(null);
+      }
     }
   };
 
-  // Channel list from your input
+  const addVideoForm = () => {
+    setVideoForms([
+      ...videoForms,
+      {
+        key: Date.now(),
+        title: "",
+        description: "",
+        videoId: "",
+        videoUrl: "",
+        episodeNumber: "",
+        type: "main",
+        uploadDate: "",
+        channel: "DizastaMusic",
+      },
+    ]);
+  };
+
+  const updateVideoForm = (index: number, field: string, value: string) => {
+    const newForms = [...videoForms];
+    newForms[index] = { ...newForms[index], [field]: value };
+    // If videoUrl changes, extract and update videoId
+    if (field === "videoUrl") {
+      const extractedId = extractVideoId(value);
+      newForms[index] = { ...newForms[index], videoId: extractedId };
+    }
+    setVideoForms(newForms);
+  };
+
+  // Channel list
   const channels = [
     "Cosmochino",
     "2cool4u92",
@@ -80,107 +177,135 @@ export default function UploadFormVid() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && (
         <p className="text-green-400 text-center">
-          Video uploaded successfully!
+          Videos uploaded successfully!
         </p>
       )}
       {error && <p className="text-red-400 text-center">{error}</p>}
       <div>
-        <label className="block text-white mb-1">Title</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-white mb-1">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-        />
-      </div>
-      <div>
-        <label className="block text-white mb-1">Video ID</label>
-        <input
-          type="text"
-          value={videoId}
-          onChange={(e) => setVideoId(e.target.value)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-white mb-1">Video URL</label>
-        <input
-          type="text"
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-white mb-1">Episode Number</label>
-        <input
-          type="text"
-          value={episodeNumber}
-          onChange={(e) => setEpisodeNumber(e.target.value)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-white mb-1">Type</label>
+        <label className="block text-white mb-1">Season ID</label>
         <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
+          value={seasonId || ""}
+          onChange={(e) => setSeasonId(e.target.value || null)}
           className="w-full p-2 rounded bg-gray-700 text-white"
+          required
         >
-          <option value="main">Main</option>
-          <option value="extra">Extra</option>
-        </select>
-      </div>
-      <div>
-        <label className="block text-white mb-1">Upload Date</label>
-        <input
-          type="date"
-          value={uploadDate}
-          onChange={(e) => setUploadDate(e.target.value)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-        />
-      </div>
-      <div>
-        <label className="block text-white mb-1">Channel</label>
-        <select
-          value={channel}
-          onChange={(e) => setChannel(e.target.value)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-        >
-          {channels.map((channelName) => (
-            <option key={channelName} value={channelName}>
-              {channelName}
+          <option value="" disabled>
+            Select a season
+          </option>
+          {seasons.map((season) => (
+            <option key={season.id} value={season.id}>
+              {season.season_name}
             </option>
           ))}
         </select>
       </div>
-      <div>
-        <label className="block text-white mb-1">Season ID (optional)</label>
-        <input
-          type="text"
-          value={seasonId || ""}
-          onChange={(e) => setSeasonId(e.target.value || null)}
-          placeholder="Enter season UUID"
-          className="w-full p-2 rounded bg-gray-700 text-white"
-        />
-      </div>
+      {videoForms.map((form, index) => (
+        <div
+          key={form.key}
+          className="border border-gray-600 p-4 rounded-lg space-y-4"
+        >
+          <h3 className="text-white text-lg font-semibold">
+            Video {index + 1}
+          </h3>
+          <div>
+            <label className="block text-white mb-1">Title</label>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => updateVideoForm(index, "title", e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-white mb-1">Episode Number</label>
+            <input
+              type="text"
+              value={form.episodeNumber}
+              onChange={(e) =>
+                updateVideoForm(index, "episodeNumber", e.target.value)
+              }
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-white mb-1">Channel</label>
+              <select
+                value={form.channel}
+                onChange={(e) =>
+                  updateVideoForm(index, "channel", e.target.value)
+                }
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              >
+                {channels.map((channelName) => (
+                  <option key={channelName} value={channelName}>
+                    {channelName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-white mb-1">Type</label>
+              <select
+                value={form.type}
+                onChange={(e) => updateVideoForm(index, "type", e.target.value)}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              >
+                <option value="main">Main</option>
+                <option value="extra">Extra</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-white mb-1">Upload Date</label>
+            <input
+              type="date"
+              value={form.uploadDate}
+              onChange={(e) =>
+                updateVideoForm(index, "uploadDate", e.target.value)
+              }
+              className="w-full p-2 rounded bg-gray-700 text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-white mb-1">Video URL</label>
+            <input
+              type="text"
+              value={form.videoUrl}
+              onChange={(e) =>
+                updateVideoForm(index, "videoUrl", e.target.value)
+              }
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              required
+              placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            />
+          </div>
+          <div>
+            <label className="block text-white mb-1">Description</label>
+            <textarea
+              value={form.description}
+              onChange={(e) =>
+                updateVideoForm(index, "description", e.target.value)
+              }
+              className="w-full p-2 rounded bg-gray-700 text-white"
+            />
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={addVideoForm}
+        className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors mt-4"
+      >
+        Add Another Video
+      </button>
       <button
         type="submit"
-        className="w-full bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600 transition-colors"
+        className="w-full bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600 transition-colors mt-4"
       >
-        Upload Video
+        Upload Videos
       </button>
     </form>
   );

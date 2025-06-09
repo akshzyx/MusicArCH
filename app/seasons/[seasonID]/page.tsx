@@ -1,8 +1,12 @@
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
 import { Metadata } from "next";
+import { Suspense } from "react";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SeasonVideoList from "@/components/SeasonVideoList";
 
+// Suppress the unused variable warning for Season type since it's used indirectly via season variable
+/* eslint-disable @typescript-eslint/no-unused-vars */
 type Video = {
   id: string;
   created_at: string;
@@ -23,33 +27,38 @@ type Season = {
   season_name: string;
   description: string;
   year: number | null;
+  quote: string | null;
   videos: Video[];
 };
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export async function generateMetadata({
   params,
 }: {
-  params: { seasonID: string };
+  params: Promise<{ seasonID: string }>;
 }): Promise<Metadata> {
-  const { data: season } = await supabase
+  const resolvedParams = await params; // Await the params
+  const { data: season, error } = await supabase
     .from("seasons")
     .select("season_name")
-    .eq("id", params.seasonID)
+    .eq("id", resolvedParams.seasonID)
     .single();
 
+  if (error || !season) {
+    return {
+      title: "Season Not Found - JojiArCH",
+    };
+  }
+
   return {
-    title: `${season?.season_name || "Season"} - JojiArCH`,
+    title: `${season.season_name || "Season"} - JojiArCH`,
     description: `Watch all videos from ${
-      season?.season_name || "this season"
+      season.season_name || "this season"
     } by Joji and his aliases.`,
   };
 }
 
-export default async function SeasonPage({
-  params,
-}: {
-  params: { seasonID: string };
-}) {
+async function SeasonContent({ seasonID }: { seasonID: string }) {
   const { data: season, error: seasonError } = await supabase
     .from("seasons")
     .select(
@@ -58,6 +67,7 @@ export default async function SeasonPage({
       season_name,
       description,
       year,
+      quote,
       videos (
         id,
         created_at,
@@ -74,7 +84,7 @@ export default async function SeasonPage({
       )
     `
     )
-    .eq("id", params.seasonID)
+    .eq("id", seasonID)
     .single();
 
   if (seasonError || !season) {
@@ -94,13 +104,22 @@ export default async function SeasonPage({
     );
   }
 
+  // Format year if it exists
+  const yearDisplay = season.year ? `${season.year}` : "N/A";
+
   return (
     <div className="min-h-screen bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-white mb-6">
-          {season.season_name}
+          {season.season_name}{" "}
+          <span className="text-sm text-gray-400">{yearDisplay}</span>
         </h1>
         <p className="text-gray-400 text-sm mb-4">{season.description}</p>
+        {season.quote && (
+          <p className="text-gray-500 text-sm italic mb-4">
+            {season.quote.replace(/"/g, '"')}
+          </p>
+        )}
         {season.videos.length > 0 ? (
           <SeasonVideoList videos={season.videos} />
         ) : (
@@ -113,6 +132,27 @@ export default async function SeasonPage({
         )}
       </div>
     </div>
+  );
+}
+
+// Define PageProps with Promise for params
+interface PageProps {
+  params: Promise<{ seasonID: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function SeasonPage({ params }: PageProps) {
+  const resolvedParams = await params; // Await the params Promise
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">
+          <FontAwesomeIcon icon={faSpinner} spinPulse />
+        </div>
+      }
+    >
+      <SeasonContent seasonID={resolvedParams.seasonID} />
+    </Suspense>
   );
 }
 

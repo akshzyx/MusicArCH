@@ -7,6 +7,7 @@ type Season = {
   season_name: string;
   description: string;
   year: number | null;
+  quote: string | null;
   videos: Video[];
 };
 
@@ -42,6 +43,7 @@ export default async function VideosPage() {
       season_name,
       description,
       year,
+      quote,
       videos (
         id,
         created_at,
@@ -95,6 +97,11 @@ export default async function VideosPage() {
               <p className="text-gray-400 text-sm mt-2 mb-4">
                 {season.description.substring(0, 150)}...
               </p>
+              {season.quote && (
+                <p className="text-gray-500 text-xs italic mb-4">
+                  &quot;{season.quote}&quot;
+                </p>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {season.videos.map((video) => (
                   <div
