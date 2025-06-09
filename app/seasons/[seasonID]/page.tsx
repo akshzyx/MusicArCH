@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import SeasonVideoList from "@/components/SeasonVideoList";
+import Link from "next/link";
 
 // Suppress the unused variable warning for Season type
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -90,15 +90,12 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
   if (seasonError || !season) {
     console.error("Error fetching season:", seasonError);
     return (
-      <div className="min-h-screen bg-gray-900 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-white mb-6">Season</h1>
-          <div className="bg-red-900/20 border border-red-700 p-4 rounded-lg">
-            <p className="text-red-300">
-              Error loading season: {seasonError?.message || "Season not found"}
-              . Please try again later.
-            </p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+        <div className="bg-red-900/20 border border-red-700 p-6 rounded-xl shadow-lg backdrop-blur-sm">
+          <p className="text-red-300 text-lg font-medium">
+            Error loading season: {seasonError?.message || "Season not found"}.
+            Please try again later.
+          </p>
         </div>
       </div>
     );
@@ -107,28 +104,57 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
   const yearDisplay = season.year ? `${season.year}` : "N/A";
 
   return (
-    <div className="min-h-screen bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-6">
-          {season.season_name}{" "}
-          <span className="text-sm text-gray-400">{yearDisplay}</span>
-        </h1>
-        <p className="text-gray-400 text-sm mb-4">{season.description}</p>
-        {season.quote && (
-          <p className="text-gray-500 text-sm italic mb-4">
-            {season.quote.replace(/"/g, '"')}
-          </p>
-        )}
-        {season.videos.length > 0 ? (
-          <SeasonVideoList videos={season.videos} />
-        ) : (
-          <div className="text-center py-12 bg-gray-800 rounded-lg">
-            <p className="text-gray-300 text-xl font-semibold">
-              No videos found for this season.
+        <div className="bg-gray-800/50 backdrop-blur-md p-6 rounded-xl shadow-xl animate-fadeIn">
+          <h1 className="text-4xl font-bold text-teal-400 mb-4 flex items-center">
+            {season.season_name}{" "}
+            <span className="ml-2 text-sm font-light text-gray-300 bg-gray-700/50 px-2 py-1 rounded-full">
+              {yearDisplay}
+            </span>
+          </h1>
+          <p className="text-gray-300 text-base mb-4">{season.description}</p>
+          {season.quote && (
+            <p className="text-gray-400 text-sm italic border-l-2 border-teal-400 pl-3 mb-6">
+              {season.quote.replace(/"/g, '"')}
             </p>
-            <p className="text-gray-400 mt-2">Check back later!</p>
-          </div>
-        )}
+          )}
+          {season.videos.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {season.videos.map((video) => (
+                <Link
+                  href={`/videos/${video.id}`}
+                  key={video.id}
+                  className="block"
+                >
+                  <div className="bg-gray-800/70 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <img
+                      src={`https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg`}
+                      alt={video.title || "Video Thumbnail"}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-3">
+                      <h3 className="text-white text-sm font-semibold line-clamp-2">
+                        {video.title || "Untitled Video"}
+                      </h3>
+                      <p className="text-gray-400 text-xs">
+                        Ep: {video.episode_number || "N/A"} |{" "}
+                        {video.channel || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-800/70 rounded-xl backdrop-blur-sm shadow-inner">
+              <p className="text-gray-200 text-xl font-semibold">
+                No videos found for this season.
+              </p>
+              <p className="text-gray-400 mt-2">Check back later!</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -144,8 +170,12 @@ export default async function SeasonPage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">
-          <FontAwesomeIcon icon={faSpinner} spinPulse />
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+          <FontAwesomeIcon
+            icon={faSpinner}
+            spinPulse
+            className="text-teal-400 text-4xl"
+          />
         </div>
       }
     >
