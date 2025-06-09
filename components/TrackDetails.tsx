@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faPause, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { useAudio } from "@/lib/AudioContext";
 import { useState } from "react";
+import Image from "next/image";
 
 interface TrackDetailsProps {
   track: Release | null;
@@ -40,7 +41,7 @@ export function TrackDetails({ track, onClose }: TrackDetailsProps) {
         {/* Left: Cover Image */}
         <div className="flex-shrink-0 w-full md:w-1/3 flex justify-center">
           {track.cover_image ? (
-            <img
+            <Image
               src={track.cover_image}
               alt={`${track.title} cover`}
               className="w-64 h-64 md:w-72 md:h-72 object-cover rounded-lg"

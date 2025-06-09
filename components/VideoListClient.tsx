@@ -1,7 +1,6 @@
 "use client"; // Mark as Client Component
 
 import Link from "next/link";
-import Image from "next/image";
 
 type Season = {
   id: string;
@@ -28,24 +27,27 @@ type Video = {
 };
 
 export default function VideoListClient({ seasons }: { seasons: Season[] }) {
-  const handleImageError = (
-    e: React.SyntheticEvent<HTMLImageElement>,
-    videoId: string
-  ) => {
-    const target = e.currentTarget as HTMLImageElement;
-    target.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`; // Fallback to medium quality
-    target.alt = "Thumbnail failed to load";
-  };
-
   return (
     <>
       {seasons.map((season) => (
         <div key={season.id} className="mb-8 bg-gray-800 rounded-lg p-4">
-          <Link href={`/seasons/${season.id}`}>
-            <h2 className="text-2xl font-semibold text-white hover:text-yellow-400 transition-colors cursor-pointer">
-              {season.season_name} ({season.videos.length} videos)
-            </h2>
-          </Link>
+          <div className="flex justify-between items-center mb-4">
+            <Link href={`/seasons/${season.id}`}>
+              <h2 className="text-2xl font-semibold text-white hover:text-teal-400 transition-colors cursor-pointer">
+                {season.season_name}
+              </h2>
+            </Link>
+            <div className="flex items-center space-x-2">
+              <span className="text-gray-400 text-sm">
+                {season.year ? season.year : "N/A"}
+              </span>
+              <span className="text-gray-400 text-sm">•</span>
+              <span className="text-gray-400 text-sm">
+                {season.videos.length}{" "}
+                {season.videos.length === 1 ? "video" : "videos"}
+              </span>
+            </div>
+          </div>
           <p className="text-gray-400 text-sm mt-2 mb-4">
             {season.description.substring(0, 150)}...
           </p>
@@ -54,7 +56,7 @@ export default function VideoListClient({ seasons }: { seasons: Season[] }) {
               &quot;{season.quote}&quot;
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {season.videos.map((video) => (
               <div
                 key={video.id}
@@ -78,7 +80,7 @@ export default function VideoListClient({ seasons }: { seasons: Season[] }) {
                 </div>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       ))}
     </>

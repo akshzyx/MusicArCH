@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import Image from "next/image";
 
 // Suppress the unused variable warning for Season type
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -103,6 +104,25 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
 
   const yearDisplay = season.year ? `${season.year}` : "N/A";
 
+  // Preserve exact line breaks and paragraphs from Supabase
+  const processDescription = (desc: string | null) => {
+    if (!desc) return [];
+    // Split into paragraphs using double line breaks, keep single line breaks as <br />
+    return desc.split("\n\n").map((paragraph) => {
+      // Replace single \n with <br /> within each paragraph
+      return paragraph
+        .split("\n")
+        .filter((line) => line.trim().length > 0)
+        .join("<br />");
+    });
+  };
+
+  const paragraphs = processDescription(season.description);
+
+  // Split videos into main and extra based on type
+  const mainVideos = season.videos.filter((video) => video.type === "main");
+  const extraVideos = season.videos.filter((video) => video.type === "extra");
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
@@ -113,25 +133,78 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
               {yearDisplay}
             </span>
           </h1>
-          <p className="text-gray-300 text-base mb-4">{season.description}</p>
+          {paragraphs.length > 0 && (
+            <div className="space-y-4 mb-6">
+              {paragraphs.map((paragraph, index) => (
+                <p
+                  key={index}
+                  className="text-gray-300 text-sm"
+                  dangerouslySetInnerHTML={{ __html: paragraph }}
+                />
+              ))}
+            </div>
+          )}
           {season.quote && (
             <p className="text-gray-400 text-sm italic border-l-2 border-teal-400 pl-3 mb-6">
               {season.quote.replace(/"/g, '"')}
             </p>
           )}
-          {season.videos.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {season.videos.map((video) => (
+          <h2 className="text-xl text-teal-400 font-semibold mb-6">Episodes</h2>
+          {mainVideos.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
+              {mainVideos.map((video) => (
                 <Link
                   href={`/videos/${video.id}`}
                   key={video.id}
                   className="block"
                 >
                   <div className="bg-gray-800/70 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <img
+                    <Image
                       src={`https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg`}
                       alt={video.title || "Video Thumbnail"}
+                      width={320}
+                      height={180}
                       className="w-full h-48 object-cover"
+                      unoptimized
+                    />
+                    <div className="p-3">
+                      <h3 className="text-white text-sm font-semibold line-clamp-2">
+                        {video.title || "Untitled Video"}
+                      </h3>
+                      <p className="text-gray-400 text-xs">
+                        Ep: {video.episode_number || "N/A"} |{" "}
+                        {video.channel || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-800/70 rounded-xl backdrop-blur-sm shadow-inner mb-12">
+              <p className="text-gray-200 text-xl font-semibold">
+                No main episodes found for this season.
+              </p>
+              <p className="text-gray-400 mt-2">Check back later!</p>
+            </div>
+          )}
+          <h2 className="text-xl text-teal-400 font-semibold mb-6">Extras</h2>
+          {extraVideos.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {extraVideos.map((video) => (
+                <Link
+                  href={`/videos/${video.id}`}
+                  key={video.id}
+                  className="block"
+                >
+                  <div className="bg-gray-800/70 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <Image
+                      src={`https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg`}
+                      alt={video.title || "Video Thumbnail"}
+                      width={320}
+                      height={180}
+                      className="w-full h-48 object-cover"
+                      unoptimized
                     />
                     <div className="p-3">
                       <h3 className="text-white text-sm font-semibold line-clamp-2">
@@ -149,7 +222,7 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
           ) : (
             <div className="text-center py-12 bg-gray-800/70 rounded-xl backdrop-blur-sm shadow-inner">
               <p className="text-gray-200 text-xl font-semibold">
-                No videos found for this season.
+                No extra videos found for this season.
               </p>
               <p className="text-gray-400 mt-2">Check back later!</p>
             </div>
