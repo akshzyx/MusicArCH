@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation"; // Import useRouter for redirection
 
 export default function UploadFormVid() {
+  const router = useRouter(); // Initialize useRouter for navigation
   const [seasonId, setSeasonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -48,28 +50,23 @@ export default function UploadFormVid() {
   // Enhanced function to extract video ID from YouTube URL
   const extractVideoId = (url: string): string => {
     try {
-      // Handle empty or invalid input
       if (!url || typeof url !== "string") return "";
 
-      // Normalize URL by adding https:// if missing
       const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
       const urlObj = new URL(normalizedUrl);
 
-      // Check for youtube.com/watch?v=
       const searchParams = new URLSearchParams(urlObj.search);
       if (urlObj.hostname.includes("youtube.com") && searchParams.has("v")) {
         return searchParams.get("v") || "";
-      }
-      // Check for youtu.be/ short URL
-      else if (urlObj.hostname.includes("youtu.be")) {
+      } else if (urlObj.hostname.includes("youtu.be")) {
         const pathSegments = urlObj.pathname.split("/").filter(Boolean);
         return pathSegments.length > 0 ? pathSegments[0] : "";
       }
 
-      return ""; // Return empty string if no valid ID found
+      return "";
     } catch (e) {
       console.error("Invalid URL format:", e, "URL:", url);
-      return ""; // Return empty string for malformed URLs
+      return "";
     }
   };
 
@@ -97,7 +94,7 @@ export default function UploadFormVid() {
         return {
           title: form.title,
           description: form.description,
-          video_id: extractedVideoId, // Automatically extracted and included
+          video_id: extractedVideoId,
           video_url: form.videoUrl,
           episode_number: form.episodeNumber,
           type: form.type,
@@ -112,7 +109,7 @@ export default function UploadFormVid() {
       .filter((item) => item !== null);
 
     if (videoData.length !== videoForms.length) {
-      return; // Stop submission if any URL is invalid
+      return;
     }
 
     const { error: insertError } = await supabase
@@ -123,6 +120,10 @@ export default function UploadFormVid() {
       setError(insertError.message);
     } else {
       setSuccess(true);
+      // Redirect to the season page after successful upload
+      if (seasonId) {
+        router.push(`/seasons/${seasonId}`);
+      }
       // Reset form
       setVideoForms([
         {
@@ -160,10 +161,13 @@ export default function UploadFormVid() {
     ]);
   };
 
+  const removeVideoForm = (key: number) => {
+    setVideoForms(videoForms.filter((form) => form.key !== key));
+  };
+
   const updateVideoForm = (index: number, field: string, value: string) => {
     const newForms = [...videoForms];
     newForms[index] = { ...newForms[index], [field]: value };
-    // Automatically extract and update videoId when videoUrl changes
     if (field === "videoUrl") {
       const extractedId = extractVideoId(value);
       if (!extractedId) {
@@ -227,9 +231,20 @@ export default function UploadFormVid() {
           key={form.key}
           className="border border-gray-600 p-4 rounded-lg space-y-4"
         >
-          <h3 className="text-white text-lg font-semibold">
-            Video {index + 1}
-          </h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-white text-lg font-semibold">
+              Video {index + 1}
+            </h3>
+            {index > 0 && ( // Show remove button only for added forms (not the first one)
+              <button
+                type="button"
+                onClick={() => removeVideoForm(form.key)}
+                className="text-red-400 hover:text-red-600 transition-colors"
+              >
+                Remove
+              </button>
+            )}
+          </div>
           <div>
             <label className="block text-white mb-1">Title</label>
             <input
