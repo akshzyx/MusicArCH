@@ -64,14 +64,11 @@ export default async function VideoPlayerPage({
   const videoId = video.video_id; // Extract video_id from the URL or use directly
 
   return (
-    <div className="min-h-screen bg-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-4">
-          {video.title || "Untitled Video"}
-        </h1>
-        <div className="aspect-video">
+        <div className="aspect-video overflow-hidden rounded-xl shadow-2xl">
           <iframe
-            src={`https://www.youtube.com/embed/${videoId}`}
+            src={`https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0`}
             title={video.title || "Video Player"}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -79,22 +76,19 @@ export default async function VideoPlayerPage({
             className="w-full h-full"
           ></iframe>
         </div>
-        <div className="mt-4 text-white">
-          <p>
-            <strong>Description:</strong>{" "}
+        <div className="mt-4">
+          <h1 className="text-2xl font-bold text-teal-400 flex items-center animate-fadeIn">
+            <span className="mr-3 text-lg text-gray-300">
+              {video.episode_number || "N/A"}
+            </span>
+            {video.title || "Untitled Video"}
+          </h1>
+          <div className="text-gray-400 text-sm flex items-center mt-2 animate-fadeIn delay-100">
+            <span className="mr-4">{video.channel || "N/A"}</span>
+            <span>{video.upload_date || "N/A"}</span>
+          </div>
+          <p className="text-gray-200 mt-3 bg-gray-800/50 backdrop-blur-sm p-3 rounded-lg animate-fadeIn delay-200">
             {video.description || "No description available"}
-          </p>
-          <p>
-            <strong>Upload Date:</strong> {video.upload_date || "N/A"}
-          </p>
-          <p>
-            <strong>Channel:</strong> {video.channel || "N/A"}
-          </p>
-          <p>
-            <strong>Episode Number:</strong> {video.episode_number || "N/A"}
-          </p>
-          <p>
-            <strong>Type:</strong> {video.type || "N/A"}
           </p>
         </div>
       </div>
