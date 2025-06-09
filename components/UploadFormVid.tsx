@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation"; // Import useRouter for redirection
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 export default function UploadFormVid() {
-  const router = useRouter(); // Initialize useRouter for navigation
+  const router = useRouter();
+  const { user, isSignedIn } = useUser(); // Add Clerk's useUser hook
   const [seasonId, setSeasonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -74,6 +76,11 @@ export default function UploadFormVid() {
     e.preventDefault();
     setError(null);
     setSuccess(false);
+
+    if (!isSignedIn || user?.publicMetadata?.role !== "admin") {
+      setError("Only admins can upload videos.");
+      return;
+    }
 
     if (!seasonId) {
       setError("Season ID is required.");
@@ -200,8 +207,17 @@ export default function UploadFormVid() {
     "デーモンAstari",
   ];
 
+  if (!isSignedIn || user?.publicMetadata?.role !== "admin") {
+    return (
+      <div className="text-center p-4">
+        <h2 className="text-2xl font-bold text-white">Access Denied</h2>
+        <p className="text-gray-400">Only admins can upload videos.</p>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto p-4">
       {success && (
         <p className="text-green-400 text-center">
           Videos uploaded successfully!
@@ -229,13 +245,13 @@ export default function UploadFormVid() {
       {videoForms.map((form, index) => (
         <div
           key={form.key}
-          className="border border-gray-600 p-4 rounded-lg space-y-4"
+          className="border border-gray-600 p-4 rounded-lg space-y-4 bg-gray-800/50"
         >
           <div className="flex justify-between items-center">
             <h3 className="text-white text-lg font-semibold">
               Video {index + 1}
             </h3>
-            {index > 0 && ( // Show remove button only for added forms (not the first one)
+            {index > 0 && (
               <button
                 type="button"
                 onClick={() => removeVideoForm(form.key)}
