@@ -49,7 +49,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     return (
       <div className="min-h-screen p-4 text-white sm:px-6">
         <h1 className="text-2xl font-bold mb-4">
-          Search Results for "{query}"
+          Search Results for &quot;{query}&quot;
         </h1>
         <div className="bg-red-900/20 border border-red-700 p-4 rounded-lg">
           <p className="text-red-300">
@@ -66,7 +66,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <div className="min-h-screen p-4 text-white sm:px-6">
       <h1 className="text-2xl font-bold mb-4">
-        Search Results for "{query}" ({searchResults.length} found)
+        Search Results for &quot;{query}&quot; ({searchResults.length} found)
       </h1>
       {searchResults.length > 0 ? (
         <TrackList
