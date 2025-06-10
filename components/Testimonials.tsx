@@ -35,7 +35,7 @@ export function AnimatedTestimonialsDemo() {
         "A wild card in the FilthyFrank saga, popping up in bizarre skits with a knack for jungle chaos. Loyal to the archive, he’s the unsung hero of Frank’s unhinged world.",
       name: "Safari Man",
       designation: "Jungle Skits Sidekick",
-      src: "https://raw.githubusercontent.com/JojiArch/metadata/blob/main/testimonials/safari-man.webp",
+      src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/safari-man.webp",
     },
     {
       quote:
