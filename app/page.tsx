@@ -164,7 +164,7 @@ export default function Home() {
               className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn group flex items-center justify-between"
             >
               <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
-                Explore Eras
+                Explore Music Eras
               </h4>
               <span className="text-teal-400 group-hover:text-teal-300">→</span>
             </Link>
@@ -185,7 +185,7 @@ export default function Home() {
               className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn group flex items-center justify-between"
             >
               <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
-                Explore Videos
+                Explore Seasons
               </h4>
               <span className="text-teal-400 group-hover:text-teal-300">→</span>
             </Link>

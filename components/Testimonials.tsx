@@ -4,6 +4,13 @@ export function AnimatedTestimonialsDemo() {
   const testimonials = [
     {
       quote:
+        "JOJI’s “SLOW DANCING IN THE DARK” has now sold over 15 million units worldwide (streams alone). It’s his first song to achieve this.",
+      name: "SLOW DANCING IN THE DARK",
+      designation: "Joji",
+      src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/SLOW%20DANCING%20IN%20THE%20DARK.jpeg",
+    },
+    {
+      quote:
         "The mastermind behind lo-fi beats and heart-wrenching ballads like ‘Slow Dancing in the Dark’. A former meme lord turned soulful crooner, baring his soul through 88Rising.",
       name: "Joji",
       designation: "Lo-Fi Sad Boi",
@@ -36,13 +43,6 @@ export function AnimatedTestimonialsDemo() {
       name: "Safari Man",
       designation: "Jungle Skits Sidekick",
       src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/safari-man.webp",
-    },
-    {
-      quote:
-        "JOJI’s “SLOW DANCING IN THE DARK” has now sold over 15 million units worldwide (streams alone). It’s his first song to achieve this.",
-      name: "SLOW DANCING IN THE DARK",
-      designation: "Joji",
-      src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/SLOW%20DANCING%20IN%20THE%20DARK.jpeg",
     },
   ];
   return <AnimatedTestimonials testimonials={testimonials} autoplay={true} />;
