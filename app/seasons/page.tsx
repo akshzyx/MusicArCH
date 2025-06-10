@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import VideoListClient from "@/components/VideoListClient";
+import { AnimatedTestimonialsDemo } from "@/components/Testimonials;
 
 type Season = {
   id: string;
@@ -79,6 +80,11 @@ export default async function VideosPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
+        {/* Animated Testimonials Section */}
+        <div className="mb-8">
+          <AnimatedTestimonialsDemo />
+        </div>
+        {/* Seasons Section */}
         {/* <h1 className="text-4xl font-bold text-teal-400 mb-6 animate-fadeIn">
           Videos
         </h1> */}
