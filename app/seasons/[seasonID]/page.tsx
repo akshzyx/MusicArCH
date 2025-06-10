@@ -91,7 +91,7 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
   if (seasonError || !season) {
     console.error("Error fetching season:", seasonError);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8 flex items-center justify-center">
         <div className="bg-red-900/20 border border-red-700 p-6 rounded-xl shadow-lg backdrop-blur-sm">
           <p className="text-red-300 text-lg font-medium">
             Error loading season: {seasonError?.message || "Season not found"}.
@@ -124,7 +124,7 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
   const extraVideos = season.videos.filter((video) => video.type === "extra");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="bg-gray-800/50 backdrop-blur-md p-6 rounded-xl shadow-xl animate-fadeIn">
           <h1 className="text-4xl font-bold text-teal-400 mb-4 flex items-center">
@@ -243,7 +243,7 @@ export default async function SeasonPage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <div className="flex items-center justify-center min-h-screen">
           <FontAwesomeIcon
             icon={faSpinner}
             spinPulse

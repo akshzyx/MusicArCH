@@ -22,7 +22,7 @@
   body {
     font-family: var(--font-sans);
     font-weight: 400;
-    background: linear-gradient(to bottom right, #111827, #1f2937, #000000);
+    background: linear-gradient(to bottom right, #111827, #000000);
     color: var(--foreground);
   }
 

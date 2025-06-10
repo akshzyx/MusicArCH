@@ -28,12 +28,12 @@ export default function EraContentClient({
   const [activeTab, setActiveTab] = useState(firstTabWithTracks);
   const [viewMode, setViewMode] = useState<
     "trackType" | "releaseType" | "available" | "quality" | "default"
-  >("trackType"); // Changed default from "default" to "trackType"
+  >("trackType");
 
   // Scroll to top when the component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []); // Empty dependency array ensures it runs only on mount
+  }, []);
 
   // Define view modes based on tab, with "default" as the last option
   const releasedViewModes = ["trackType", "default"];
@@ -66,12 +66,12 @@ export default function EraContentClient({
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
     if (newTab === "released" && !releasedViewModes.includes(viewMode)) {
-      setViewMode("trackType"); // Changed from "default" to "trackType"
+      setViewMode("trackType");
     }
   };
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen pb-15">
+    <div className="min-h-screen pb-15">
       <div className="max-w-7xl mx-auto pt-12 px-4 sm:px-6 md:px-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row gap-6 mb-12 items-center md:items-start text-center md:text-left">
@@ -83,7 +83,7 @@ export default function EraContentClient({
             className="rounded-lg w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] md:w-[300px] md:h-[300px] object-cover shadow-lg"
           />
           <div className="flex-1">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-white">
               {era.title}
             </h1>
             {era.description && (

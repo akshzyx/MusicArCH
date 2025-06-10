@@ -78,7 +78,7 @@ export default async function VideosPage() {
   const seasonList = await fetchSeasons();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Animated Testimonials Section */}
         {/* <div className="mb-8">

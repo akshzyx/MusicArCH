@@ -56,31 +56,6 @@ export default function VideoListClient({ seasons }: { seasons: Season[] }) {
               &quot;{season.quote}&quot;
             </p>
           )}
-          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {season.videos.map((video) => (
-              <div
-                key={video.id}
-                className="bg-gray-700 rounded-lg overflow-hidden shadow-md"
-              >
-                <Link href={`/videos/${video.id}`}>
-                  <Image
-                    src={`https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg`}
-                    alt={`${video.title} thumbnail`}
-                    className="w-full h-32 object-cover"
-                    width={320}
-                    height={180}
-                    onError={(e) => handleImageError(e, video.video_id)}
-                    unoptimized
-                  />
-                </Link>
-                <div className="p-2">
-                  <p className="text-white text-sm truncate">
-                    {video.title} (Ep {video.episode_number})
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div> */}
         </div>
       ))}
     </>
