@@ -8,9 +8,9 @@ import EraContentClient from "@/components/EraContentClient";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ eraId: string }>; // Updated to Promise
+  params: Promise<{ eraId: string }>;
 }): Promise<Metadata> {
-  const resolvedParams = await params; // Await the params
+  const resolvedParams = await params;
   const { data: era, error } = await supabase
     .from("eras")
     .select("title")
@@ -39,7 +39,7 @@ async function EraContent({ eraId }: { eraId: string }) {
 
   if (eraError || releasesError || !era) {
     return (
-      <div className="container mx-auto py-8 text-white bg-gray-900 min-h-screen">
+      <div className="container mx-auto py-8 text-white min-h-screen">
         Era not found
         <p>Debug Info:</p>
         <pre>ID: {eraId}</pre>
@@ -77,18 +77,17 @@ async function EraContent({ eraId }: { eraId: string }) {
   );
 }
 
-// Updated interface to handle params as a Promise
 interface PageProps {
   params: Promise<{ eraId: string }>;
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function EraPage({ params }: PageProps) {
-  const resolvedParams = await params; // Await the params Promise
+  const resolvedParams = await params;
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">
+        <div className="flex items-center justify-center min-h-screen text-white">
           <FontAwesomeIcon icon={faSpinner} spinPulse />
         </div>
       }

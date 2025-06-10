@@ -13,13 +13,12 @@ export default function Home() {
     console.log("useEffect running - checking navigation type");
     const loadData = async () => {
       try {
-        // Check if this is a refresh or initial load
         const navigationType = (
           performance.getEntriesByType(
             "navigation"
           )[0] as PerformanceNavigationTiming
         )?.type;
-        console.log("Navigation type:", navigationType); // Log type: "navigate", "reload", etc.
+        console.log("Navigation type:", navigationType);
 
         const shouldRefetch =
           navigationType === "reload" || navigationType === "navigate";
@@ -37,30 +36,24 @@ export default function Home() {
     };
 
     loadData();
-  }, []); // Runs only on mount (initial load, refresh, reopen)
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+      <div className="flex items-center justify-center min-h-screen text-white">
         <span className="text-xl">Loading...</span>
       </div>
     );
   }
 
   if (!data.eras.length) {
-    return (
-      <div className="p-8 text-white bg-gray-900 min-h-screen">
-        No eras available
-      </div>
-    );
+    return <div className="p-8 text-white min-h-screen">No eras available</div>;
   }
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen pb-20">
-      <div className="max-w-7xl mx-auto pt-12 px-4 sm:px-6 md:px-8">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-8 text-center">
-          Eras
-        </h1>
+    <div className="text-white min-h-screen pb-6">
+      <div className="max-w-7xl mx-auto pt-4 px-4 sm:px-6 md:px-8">
+        <h1 className="text-4xl sm:text-xl font-bold mb-4 text-center">Eras</h1>
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-items-center">
           {data.eras.map((era: Era) => (
             <EraCard key={era.id} era={era} />

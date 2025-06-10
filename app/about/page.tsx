@@ -1,10 +1,9 @@
-// app/about/page.tsx
 import React from "react";
 import Link from "next/link";
 
 export default function AboutPage() {
   return (
-    <div className="bg-[#0C1521] text-white min-h-screen pb-10">
+    <div className="text-white min-h-screen pb-10">
       <div className="max-w-4xl mx-auto pt-12 px-4 sm:px-6 md:px-8">
         {/* Header Section */}
         <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-center">
