@@ -59,7 +59,7 @@ export default function Home() {
   return (
     <div className="text-white min-h-screen pb-6">
       <div className="max-w-7xl mx-auto pt-4 px-4 sm:px-6 md:px-8">
-        <h1 className="text-4xl sm:text-xl font-bold mb-4 text-center">Eras</h1>
+        {/* <h1 className="text-4xl sm:text-xl font-bold mb-4 text-center">Eras</h1> */}
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-items-center">
           {data.eras.map((era: Era) => (
             <EraCard key={era.id} era={era} />
