@@ -81,9 +81,9 @@ export default async function VideosPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Animated Testimonials Section */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <AnimatedTestimonialsDemo />
-        </div>
+        </div> */}
         {/* Seasons Section */}
         {/* <h1 className="text-4xl font-bold text-teal-400 mb-6 animate-fadeIn">
           Videos

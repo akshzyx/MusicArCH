@@ -7,9 +7,44 @@ import { getCachedData, refetchData } from "@/lib/dataCache";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatedTestimonialsDemo } from "@/components/Testimonials";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+
+// Season type (based on your second file)
+type Season = {
+  id: string;
+  season_name: string;
+  description: string;
+  year: number | null;
+  quote: string | null;
+};
+
+// SeasonCard component (styled to match EraCard, with truncated description)
+function SeasonCard({ season }: { season: Season }) {
+  return (
+    <div className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn">
+      <Link
+        href={`/seasons/${season.id}`} // Adjust to your season route, e.g., /videos/${season.id}
+        className="flex flex-row gap-4 w-full group"
+      >
+        <div className="flex-1 min-w-0">
+          <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
+            {season.season_name}
+          </h4>
+          <p className="text-gray-400 text-sm line-clamp-2">
+            {season.description}
+          </p>
+        </div>
+      </Link>
+    </div>
+  );
+}
 
 export default function Home() {
-  const [data, setData] = useState<{ eras: Era[] }>({ eras: [] });
+  const [data, setData] = useState<{ eras: Era[]; seasons: Season[] }>({
+    eras: [],
+    seasons: [],
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,11 +63,24 @@ export default function Home() {
         const dataToUse = shouldRefetch
           ? await refetchData()
           : await getCachedData();
-        setData({ eras: dataToUse.eras });
+
+        // Fetch seasons from Supabase
+        const { data: seasons, error: seasonsError } = await supabase
+          .from("seasons")
+          .select("id, season_name, description, year, quote")
+          .order("year", { ascending: true })
+          .limit(4); // Fetch up to 4 seasons
+
+        if (seasonsError) {
+          console.error("Error fetching seasons:", seasonsError);
+          throw seasonsError;
+        }
+
+        setData({ eras: dataToUse.eras, seasons: seasons || [] });
       } catch (error) {
         console.log("Error loading data:", error);
         const cachedData = await getCachedData();
-        setData({ eras: cachedData.eras });
+        setData({ eras: cachedData.eras, seasons: [] });
       } finally {
         setLoading(false);
       }
@@ -53,10 +101,6 @@ export default function Home() {
     );
   }
 
-  if (!data.eras.length) {
-    return <div className="p-8 text-white min-h-screen">No eras available</div>;
-  }
-
   return (
     <div className="text-white min-h-screen pb-6 bg-gradient-to-br from-gray-900 to-black">
       <div className="max-w-7xl mx-auto pt-4 px-4 sm:px-6 md:px-8">
@@ -64,13 +108,48 @@ export default function Home() {
         <div className="mb-8">
           <AnimatedTestimonialsDemo />
         </div>
-        {/* Era Cards Section */}
-        {/* <h1 className="text-4xl sm:text-xl font-bold mb-4 text-center">Eras</h1> */}
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-items-center">
-          {data.eras.map((era: Era) => (
-            <EraCard key={era.id} era={era} />
-          ))}
-        </div>
+
+        {/* Explore Songs Section */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-6 text-center text-white">
+            Explore Songs
+          </h2>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
+            {data.eras?.slice(0, 3).map((era: Era) => (
+              <EraCard key={era.id} era={era} />
+            ))}
+            <Link
+              href="/eras"
+              className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn group flex items-center justify-between"
+            >
+              <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
+                Explore Eras
+              </h4>
+              <span className="text-teal-400 group-hover:text-teal-300">→</span>
+            </Link>
+          </div>
+        </section>
+
+        {/* Videos Section */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-6 text-center text-white">
+            Videos
+          </h2>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
+            {data.seasons?.slice(0, 3).map((season: Season) => (
+              <SeasonCard key={season.id} season={season} />
+            ))}
+            <Link
+              href="/seasons"
+              className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn group flex items-center justify-between"
+            >
+              <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
+                Explore Videos
+              </h4>
+              <span className="text-teal-400 group-hover:text-teal-300">→</span>
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );
