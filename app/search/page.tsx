@@ -27,7 +27,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   // Handle empty query upfront
   if (!query) {
     return (
-      <div className="p-4 text-white sm:px-6">
+      <div className="min-h-screen p-4 text-white sm:px-6">
         <h1 className="text-2xl font-bold mb-4">Search Results</h1>
         <p className="text-gray-400">
           Please enter a search term to find tracks.
@@ -47,9 +47,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   if (error) {
     console.error("Error fetching search results:", error);
     return (
-      <div className="p-4 text-white sm:px-6">
+      <div className="min-h-screen p-4 text-white sm:px-6">
         <h1 className="text-2xl font-bold mb-4">
-          Search Results for &quot;{query}&quot;
+          Search Results for "{query}"
         </h1>
         <div className="bg-red-900/20 border border-red-700 p-4 rounded-lg">
           <p className="text-red-300">
@@ -64,9 +64,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const searchResults: Release[] = tracks || [];
 
   return (
-    <div className="p-4 text-white sm:px-6">
+    <div className="min-h-screen p-4 text-white sm:px-6">
       <h1 className="text-2xl font-bold mb-4">
-        Search Results for &quot;{query}&quot; ({searchResults.length} found)
+        Search Results for "{query}" ({searchResults.length} found)
       </h1>
       {searchResults.length > 0 ? (
         <TrackList
