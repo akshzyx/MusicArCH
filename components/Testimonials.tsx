@@ -27,7 +27,7 @@ export function AnimatedTestimonialsDemo() {
       quote:
         "The mastermind behind lo-fi beats and heart-wrenching ballads like ‘Slow Dancing in the Dark’. A former meme lord turned soulful crooner, baring his soul through 88Rising.",
       name: "Joji",
-      designation: "Lo-Fi Sad Boi",
+      designation: "George Kusunoki Miller",
       src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/joji.jpg",
     },
     {
@@ -46,7 +46,7 @@ export function AnimatedTestimonialsDemo() {
     },
     {
       quote:
-        "The foul-mouthed creator of internet mayhem, from ‘Harlem Shake’ to puking on cakes. A pioneer of filthy skits and meme culture, exiled by Chin-Chin but never forgotten.",
+        "A chaotic anti-hero of the internet, spitting in the face of PC culture with vile skits and viral madness like ‘Harlem Shake.’ His offensive parody exposes the absurdity of social media and human flaws, all while cackling at the outrage.",
       name: "Filthy Frank",
       designation: "Meme Chaos Creator",
       src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/FilthyFrank.jpg",
