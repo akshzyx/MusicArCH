@@ -7,7 +7,7 @@ import { Era } from "@/lib/types";
 import { getCachedData, refetchData } from "@/lib/dataCache";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AnimatedTestimonialsDemo } from "@/components/Testimonials";
+// import { AnimatedTestimonialsDemo } from "@/components/Testimonials";
 
 export default function HomeClient() {
   const [data, setData] = useState<{ eras: Era[] }>({ eras: [] });
