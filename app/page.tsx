@@ -153,7 +153,7 @@ export default function Home() {
         {/* Explore Songs Section */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-6 text-center text-white">
-            Explore Songs
+            Music Eras
           </h2>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
             {randomEras.map((era: Era) => (
@@ -174,7 +174,7 @@ export default function Home() {
         {/* Videos Section */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-6 text-center text-white">
-            Videos
+            Comedic Seasons
           </h2>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
             {data.seasons?.slice(0, 3).map((season: Season) => (
