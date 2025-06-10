@@ -11,6 +11,20 @@ export function AnimatedTestimonialsDemo() {
     },
     {
       quote:
+        "All the tracks from “Nectar” has now surpassed 40 million streams on Spotify.",
+      name: "40 Million Streams",
+      designation: "Joji",
+      src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/Nectar.jpeg",
+    },
+    {
+      quote:
+        "JOJI has now surpassed 650 million streams on Spotify in 2025, despite not releasing anything for almost three years.",
+      name: "650 Million Streams",
+      designation: "Joji",
+      src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/jojiii.jpeg",
+    },
+    {
+      quote:
         "The mastermind behind lo-fi beats and heart-wrenching ballads like ‘Slow Dancing in the Dark’. A former meme lord turned soulful crooner, baring his soul through 88Rising.",
       name: "Joji",
       designation: "Lo-Fi Sad Boi",
