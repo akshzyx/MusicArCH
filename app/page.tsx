@@ -10,34 +10,54 @@ import { AnimatedTestimonialsDemo } from "@/components/Testimonials";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-// Season type (based on your second file)
+// Season type
 type Season = {
   id: string;
   season_name: string;
   description: string;
   year: number | null;
   quote: string | null;
+  videoCount?: number;
 };
 
-// SeasonCard component (styled to match EraCard, with truncated description)
+// SeasonCard component (styled to match EraCard, with improved UI for video count and year)
 function SeasonCard({ season }: { season: Season }) {
   return (
     <div className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn">
       <Link
-        href={`/seasons/${season.id}`} // Adjust to your season route, e.g., /videos/${season.id}
-        className="flex flex-row gap-4 w-full group"
+        href={`/seasons/${season.id}`} // Adjust to your season route
+        className="flex flex-col gap-2 w-full group"
       >
-        <div className="flex-1 min-w-0">
-          <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
-            {season.season_name}
-          </h4>
-          <p className="text-gray-400 text-sm line-clamp-2">
-            {season.description}
-          </p>
+        <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
+          {season.season_name}
+        </h4>
+        <p className="text-gray-400 text-sm line-clamp-2">
+          {season.description}
+        </p>
+        <div className="flex gap-2 mt-1">
+          <span className="inline-block bg-gray-700 text-teal-400 text-xs font-medium px-2 py-1 rounded-full">
+            {season.videoCount ?? 0} Video{season.videoCount !== 1 ? "s" : ""}
+          </span>
+          {season.year && (
+            <span className="inline-block bg-gray-700 text-teal-400 text-xs font-medium px-2 py-1 rounded-full">
+              Year: {season.year}
+            </span>
+          )}
         </div>
       </Link>
     </div>
   );
+}
+
+// Utility function to get 3 random items from an array
+function getRandomItems<T>(array: T[], count: number): T[] {
+  if (!array || array.length === 0) return [];
+  const shuffled = [...array]; // Create a copy to avoid mutating original
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap
+  }
+  return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
 export default function Home() {
@@ -64,19 +84,37 @@ export default function Home() {
           ? await refetchData()
           : await getCachedData();
 
-        // Fetch seasons from Supabase
+        // Fetch seasons and their video counts from Supabase
         const { data: seasons, error: seasonsError } = await supabase
           .from("seasons")
-          .select("id, season_name, description, year, quote")
+          .select(
+            `
+            id,
+            season_name,
+            description,
+            year,
+            quote,
+            videos (
+              id
+            )
+          `
+          )
           .order("year", { ascending: true })
-          .limit(4); // Fetch up to 4 seasons
+          .limit(4);
 
         if (seasonsError) {
           console.error("Error fetching seasons:", seasonsError);
           throw seasonsError;
         }
 
-        setData({ eras: dataToUse.eras, seasons: seasons || [] });
+        // Map seasons to include video count
+        const seasonsWithVideoCount =
+          seasons?.map((season) => ({
+            ...season,
+            videoCount: season.videos?.length || 0,
+          })) || [];
+
+        setData({ eras: dataToUse.eras, seasons: seasonsWithVideoCount });
       } catch (error) {
         console.log("Error loading data:", error);
         const cachedData = await getCachedData();
@@ -88,6 +126,9 @@ export default function Home() {
 
     loadData();
   }, []);
+
+  // Get 3 random eras for display
+  const randomEras = getRandomItems(data.eras, 3);
 
   if (loading) {
     return (
@@ -115,7 +156,7 @@ export default function Home() {
             Explore Songs
           </h2>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
-            {data.eras?.slice(0, 3).map((era: Era) => (
+            {randomEras.map((era: Era) => (
               <EraCard key={era.id} era={era} />
             ))}
             <Link

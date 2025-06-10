@@ -14,7 +14,7 @@ export function AnimatedTestimonialsDemo() {
         "A deranged, chromosome-obsessed madman who rules the omniverse with a fetish for sacrifices. Known for banishing FilthyFrank to the Rice Fields and demanding chin-chin worship.",
       name: "Chin-Chin",
       designation: "Dark Lord of the Omniverse",
-      src: "https://github.com/JojiArch/metadata/raw/refs/heads/main/testimonials/chin-chin.webp",
+      src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/chin-chin.webp",
     },
     {
       quote:
