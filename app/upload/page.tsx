@@ -17,8 +17,8 @@ export default function UploadPage() {
 
   if (!isSignedIn) {
     return (
-      <div className="container mx-auto py-8 text-center">
-        <h1 className="text-3xl font-bold mb-6 text-white">Upload Content</h1>
+      <div className="min-h-screen container mx-auto py-8 text-center text-white">
+        <h1 className="text-3xl font-bold mb-6">Upload Content</h1>
         <p className="text-gray-400">Please sign in to access this page.</p>
       </div>
     );
@@ -26,8 +26,8 @@ export default function UploadPage() {
 
   if (!isAdmin) {
     return (
-      <div className="container mx-auto py-8 text-center">
-        <h1 className="text-3xl font-bold mb-6 text-white">Upload Content</h1>
+      <div className="min-h-screen container mx-auto py-8 text-center text-white">
+        <h1 className="text-3xl font-bold mb-6">Upload Content</h1>
         <p className="text-red-400">
           Access Denied: Only admins can upload content.
         </p>
@@ -36,7 +36,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="min-h-screen container mx-auto py-8 text-white">
       <h1 className="text-3xl font-bold mb-6 text-center">Upload Content</h1>
       {!selectedOption ? (
         <div className="flex flex-col items-center space-y-6">
