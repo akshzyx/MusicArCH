@@ -24,8 +24,8 @@ export default function AboutPage() {
               About JojiArCH
             </h1>
             <p className="text-gray-300 text-lg">
-              A dedicated archive celebrating the musical journey of Joji
-              through his iconic eras.
+              A dedicated archive celebrating Joji's journey through his iconic
+              eras.
             </p>
           </div>
 
@@ -36,19 +36,21 @@ export default function AboutPage() {
                 What is JojiArCH?
               </h2>
               <p className="text-gray-300 leading-relaxed">
-                JojiArCH is a fan-made music archive created to document and
-                celebrate the evolution of Joji’s artistry. From his early days
-                as a lo-fi innovator to his rise as a global R&B and pop
-                sensation, this platform allows fans to explore his discography
-                through distinct eras, each marked by unique sounds, themes, and
-                releases.
+                JojiArCH is a fan-made archive created to document and celebrate
+                the evolution of Joji’s career, from his comedic YouTube origins
+                as Filthy Frank and Pink Guy to his rise as a global R&B and pop
+                sensation. This platform allows fans to explore his complete
+                discography—spanning comedic hip-hop, lo-fi experiments, and
+                introspective albums—through distinct eras, each marked by
+                unique sounds, themes, and releases.
               </p>
               <p className="text-gray-300 leading-relaxed mt-4">
                 I wanted to provide a comprehensive and immersive experience for
-                Joji fans, offering access to tracks, releases, and insights
-                into his creative journey. Whether you’re a longtime fan or a
-                new listener, JojiArCH is your gateway to discovering the depth
-                of his music.
+                fans, offering access to tracks, releases, and insights into his
+                creative journey across comedy and music. Whether you’re a
+                longtime follower of Filthy Frank or a new listener of Joji’s
+                chart-topping hits, JojiArCH is your gateway to discovering the
+                depth of his work.
               </p>
               <p className="text-gray-300 leading-relaxed mt-4">
                 All the data was taken from the latest{" "}
@@ -73,24 +75,33 @@ export default function AboutPage() {
               </h2>
               <p className="text-gray-300 leading-relaxed">
                 Joji, born George Kusunoki Miller, first gained fame through his
-                comedic YouTube personas like Filthy Frank. However, in 2017, he
-                transitioned to focus on his music career, releasing his debut
-                EP <em>In Tongues</em>. This marked the beginning of his journey
-                as a serious artist, blending lo-fi, R&B, and alternative pop
-                with deeply emotional lyrics.
+                YouTube channels DizastaMusic, TVFilthyFrank, and TooDamnFilthy,
+                where he created *The Filthy Frank Show* starting in 2011. As
+                Filthy Frank, he portrayed oddball characters, delivering shock
+                humor, rants, skits, and comedy hip-hop under his Pink Guy
+                alias. His viral “Harlem Shake” video in 2013 popularized the
+                meme, amassing millions of views. As Pink Guy, he released
+                comedic projects like *Pink Guy* (2014), *Pink Season* (2017),
+                which hit number 70 on the Billboard 200, and *Pink Season: The
+                Prophecy* (2017).
               </p>
               <p className="text-gray-300 leading-relaxed mt-4">
-                Over the years, Joji has released critically acclaimed projects
-                like <em>Ballads 1</em> (2018), which featured the hit “Slow
-                Dancing in the Dark,” and <em>Nectar</em> (2020), showcasing his
-                growth as a versatile artist. His music often explores themes of
-                love, loss, and self-reflection, resonating with millions of
-                fans worldwide.
+                In 2017, Miller retired Filthy Frank due to health concerns and
+                a desire to pursue serious music, releasing his debut EP *In
+                Tongues* as Joji. This marked his shift to lo-fi, R&B, and
+                alternative pop, with emotional lyrics exploring love and loss.
+                His discography includes early SoundCloud singles like “Thom”
+                and “You Suck Charlie” (2015), the unreleased *Chloe Burbank:
+                Volume 1*, and critically acclaimed albums: *Ballads 1* (2018)
+                with “Slow Dancing in the Dark,” *Nectar* (2020) with
+                “Sanctuary,” and *Smithereens* (2022) with “Glimpse of Us,” his
+                highest-charting single.
               </p>
               <p className="text-gray-300 leading-relaxed mt-4">
-                JojiArCH organizes his discography into eras, allowing you to
-                dive into each phase of his career, from his early SoundCloud
-                releases to his latest chart-topping hits.
+                JojiArCH organizes his career into eras, from his comedic
+                YouTube beginnings and Pink Guy releases to his transformative
+                Joji albums, allowing you to dive into every phase of his
+                artistic evolution.
               </p>
             </div>
           </section>
@@ -202,14 +213,21 @@ export default function AboutPage() {
                 Start Exploring
               </h2>
               <p className="text-gray-300 mb-6">
-                Ready to dive into Joji’s musical world? Check out his eras and
-                discover the stories behind the songs.
+                Ready to dive into Joji’s world? Check out his eras and discover
+                the stories behind the songs.
               </p>
-              <Link href="/">
-                <button className="bg-teal-400 text-white rounded-full px-6 py-3 hover:bg-teal-500 transition-colors">
-                  Explore Eras
-                </button>
-              </Link>
+              <div className="flex justify-center gap-4">
+                <Link href="/eras">
+                  <button className="bg-teal-400 text-white rounded-full px-6 py-3 hover:bg-teal-500 transition-colors">
+                    Explore Musical Eras
+                  </button>
+                </Link>
+                <Link href="/seasons">
+                  <button className="bg-teal-400 text-white rounded-full px-6 py-3 hover:bg-teal-500 transition-colors">
+                    Explore Comedic Seasons
+                  </button>
+                </Link>
+              </div>
             </div>
           </section>
         </div>
