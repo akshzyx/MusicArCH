@@ -24,8 +24,8 @@ export default function AboutPage() {
               About JojiArCH
             </h1>
             <p className="text-gray-300 text-lg">
-              A dedicated archive celebrating Joji's journey through his iconic
-              eras.
+              A dedicated archive celebrating Joji&#39;s journey through his
+              iconic eras.
             </p>
           </div>
 
