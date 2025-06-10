@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable */
 import { supabase } from "@/lib/supabase";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -62,15 +62,15 @@ export default async function VideoPlayerPage({
     notFound();
   }
 
-  // Fetch next episodes in the same season
+  // Fetch next episodes in the same season (up to 6 for 2 rows of 3)
   const currentEpisodeNumber = parseInt(video.episode_number, 10) || 0;
-  const { data: nextVideos, error: nextVideosError } = await supabase
+  const { data: videos, error: nextVideosError } = await supabase
     .from("videos")
     .select("id, title, episode_number, season_id, video_id")
     .eq("season_id", video.season_id || "")
     .gt("episode_number", video.episode_number)
     .order("episode_number", { ascending: true })
-    .limit(4);
+    .limit(6);
 
   if (nextVideosError) {
     console.error("Error fetching next episodes:", nextVideosError);
@@ -79,69 +79,71 @@ export default async function VideoPlayerPage({
   const videoId = video.video_id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4 sm:p-6 lg:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="aspect-video overflow-hidden rounded-xl shadow-2xl">
+        <div className="aspect-video overflow-hidden rounded-lg shadow-2xl">
           <iframe
             src={`https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0`}
             title={video.title || "Video Player"}
+            className="w-full h-full rounded-lg"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            className="w-full h-full"
           ></iframe>
         </div>
         <div className="mt-4">
-          <h1 className="text-2xl font-bold text-teal-400 flex items-center animate-fadeIn">
-            <span className="mr-3 text-lg text-gray-300">
+          <h1 className="text-2xl font-bold text-teal-400 flex items-center animate-delay-[100ms]">
+            <span className="mr-2 text-lg text-gray-400">
               {video.episode_number || "N/A"}
             </span>
-            {video.title || "Untitled Video"}
+            {video.title || "Thumbnail"}
           </h1>
-          <div className="text-gray-400 text-sm flex items-center mt-2 animate-fadeIn delay-100">
-            <span className="mr-4">{video.channel || "N/A"}</span>
+          <div className="text-gray-400 text-sm flex items-center gap-4 mt-2 animate-delay-[200ms]">
+            <span>{video.channel || "N/A"}</span>
             <span>{video.upload_date || "N/A"}</span>
           </div>
-          <p className="text-gray-200 mt-3 bg-gray-800/50 backdrop-blur-sm p-3 rounded-lg animate-fadeIn delay-200">
+          <p className="text-gray-200 mt-4 bg-gray-800/50 backdrop-blur-md p-4 rounded-xl animate-delay-[300ms]">
             {video.description || "No description available"}
           </p>
           {/* Next Episodes Section */}
-          <div className="mt-6">
-            <h2 className="text-xl font-semibold text-teal-400 mb-4 animate-fadeIn delay-300">
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-teal-400 mb-4 animate-delay-[400ms]">
               Next Episodes
             </h2>
-            {nextVideos && nextVideos.length > 0 ? (
-              <ul className="space-y-3">
-                {nextVideos.map((nextVideo, index) => (
-                  <li
+            {videos && videos.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {videos.map((nextVideo, index) => (
+                  <div
                     key={nextVideo.id}
-                    className="bg-gray-800/50 backdrop-blur-md rounded-lg p-3 hover:bg-gray-900/50 transition-colors animate-fadeIn"
+                    className="bg-gray-800/50 backdrop-blur-md rounded-lg p-2 hover:bg-gray-700/50 transition-colors duration-200 min-w-[275px]"
                     style={{ animationDelay: `${400 + index * 100}ms` }}
                   >
                     <Link
                       href={`/videos/${nextVideo.id}`}
-                      className="flex items-center text-gray-300 hover:text-teal-400 transition-colors"
+                      className="flex items-center gap-3 text-gray-300 hover:text-teal-400 transition-colors duration-200"
                     >
                       <Image
                         src={`https://img.youtube.com/vi/${nextVideo.video_id}/hqdefault.jpg`}
                         alt={nextVideo.title || "Episode Thumbnail"}
-                        width={64}
-                        height={36}
-                        className="rounded mr-3"
+                        width={96}
+                        height={54}
+                        className="rounded"
                         unoptimized
                       />
-                      <span className="mr-3 text-sm text-gray-400">
-                        Ep {nextVideo.episode_number || "N/A"}
-                      </span>
-                      <span className="text-sm font-medium">
-                        {nextVideo.title || "Untitled Video"}
-                      </span>
+                      <div className="flex flex-col flex-1">
+                        <p className="text-sm font-medium line-clamp-2 break-words">
+                          {nextVideo.title || "Thumbnail"}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Ep {nextVideo.episode_number || "N/A"}
+                        </p>
+                      </div>
                     </Link>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             ) : (
-              <div className="bg-gray-800/50 backdrop-blur-md rounded-lg p-3 text-gray-400 animate-fadeIn delay-400">
+              <div className="bg-gray-800/50 backdrop-blur-md rounded-lg p-4 text-gray-400 animate-delay-[600ms]">
                 No more episodes in this season.
               </div>
             )}
