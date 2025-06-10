@@ -15,8 +15,7 @@ export default function EraCard({ era }: EraCardProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if this is a full page refresh
-    const isPageRefresh = performance.navigation.type === 0; // 0 = TYPE_NAVIGATE (full refresh)
+    const isPageRefresh = performance.navigation.type === 0;
 
     const fetchData = isPageRefresh ? refetchData : getCachedData;
 
@@ -32,7 +31,7 @@ export default function EraCard({ era }: EraCardProps) {
 
   if (error) {
     return (
-      <div className="bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-700/50">
+      <div className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn">
         <Link href={`/eras/${era.id}`} className="flex flex-row gap-4 w-full">
           <Image
             alt={era.title}
@@ -42,7 +41,7 @@ export default function EraCard({ era }: EraCardProps) {
             height={96}
           />
           <div className="flex-1 min-w-0">
-            <h4 className="text-lg font-semibold text-white truncate">
+            <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
               {era.title}
             </h4>
             <p className="text-gray-400 text-sm">Error loading tracks</p>
@@ -55,8 +54,11 @@ export default function EraCard({ era }: EraCardProps) {
   const trackCount = releases.length;
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-700/50">
-      <Link href={`/eras/${era.id}`} className="flex flex-row gap-4 w-full">
+    <div className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn">
+      <Link
+        href={`/eras/${era.id}`}
+        className="flex flex-row gap-4 w-full group"
+      >
         <Image
           alt={era.title}
           className="object-cover rounded-lg w-20 h-20 sm:w-24 sm:h-24 shadow-md"
@@ -65,7 +67,7 @@ export default function EraCard({ era }: EraCardProps) {
           height={96}
         />
         <div className="flex-1 min-w-0">
-          <h4 className="text-lg font-semibold text-white truncate">
+          <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
             {era.title}
           </h4>
           <p className="text-gray-400 text-sm">

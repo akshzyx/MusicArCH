@@ -47,7 +47,7 @@ const NavBar = () => {
       await router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
       setIsLoading(false);
-      setIsMenuOpen(false); // Close menu after search
+      setIsMenuOpen(false);
     }
   };
 
@@ -68,16 +68,20 @@ const NavBar = () => {
   return (
     <div
       ref={navContainerRef}
-      className={`fixed inset-x-0 top-4 z-50 h-16 border-none transition-all duration-300 sm:inset-x-6 ${
+      className={`fixed inset-x-0 top-4 z-50 h-16 border-none transition-all duration-300 sm:inset-x-6 animate-fadeIn ${
         isNavVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
       }`}
     >
       <header className="absolute top-1/2 w-full -translate-y-1/2">
-        <nav className="flex w-full items-center justify-between px-6 py-3 bg-black rounded-lg shadow-lg">
+        <nav className="flex w-full items-center justify-between px-6 py-3 bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl">
           {/* Logo Section */}
           <Link href="/" prefetch className="flex items-center gap-4">
-            <FontAwesomeIcon icon={faSkull} size="2x" color="white" />
-            <p className="font-bold text-white text-lg">JojiArCH</p>
+            <FontAwesomeIcon
+              icon={faSkull}
+              size="2x"
+              className="text-teal-400"
+            />
+            <p className="font-bold text-teal-400 text-lg">JojiArCH</p>
           </Link>
 
           {/* Right Side: Search and Menu (Mobile) or Full Nav (Desktop) */}
@@ -90,7 +94,7 @@ const NavBar = () => {
             >
               <button
                 onClick={() => setIsSearchHovered(true)}
-                className={`absolute right-0 text-gray-400 hover:text-white transition-colors z-10 ${
+                className={`absolute right-0 text-gray-300 hover:text-teal-400 transition-colors z-10 ${
                   isSearchHovered ? "opacity-0" : "opacity-100"
                 }`}
               >
@@ -98,7 +102,7 @@ const NavBar = () => {
               </button>
               <form
                 onSubmit={handleSearch}
-                className={`absolute right-0 flex items-center bg-gray-800 rounded-full transition-all duration-300 overflow-hidden ${
+                className={`absolute right-0 flex items-center bg-gray-800/50 backdrop-blur-md rounded-full transition-all duration-300 overflow-hidden ${
                   isSearchHovered
                     ? "w-48 sm:w-64 px-4 py-2 opacity-100"
                     : "w-0 opacity-0"
@@ -106,7 +110,7 @@ const NavBar = () => {
               >
                 <button
                   type="submit"
-                  className="text-gray-400 hover:text-white mr-2"
+                  className="text-gray-300 hover:text-teal-400 mr-2"
                 >
                   <FontAwesomeIcon icon={faSearch} />
                 </button>
@@ -122,8 +126,7 @@ const NavBar = () => {
                 {isLoading && (
                   <FontAwesomeIcon
                     icon={faSpinner}
-                    color="white"
-                    className="animate-spin ml-2"
+                    className="text-teal-400 animate-spin ml-2"
                   />
                 )}
               </form>
@@ -135,7 +138,7 @@ const NavBar = () => {
                 <Link
                   key={index}
                   href={`/${item.toLowerCase()}`}
-                  className="text-white font-medium hover:text-blue-400 transition-colors duration-200"
+                  className="text-gray-300 font-medium hover:text-teal-400 transition-colors duration-200"
                 >
                   {item}
                 </Link>
@@ -144,7 +147,7 @@ const NavBar = () => {
                 <Link
                   href="/upload"
                   prefetch
-                  className="flex items-center font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  className="flex items-center font-bold text-white bg-teal-400 px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors duration-200"
                 >
                   Upload
                 </Link>
@@ -154,7 +157,7 @@ const NavBar = () => {
                   <UserButton afterSignOutUrl="/" />
                 ) : (
                   <SignInButton mode="modal">
-                    <button className="font-bold text-white bg-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                    <button className="font-bold text-white bg-teal-400 px-4 py-2 rounded-lg hover:bg-teal-500 transition-colors duration-200">
                       Sign In
                     </button>
                   </SignInButton>
@@ -166,7 +169,7 @@ const NavBar = () => {
             <div className="md:hidden flex items-center">
               <button
                 onClick={toggleMenu}
-                className="text-white hover:text-blue-400 transition-colors"
+                className="text-gray-300 hover:text-teal-400 transition-colors"
               >
                 <FontAwesomeIcon
                   icon={isMenuOpen ? faTimes : faBars}
@@ -179,12 +182,12 @@ const NavBar = () => {
 
         {/* Mobile Dropdown Menu */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-16 right-6 w-48 bg-black rounded-lg shadow-lg py-4 z-50">
+          <div className="md:hidden absolute top-16 right-6 w-48 bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl py-4 z-50 animate-fadeIn">
             {navItems.map((item, index) => (
               <Link
                 key={index}
                 href={`/${item.toLowerCase()}`}
-                className="block px-4 py-2 text-white hover:bg-gray-800 transition-colors"
+                className="block px-4 py-2 text-gray-300 hover:text-teal-400 hover:bg-gray-900/50 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item}
@@ -194,7 +197,7 @@ const NavBar = () => {
               <Link
                 href="/upload"
                 prefetch
-                className="block px-4 py-2 text-white hover:bg-gray-800 transition-colors"
+                className="block px-4 py-2 text-gray-300 hover:text-teal-400 hover:bg-gray-900/50 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Upload
@@ -205,7 +208,7 @@ const NavBar = () => {
                 <UserButton afterSignOutUrl="/" />
               ) : (
                 <SignInButton mode="modal">
-                  <button className="w-full text-left text-white hover:bg-gray-800 px-4 py-2 rounded transition-colors">
+                  <button className="w-full text-left text-gray-300 hover:text-teal-400 hover:bg-gray-900/50 px-4 py-2 rounded transition-colors">
                     Sign In
                   </button>
                 </SignInButton>
