@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import EraCard from "@/components/EraCard";
 import { Era } from "@/lib/types";
 import { getCachedData, refetchData } from "@/lib/dataCache";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function Home() {
   const [data, setData] = useState<{ eras: Era[] }>({ eras: [] });
@@ -41,7 +43,11 @@ export default function Home() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-white">
-        <span className="text-xl">Loading...</span>
+        <FontAwesomeIcon
+          icon={faSpinner}
+          spinPulse
+          className="text-teal-400 text-4xl"
+        />
       </div>
     );
   }

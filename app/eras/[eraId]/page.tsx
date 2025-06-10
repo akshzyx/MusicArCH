@@ -88,7 +88,11 @@ export default async function EraPage({ params }: PageProps) {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen text-white">
-          <FontAwesomeIcon icon={faSpinner} spinPulse />
+          <FontAwesomeIcon
+            icon={faSpinner}
+            spinPulse
+            className="text-teal-400 text-4xl"
+          />
         </div>
       }
     >
