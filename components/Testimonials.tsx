@@ -45,5 +45,5 @@ export function AnimatedTestimonialsDemo() {
       src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/SLOW%20DANCING%20IN%20THE%20DARK.jpeg",
     },
   ];
-  return <AnimatedTestimonials testimonials={testimonials} />;
+  return <AnimatedTestimonials testimonials={testimonials} autoplay={true} />;
 }
