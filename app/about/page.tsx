@@ -157,9 +157,10 @@ export default function AboutPage() {
                 <li className="flex items-start gap-2">
                   <span className="text-teal-400">•</span>
                   <span>
-                    <strong>Adding Songs:</strong> Working on adding new songs
-                    and tracks to the archive, ensuring that you have access to
-                    the most comprehensive collection of Joji’s music.
+                    <strong>Completing Archive:</strong> Working on updating the
+                    archive with new songs, tracks and videos, ensuring that you
+                    have access to the most comprehensive collection of Joji’s
+                    content.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
