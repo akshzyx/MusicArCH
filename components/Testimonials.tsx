@@ -39,7 +39,7 @@ export function AnimatedTestimonialsDemo() {
     },
     {
       quote:
-        "A Lycra-clad lunatic spitting absurd rap bars and causing chaos with stunts like eating haircake. From ‘STFU’ to ramen battles, he’s the ultimate b0ss of cringe.",
+        "A Lycra-clad lunatic spitting absurd rap bars and causing chaos with stunts like eating haircake. From ‘STFU’ to ramen battles, he’s the ultimate b0ss.",
       name: "Pink Guy",
       designation: "Lycra Rap Anarchist",
       src: "https://raw.githubusercontent.com/JojiArch/metadata/main/testimonials/pink-guy.jpg",
