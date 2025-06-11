@@ -199,11 +199,12 @@ export default function Home() {
           </h2>
           <div className="grid gap-6 grid-cols-1 justify-items-center">
             <p className="text-gray-300 text-center max-w-2xl mx-auto mb-4">
-              Dive into the chaotic world of Filthy Frank with *Francis of the
-              Filth*, a novel that chronicles the absurd adventures of Francis
-              and his bizarre universe. Packed with the irreverent humor and
-              surreal storytelling of *The Filthy Frank Show*, this book is a
-              must-read for fans of Joji’s comedic legacy.
+              Dive into the chaotic world of Filthy Frank with{" "}
+              <i>Francis of the Filth</i>, a novel that chronicles the absurd
+              adventures of Francis and his bizarre universe. Packed with the
+              irreverent humor and surreal storytelling of{" "}
+              <i>The Filthy Frank Show</i>, this book is a must-read for fans of
+              Joji’s comedic legacy.
             </p>
             <Link
               href="/FrancisoftheFilthbyGeorgeMiller.pdf"
