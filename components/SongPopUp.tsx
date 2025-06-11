@@ -7,14 +7,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faPause, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
-interface SongPopUpProps {
+interface Props {
   activeTrack: Release | null;
   setActiveTrack: (track: Release | null) => void;
   popupRef: React.RefObject<HTMLDivElement>;
   tracks: Release[];
   currentTrack: Release | null;
   isPlaying: boolean;
-  playTrack: (track: Release, trackList: Release[]) => void;
+  playTrack: (track: Release, tracks: Release[]) => void;
   pauseTrack: () => void;
 }
 
@@ -27,7 +27,7 @@ export default function SongPopUp({
   isPlaying,
   playTrack,
   pauseTrack,
-}: SongPopUpProps) {
+}: Props) {
   const id = useId();
   const isTrackPlayable = (track: Release) => {
     return !!track.file && track.file.trim() !== "";
@@ -42,43 +42,60 @@ export default function SongPopUp({
     }
   };
 
-  if (!activeTrack || !activeTrack.id) {
+  if (!activeTrack) {
     return null; // Prevent rendering if activeTrack is invalid
   }
+
+  // Extract year from file_date or leak_date
+  const getYear = () => {
+    if (activeTrack.file_date) {
+      return new Date(activeTrack.file_date).getFullYear().toString();
+    }
+    if (activeTrack.leak_date) {
+      return new Date(activeTrack.leak_date).getFullYear().toString();
+    }
+    return null;
+  };
+
+  // Format era_id to title case (e.g., "lost-instruments" → "Lost Instruments")
+  const formatEraTitle = (eraId: string) => {
+    return eraId
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   return (
     <>
       <AnimatePresence>
         <motion.div
-          key={`overlay-${activeTrack.id}`}
+          key={`backdrop-${activeTrack.id}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{
             opacity: 0,
-            transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+            transition: { duration: 0.3, ease: [0.4, 0, 0.2, 0.5] },
           }}
-          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className="fixed inset-0 bg-black/50 h-full w-full z-50"
-          onClick={() => setActiveTrack(null)} // Close popup when clicking backdrop
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 0.5] }}
+          className="fixed inset-0 bg-black/50 z-50"
+          onClick={() => setActiveTrack(null)}
         />
       </AnimatePresence>
       <AnimatePresence>
         <motion.div
           key={`popup-${activeTrack.id}`}
           className="fixed inset-0 grid place-items-center z-[1000] p-4"
-          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 0.5] }}
         >
           <motion.div
             layoutId={`card-${activeTrack.id}-${id}`}
             ref={popupRef}
-            className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90vh] flex flex-col bg-gray-900 rounded-3xl overflow-hidden relative"
-            layout
-            transition={{
-              borderRadius: 24,
-              duration: 0.4,
-              ease: [0.4, 0, 0.2, 1],
-            }}
-            onClick={(e) => e.stopPropagation()} // Prevent clicks inside popup from closing it
+            className="relative w-full max-w-[500px] h-full md:h-fit md:max-h-[90vh] flex flex-col bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl overflow-hidden"
+            initial={{ scale: 0.9, opacity: 0, filter: "blur(4px)" }}
+            animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
+            exit={{ scale: 0.9, opacity: 0, filter: "blur(4px)" }}
+            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 0.5] }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button for Mobile */}
             <motion.button
@@ -93,62 +110,81 @@ export default function SongPopUp({
               <FontAwesomeIcon icon={faTimes} size="lg" />
             </motion.button>
 
-            <motion.div
-              layoutId={`image-${activeTrack.id}`}
-              className="relative w-full h-80"
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-            >
-              <img
-                width={500}
-                height={200}
-                src={
-                  activeTrack.cover_image ||
-                  "https://via.placeholder.com/500x200?text=No+Image+2025"
-                }
-                alt={activeTrack.title || "Track"}
-                className="w-full h-full object-cover object-center rounded-t-3xl"
-              />
-            </motion.div>
-            <motion.div className="p-6 flex flex-col gap-4">
+            <div className="p-8 flex flex-col gap-4">
+              {/* Poster */}
               <motion.div
-                className="flex justify-between items-start gap-4"
+                layoutId={`image-${activeTrack.id}`}
+                className="relative w-full max-w-[300px] h-48 mx-auto mt-6 shadow-sm"
+                transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 0.5] }}
+              >
+                <img
+                  width={300}
+                  height={192}
+                  src={
+                    activeTrack.cover_image ||
+                    "https://via.placeholder.com/300x192?text=No+Image+2025"
+                  }
+                  alt={activeTrack.title || "Track"}
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              </motion.div>
+
+              {/* Title & Credit */}
+              <motion.div
+                className="flex flex-col items-center gap-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: 0.2, duration: 0.3, ease: [0.2, 0, 0, 1] }}
+                transition={{
+                  delay: 0.2,
+                  duration: 0.3,
+                  ease: [0.2, 0, 0, 0.5],
+                }}
               >
-                <div>
-                  <motion.h3
-                    layoutId={`title-${activeTrack.id}`}
-                    className="font-bold text-white text-2xl"
+                <motion.h3
+                  layoutId={`title-${activeTrack.id}`}
+                  className="text-3xl font-bold text-white text-center"
+                >
+                  {activeTrack.title || "Untitled Track"}
+                </motion.h3>
+                {activeTrack.credit && (
+                  <motion.p
+                    layoutId={`credit-${activeTrack.id}`}
+                    className="text-sm italic text-gray-500 text-center"
                   >
-                    {activeTrack.title || "Untitled Track"}
-                  </motion.h3>
-                  {activeTrack.credit && (
-                    <motion.p
-                      layoutId={`credit-${activeTrack.id}`}
-                      className="text-gray-400 text-sm mt-1"
-                    >
-                      {activeTrack.credit}
-                    </motion.p>
-                  )}
-                </div>
-                {isTrackPlayable(activeTrack) && (
+                    {activeTrack.credit}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Play Button */}
+              {isTrackPlayable(activeTrack) && (
+                <motion.div
+                  className="flex justify-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{
+                    delay: 0.25,
+                    duration: 0.25,
+                    ease: [0.2, 0, 0, 0.5],
+                  }}
+                >
                   <motion.button
                     layoutId={`play-button-${activeTrack.id}`}
                     onClick={() => handlePlayPause(activeTrack)}
                     className={cn(
-                      "px-5 py-2.5 rounded-lg font-semibold text-white flex items-center gap-2 transition-colors",
+                      "px-6 py-3 rounded-full font-semibold text-white flex items-center gap-2",
                       currentTrack?.id === activeTrack.id && isPlaying
-                        ? "bg-teal-600 hover:bg-teal-700"
-                        : "bg-teal-500 hover:bg-teal-600"
+                        ? "bg-blue-600 hover:bg-blue-700"
+                        : "bg-blue-500 hover:bg-blue-600"
                     )}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
                     transition={{
                       delay: 0.3,
                       duration: 0.2,
-                      ease: [0.2, 0, 0, 1],
+                      ease: [0.3, 0, 0, 0.5],
                     }}
                   >
                     {currentTrack?.id === activeTrack.id && isPlaying ? (
@@ -163,105 +199,86 @@ export default function SongPopUp({
                       </>
                     )}
                   </motion.button>
-                )}
-              </motion.div>
+                </motion.div>
+              )}
+
+              {/* Metadata */}
               <motion.div
-                layout
+                className="flex flex-wrap justify-center gap-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{
-                  delay: 0.25,
+                  delay: 0.35,
                   duration: 0.3,
-                  ease: [0.2, 0, 0, 1],
+                  ease: [0.2, 0, 0, 0.5],
                 }}
-                className="text-gray-300 text-sm flex flex-col gap-3 max-h-[40vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] pr-2"
               >
-                {activeTrack.og_filename && (
-                  <p>
-                    <span className="font-semibold text-gray-200">
-                      Original Filename:
-                    </span>{" "}
-                    {activeTrack.og_filename}
-                  </p>
+                {getYear() && (
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
+                    {getYear()}
+                  </span>
                 )}
-                {activeTrack.file_date && (
-                  <p>
-                    <span className="font-semibold text-gray-200">
-                      File Date:
-                    </span>{" "}
-                    {activeTrack.file_date}
-                  </p>
-                )}
-                {activeTrack.leak_date && (
-                  <p>
-                    <span className="font-semibold text-gray-200">
-                      Leak Date:
-                    </span>{" "}
-                    {activeTrack.leak_date}
-                  </p>
-                )}
-                {activeTrack.notes && (
-                  <p>
-                    <span className="font-semibold text-gray-200">Notes:</span>{" "}
-                    {activeTrack.notes}
-                  </p>
+                {activeTrack.category && (
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
+                    {activeTrack.category}
+                  </span>
                 )}
                 {activeTrack.type && (
-                  <p>
-                    <span className="font-semibold text-gray-200">Type:</span>{" "}
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
                     {activeTrack.type}
-                  </p>
+                  </span>
                 )}
                 {activeTrack.track_type && (
-                  <p>
-                    <span className="font-semibold text-gray-200">
-                      Track Type:
-                    </span>{" "}
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
                     {activeTrack.track_type}
-                  </p>
+                  </span>
+                )}
+                {activeTrack.duration && (
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
+                    {activeTrack.duration}
+                  </span>
                 )}
                 {activeTrack.available &&
                   activeTrack.category !== "released" && (
-                    <p>
-                      <span className="font-semibold text-gray-200">
-                        Availability:
-                      </span>{" "}
+                    <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
                       {activeTrack.available}
-                    </p>
+                    </span>
                   )}
                 {activeTrack.quality && activeTrack.category !== "released" && (
-                  <p>
-                    <span className="font-semibold text-gray-200">
-                      Quality:
-                    </span>{" "}
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
                     {activeTrack.quality}
-                  </p>
-                )}
-                {activeTrack.duration && (
-                  <p>
-                    <span className="font-semibold text-gray-200">
-                      Duration:
-                    </span>{" "}
-                    {activeTrack.duration}
-                  </p>
-                )}
-                {activeTrack.category && (
-                  <p>
-                    <span className="font-semibold text-gray-200">
-                      Category:
-                    </span>{" "}
-                    {activeTrack.category}
-                  </p>
+                  </span>
                 )}
                 {activeTrack.era_id && (
-                  <p>
-                    <span className="font-semibold text-gray-200">Era:</span>{" "}
-                    {activeTrack.era_id}
-                  </p>
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
+                    {formatEraTitle(activeTrack.era_id)}
+                  </span>
+                )}
+                {activeTrack.og_filename && (
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
+                    File: {activeTrack.og_filename}
+                  </span>
                 )}
               </motion.div>
-            </motion.div>
+
+              {/* Description */}
+              {activeTrack.notes && (
+                <motion.p
+                  className="text-lg text-gray-400 mt-4 text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{
+                    delay: 0.4,
+                    duration: 0.3,
+                    ease: [0.2, 0, 0, 0.5],
+                  }}
+                >
+                  {activeTrack.notes}
+                </motion.p>
+              )}
+            </div>
           </motion.div>
         </motion.div>
       </AnimatePresence>
