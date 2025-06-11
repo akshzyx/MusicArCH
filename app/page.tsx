@@ -191,6 +191,31 @@ export default function Home() {
             </Link>
           </div>
         </section>
+
+        {/* Francis of the Filth Section */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-6 text-center text-white">
+            Francis of the Filth
+          </h2>
+          <div className="grid gap-6 grid-cols-1 justify-items-center">
+            <p className="text-gray-300 text-center max-w-2xl mx-auto mb-4">
+              Dive into the chaotic world of Filthy Frank with *Francis of the
+              Filth*, a novel that chronicles the absurd adventures of Francis
+              and his bizarre universe. Packed with the irreverent humor and
+              surreal storytelling of *The Filthy Frank Show*, this book is a
+              must-read for fans of Joji’s comedic legacy.
+            </p>
+            <Link
+              href="/FrancisoftheFilthbyGeorgeMiller.pdf"
+              className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn group flex items-center justify-between"
+            >
+              <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
+                Read Book
+              </h4>
+              <span className="text-teal-400 group-hover:text-teal-300">→</span>
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );
