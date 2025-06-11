@@ -20,6 +20,7 @@ export interface Release {
   og_filename?: string;
   file_date?: string;
   leak_date?: string;
+  aka?: string;
   category: "released" | "unreleased" | "stems";
   type?: string;
   track_type?: string;
