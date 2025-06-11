@@ -450,8 +450,8 @@ export default function TrackList({
             className={`w-5 h-5 flex items-center justify-center text-xs rounded-full transition-colors ${
               isPlayable
                 ? currentTrack?.id === syntheticTrack.id && isPlaying
-                  ? "text-green-400"
-                  : "text-gray-400 hover:text-green-400"
+                  ? "text-teal-400 cursor-pointer"
+                  : "text-gray-400 hover:text-teal-400 cursor-pointer"
                 : "text-gray-600 cursor-not-allowed"
             }`}
             disabled={!isPlayable}
@@ -743,8 +743,8 @@ export default function TrackList({
                             className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                               isTrackPlayable(track)
                                 ? currentTrack?.id === track.id && isPlaying
-                                  ? "text-green-400"
-                                  : "text-gray-400 hover:text-green-400"
+                                  ? "text-teal-400 cursor-pointer"
+                                  : "text-gray-400 hover:text-teal-400 cursor-pointer"
                                 : "text-gray-600 cursor-not-allowed"
                             }`}
                             disabled={!isTrackPlayable(track)}
@@ -932,8 +932,8 @@ export default function TrackList({
                     className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                       isTrackPlayable(track)
                         ? currentTrack?.id === track.id && isPlaying
-                          ? "text-green-400"
-                          : "text-gray-400 hover:text-green-400"
+                          ? "text-teal-400 cursor-pointer"
+                          : "text-gray-400 hover:text-teal-400 cursor-pointer"
                         : "text-gray-600 cursor-not-allowed"
                     }`}
                     disabled={!isTrackPlayable(track)}
