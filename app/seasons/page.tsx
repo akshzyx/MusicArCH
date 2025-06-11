@@ -31,7 +31,7 @@ type Video = {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Videos - JojiArCH",
+    title: "Seasons - JojiArCH",
     description:
       "Explore Filthy Frank seasons and videos by Joji and his aliases.",
   };
