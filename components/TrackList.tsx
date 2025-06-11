@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Release } from "@/lib/types";
 import { useAudio } from "@/lib/AudioContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,6 +15,9 @@ import {
 import { useUser } from "@clerk/nextjs";
 import EditTrackDialog from "./EditTrackDialog";
 import { supabase } from "@/lib/supabase";
+import SongPopUp from "./SongPopUp";
+import { useOutsideClick } from "@/hooks/use-outside-click";
+import { AnimatePresence } from "motion/react";
 
 export default function TrackList({
   initialTracks,
@@ -44,6 +47,10 @@ export default function TrackList({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set()
   );
+  const [activeTrack, setActiveTrack] = useState<Release | null>(null);
+  const popupRef = useRef<HTMLDivElement>(
+    null
+  ) as React.RefObject<HTMLDivElement>;
 
   // State for EditTrackDialog
   const [editingTrack, setEditingTrack] = useState<Release | null>(null);
@@ -127,6 +134,23 @@ export default function TrackList({
   useEffect(() => {
     setTracks(initialTracks);
   }, [initialTracks]);
+
+  useEffect(() => {
+    if (activeTrack) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveTrack(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeTrack]);
+
+  useOutsideClick(popupRef, () => setActiveTrack(null));
 
   useEffect(() => {
     if (viewMode === "default") {
@@ -348,15 +372,6 @@ export default function TrackList({
     });
   };
 
-  const toggleFolder = (folderPath: string) => {
-    setExpandedFolders((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(folderPath)) newSet.delete(folderPath);
-      else newSet.add(folderPath);
-      return newSet;
-    });
-  };
-
   const renderJsonContent = (
     json: Release["multi_files"],
     trackId: number,
@@ -383,7 +398,10 @@ export default function TrackList({
       const currentPath = path ? `${path}/${key}` : key;
       const isExpanded = expandedFolders.has(`${trackId}-${currentPath}`);
       return (
-        <div key={currentPath} className="ml-6 mt-2">
+        <div
+          key={`folder-${trackId}-${currentPath}-${index}`}
+          className="ml-6 mt-2"
+        >
           <div
             className="flex items-center py-1 px-2 cursor-pointer hover:bg-gray-800/50 rounded-lg bg-gray-700/20"
             onClick={() => toggleFolder(`${trackId}-${currentPath}`)}
@@ -422,7 +440,7 @@ export default function TrackList({
       const isPlayable = !!file.url && file.url.trim() !== "";
       const parentTrack = tracks.find((t) => t.id === trackId);
       const syntheticTrack: Release = {
-        id: parseInt(`${trackId}${index}`, 10),
+        id: parseInt(`${trackId}-${index}`, 10),
         title: key,
         file: file.url,
         duration: file.duration,
@@ -432,7 +450,7 @@ export default function TrackList({
       };
       return (
         <div
-          key={currentPath}
+          key={`file-${trackId}-${currentPath}-${index}`}
           className={`flex items-center py-1.5 px-2 ml-6 mt-2 rounded-lg transition-all duration-200 ${
             isPlayable
               ? currentTrack?.id === syntheticTrack.id
@@ -514,6 +532,15 @@ export default function TrackList({
         {renderFiles}
       </>
     );
+  };
+
+  const toggleFolder = (folderPath: string) => {
+    setExpandedFolders((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderPath)) newSet.delete(folderPath);
+      else newSet.add(folderPath);
+      return newSet;
+    });
   };
 
   const renderCategorizedView = () => {
@@ -698,16 +725,16 @@ export default function TrackList({
 
     if (groupedTracks.length === 0) {
       return (
-        <p className="text-gray-400">
+        <p key="no-tracks" className="text-gray-400">
           No tracks available for Broadus this view.
         </p>
       );
     }
 
     return (
-      <div className="space-y-6">
+      <div key="categorized-view" className="space-y-6">
         {groupedTracks.map((group, groupIndex) => (
-          <div key={groupIndex}>
+          <div key={`group-${group.type}-${groupIndex}`}>
             <h3 className="text-lg font-semibold text-white mb-2">
               {group.type}
             </h3>
@@ -718,13 +745,13 @@ export default function TrackList({
                   track.multi_files &&
                   Object.keys(track.multi_files).length > 0;
                 return (
-                  <li key={track.id} className="flex flex-col">
+                  <li key={`track-${track.id}`} className="flex flex-col">
                     <div
                       className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
                         isTrackPlayable(track) || hasMultiFiles
                           ? currentTrack?.id === track.id
                             ? "bg-gray-700/50 text-white"
-                            : "hover:bg-gray-700/50 hover:text-white"
+                            : "hover:bg-gray-700/50 hover:text-white cursor-pointer"
                           : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
                       }`}
                       onMouseEnter={() =>
@@ -733,13 +760,19 @@ export default function TrackList({
                       }
                       onMouseLeave={() => setHoveredTrackId(null)}
                       onClick={
-                        hasMultiFiles ? () => toggleTrack(track.id) : undefined
+                        hasMultiFiles
+                          ? () => toggleTrack(track.id)
+                          : () =>
+                              track.id && track.title && setActiveTrack(track)
                       }
                     >
                       <div className="flex items-center space-x-4 flex-1 min-w-0">
                         {!hasMultiFiles ? (
                           <button
-                            onClick={() => handlePlayPause(track, group.tracks)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent popup from opening
+                              handlePlayPause(track, group.tracks);
+                            }}
                             className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                               isTrackPlayable(track)
                                 ? currentTrack?.id === track.id && isPlaying
@@ -788,7 +821,7 @@ export default function TrackList({
                                 : "text-gray-500"
                             }`}
                           >
-                            {track.title}{" "}
+                            {track.title || `Untitled Track ${track.id}`}{" "}
                             {track.credit && (
                               <span
                                 className={
@@ -850,9 +883,10 @@ export default function TrackList({
                         </span>
                         {isTrackPlayable(track) && (
                           <button
-                            onClick={() =>
-                              handleDownload(track.file, track.title)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent popup from opening
+                              handleDownload(track.file, track.title);
+                            }}
                             className="ml-3 text-blue-400 hover:text-blue-300 transition-colors p-1"
                             title="Download Track"
                           >
@@ -862,7 +896,10 @@ export default function TrackList({
                         {isAdmin && (
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => handleEdit(track)}
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent popup from opening
+                                handleEdit(track);
+                              }}
                               className={
                                 isTrackPlayable(track) || hasMultiFiles
                                   ? "text-blue-400 hover:text-blue-300 transition-colors p-1"
@@ -873,7 +910,10 @@ export default function TrackList({
                               <FontAwesomeIcon icon={faPencil} size="sm" />
                             </button>
                             <button
-                              onClick={() => handleDelete(track)}
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent popup from opening
+                                handleDelete(track);
+                              }}
                               className={
                                 isTrackPlayable(track) || hasMultiFiles
                                   ? "text-red-400 hover:text-red-300 transition-colors p-1"
@@ -903,19 +943,19 @@ export default function TrackList({
   };
 
   const renderDefaultView = () => (
-    <ul className="space-y-2">
+    <ul key="default-view" className="space-y-2">
       {tracks.map((track, index) => {
         const isExpanded = expandedTracks.has(track.id);
         const hasMultiFiles =
           track.multi_files && Object.keys(track.multi_files).length > 0;
         return (
-          <li key={track.id} className="flex flex-col">
+          <li key={`track-${track.id}`} className="flex flex-col">
             <div
               className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
                 isTrackPlayable(track) || hasMultiFiles
                   ? currentTrack?.id === track.id
                     ? "bg-gray-700/50 text-white"
-                    : "hover:bg-gray-700/50 hover:text-white"
+                    : "hover:bg-gray-700/50 hover:text-white cursor-pointer"
                   : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
               }`}
               onMouseEnter={() =>
@@ -923,12 +963,19 @@ export default function TrackList({
                 setHoveredTrackId(track.id.toString())
               }
               onMouseLeave={() => setHoveredTrackId(null)}
-              onClick={hasMultiFiles ? () => toggleTrack(track.id) : undefined}
+              onClick={
+                hasMultiFiles
+                  ? () => toggleTrack(track.id)
+                  : () => track.id && track.title && setActiveTrack(track)
+              }
             >
               <div className="flex items-center space-x-4 flex-1 min-w-0">
                 {!hasMultiFiles ? (
                   <button
-                    onClick={() => handlePlayPause(track, tracks)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent popup from opening
+                      handlePlayPause(track, tracks);
+                    }}
                     className={`w-6 h-6 flex items-center justify-center text-sm rounded-full transition-colors ${
                       isTrackPlayable(track)
                         ? currentTrack?.id === track.id && isPlaying
@@ -977,7 +1024,7 @@ export default function TrackList({
                         : "text-gray-500"
                     }`}
                   >
-                    {track.title}{" "}
+                    {track.title || `Untitled Track ${track.id}`}{" "}
                     {track.credit && (
                       <span
                         className={
@@ -1039,7 +1086,10 @@ export default function TrackList({
                 </span>
                 {isTrackPlayable(track) && (
                   <button
-                    onClick={() => handleDownload(track.file, track.title)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent popup from opening
+                      handleDownload(track.file, track.title);
+                    }}
                     className="ml-3 text-blue-400 hover:text-blue-300 transition-colors p-1"
                     title="Download Track"
                   >
@@ -1049,7 +1099,10 @@ export default function TrackList({
                 {isAdmin && (
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => handleEdit(track)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent popup from opening
+                        handleEdit(track);
+                      }}
                       className={
                         isTrackPlayable(track) || hasMultiFiles
                           ? "text-blue-400 hover:text-blue-300 transition-colors p-1"
@@ -1060,7 +1113,10 @@ export default function TrackList({
                       <FontAwesomeIcon icon={faPencil} size="sm" />
                     </button>
                     <button
-                      onClick={() => handleDelete(track)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent popup from opening
+                        handleDelete(track);
+                      }}
                       className={
                         isTrackPlayable(track) || hasMultiFiles
                           ? "text-red-400 hover:text-red-300 transition-colors p-1"
@@ -1087,7 +1143,20 @@ export default function TrackList({
 
   return (
     <div>
-      {viewMode === "default" ? renderDefaultView() : renderCategorizedView()}
+      <AnimatePresence>
+        {viewMode === "default" ? renderDefaultView() : renderCategorizedView()}
+        <SongPopUp
+          key="song-popup"
+          activeTrack={activeTrack}
+          setActiveTrack={setActiveTrack}
+          popupRef={popupRef}
+          tracks={tracks}
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          playTrack={playTrack}
+          pauseTrack={pauseTrack}
+        />
+      </AnimatePresence>
       <EditTrackDialog
         tracks={tracks}
         setTracks={setTracks}
