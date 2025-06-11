@@ -437,7 +437,7 @@ export default function TrackList({
             isPlayable
               ? currentTrack?.id === syntheticTrack.id
                 ? "bg-gray-700/50 text-white"
-                : "hover:bg-gray-800/50 text-gray-300"
+                : "hover:bg-gray-700/50 hover:text-white"
               : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
           }`}
           onMouseEnter={() =>
@@ -724,7 +724,7 @@ export default function TrackList({
                         isTrackPlayable(track) || hasMultiFiles
                           ? currentTrack?.id === track.id
                             ? "bg-gray-700/50 text-white"
-                            : "hover:bg-gray-800/50 text-gray-300"
+                            : "hover:bg-gray-700/50 hover:text-white"
                           : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
                       }`}
                       onMouseEnter={() =>
@@ -915,7 +915,7 @@ export default function TrackList({
                 isTrackPlayable(track) || hasMultiFiles
                   ? currentTrack?.id === track.id
                     ? "bg-gray-700/50 text-white"
-                    : "hover:bg-gray-800/50 text-gray-300"
+                    : "hover:bg-gray-700/50 hover:text-white"
                   : "bg-gray-900/50 text-gray-500 cursor-not-allowed opacity-75"
               }`}
               onMouseEnter={() =>
