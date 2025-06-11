@@ -4,7 +4,7 @@ import { useId } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Release } from "@/lib/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons";
+import { faPlay, faPause, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
 interface SongPopUpProps {
@@ -71,7 +71,7 @@ export default function SongPopUp({
           <motion.div
             layoutId={`card-${activeTrack.id}-${id}`}
             ref={popupRef}
-            className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90vh] flex flex-col bg-gray-900 rounded-3xl overflow-hidden"
+            className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90vh] flex flex-col bg-gray-900 rounded-3xl overflow-hidden relative"
             layout
             transition={{
               borderRadius: 24,
@@ -80,6 +80,19 @@ export default function SongPopUp({
             }}
             onClick={(e) => e.stopPropagation()} // Prevent clicks inside popup from closing it
           >
+            {/* Close Button for Mobile */}
+            <motion.button
+              className="absolute top-4 right-4 text-gray-300 hover:text-white block md:hidden z-10"
+              onClick={() => setActiveTrack(null)}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ delay: 0.3, duration: 0.2 }}
+              aria-label="Close popup"
+            >
+              <FontAwesomeIcon icon={faTimes} size="lg" />
+            </motion.button>
+
             <motion.div
               layoutId={`image-${activeTrack.id}`}
               className="relative w-full h-80"
