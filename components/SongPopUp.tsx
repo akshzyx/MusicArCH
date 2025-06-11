@@ -16,6 +16,7 @@ interface Props {
   isPlaying: boolean;
   playTrack: (track: Release, tracks: Release[]) => void;
   pauseTrack: () => void;
+  era_title?: string; // Added to pass Era.title
 }
 
 export default function SongPopUp({
@@ -27,6 +28,7 @@ export default function SongPopUp({
   isPlaying,
   playTrack,
   pauseTrack,
+  era_title,
 }: Props) {
   const id = useId();
   const isTrackPlayable = (track: Release) => {
@@ -47,23 +49,18 @@ export default function SongPopUp({
   }
 
   // Format date to "MMM DD, YYYY" (e.g., "May 24, 2024")
-  const getFormattedDate = () => {
-    const date = activeTrack.file_date
-      ? new Date(activeTrack.file_date)
-      : activeTrack.leak_date
-      ? new Date(activeTrack.leak_date)
-      : null;
-    if (date) {
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    }
-    return null;
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return null;
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
-  // Format era_id to title case (e.g., "smithereens" → "Smithereens")
+  // Format era_id to title case (e.g., "smithereens" → "Smithereens") as fallback
   const formatEraTitle = (eraId: string) => {
     return eraId
       .split("-")
@@ -145,7 +142,7 @@ export default function SongPopUp({
                 />
               </motion.div>
 
-              {/* Title, Credit & Duration */}
+              {/* Title, Credit, AKA & Duration */}
               <motion.div
                 className="flex flex-col items-center gap-2"
                 initial={{ opacity: 0, y: 20 }}
@@ -163,6 +160,14 @@ export default function SongPopUp({
                 >
                   {activeTrack.title || "Untitled Track"}
                 </motion.h3>
+                {activeTrack.aka && (
+                  <motion.p
+                    layoutId={`aka-${activeTrack.id}`}
+                    className="text-sm italic text-gray-500 text-center"
+                  >
+                    AKA: {activeTrack.aka}
+                  </motion.p>
+                )}
                 <div className="flex items-center gap-2">
                   {activeTrack.credit && (
                     <motion.p
@@ -232,7 +237,7 @@ export default function SongPopUp({
 
               {/* Metadata */}
               <motion.div
-                className="flex flex-wrap justify-center gap-2"
+                className="flex flex-wrap justify-center gap-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
@@ -242,9 +247,14 @@ export default function SongPopUp({
                   ease: [0.2, 0, 0, 0.5],
                 }}
               >
-                {getFormattedDate() && (
+                {formatDate(activeTrack.file_date) && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
-                    {getFormattedDate()}
+                    {formatDate(activeTrack.file_date)}
+                  </span>
+                )}
+                {formatDate(activeTrack.leak_date) && (
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
+                    Leaked: {formatDate(activeTrack.leak_date)}
                   </span>
                 )}
                 {activeTrack.category && (
@@ -273,9 +283,9 @@ export default function SongPopUp({
                     {activeTrack.quality}
                   </span>
                 )}
-                {activeTrack.era_id && (
+                {(era_title || activeTrack.era_id) && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
-                    {formatEraTitle(activeTrack.era_id)}
+                    {era_title || formatEraTitle(activeTrack.era_id)}
                   </span>
                 )}
                 {activeTrack.og_filename && (
