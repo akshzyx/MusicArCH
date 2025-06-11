@@ -46,24 +46,40 @@ export default function SongPopUp({
     return null; // Prevent rendering if activeTrack is invalid
   }
 
-  // Extract year from file_date or leak_date
-  const getYear = () => {
-    if (activeTrack.file_date) {
-      return new Date(activeTrack.file_date).getFullYear().toString();
-    }
-    if (activeTrack.leak_date) {
-      return new Date(activeTrack.leak_date).getFullYear().toString();
+  // Format date to "MMM DD, YYYY" (e.g., "May 24, 2024")
+  const getFormattedDate = () => {
+    const date = activeTrack.file_date
+      ? new Date(activeTrack.file_date)
+      : activeTrack.leak_date
+      ? new Date(activeTrack.leak_date)
+      : null;
+    if (date) {
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
     }
     return null;
   };
 
-  // Format era_id to title case (e.g., "lost-instruments" → "Lost Instruments")
+  // Format era_id to title case (e.g., "smithereens" → "Smithereens")
   const formatEraTitle = (eraId: string) => {
     return eraId
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   };
+
+  // Adjust font size based on description length
+  const getDescriptionFontSize = (text: string) => {
+    if (text.length > 200) return "text-sm";
+    if (text.length > 100) return "text-base";
+    return "text-lg";
+  };
+
+  // Check if description needs scrolling
+  const needsScrolling = (text: string) => text.length > 300;
 
   return (
     <>
@@ -129,7 +145,7 @@ export default function SongPopUp({
                 />
               </motion.div>
 
-              {/* Title & Credit */}
+              {/* Title, Credit & Duration */}
               <motion.div
                 className="flex flex-col items-center gap-2"
                 initial={{ opacity: 0, y: 20 }}
@@ -147,14 +163,26 @@ export default function SongPopUp({
                 >
                   {activeTrack.title || "Untitled Track"}
                 </motion.h3>
-                {activeTrack.credit && (
-                  <motion.p
-                    layoutId={`credit-${activeTrack.id}`}
-                    className="text-sm italic text-gray-500 text-center"
-                  >
-                    {activeTrack.credit}
-                  </motion.p>
-                )}
+                <div className="flex items-center gap-2">
+                  {activeTrack.credit && (
+                    <motion.p
+                      layoutId={`credit-${activeTrack.id}`}
+                      className="text-sm italic text-gray-500 text-center"
+                    >
+                      {activeTrack.credit}
+                    </motion.p>
+                  )}
+                  {activeTrack.duration && (
+                    <motion.span
+                      className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.25, duration: 0.2 }}
+                    >
+                      {activeTrack.duration}
+                    </motion.span>
+                  )}
+                </div>
               </motion.div>
 
               {/* Play Button */}
@@ -214,9 +242,9 @@ export default function SongPopUp({
                   ease: [0.2, 0, 0, 0.5],
                 }}
               >
-                {getYear() && (
+                {getFormattedDate() && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
-                    {getYear()}
+                    {getFormattedDate()}
                   </span>
                 )}
                 {activeTrack.category && (
@@ -232,11 +260,6 @@ export default function SongPopUp({
                 {activeTrack.track_type && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
                     {activeTrack.track_type}
-                  </span>
-                )}
-                {activeTrack.duration && (
-                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
-                    {activeTrack.duration}
                   </span>
                 )}
                 {activeTrack.available &&
@@ -257,15 +280,21 @@ export default function SongPopUp({
                 )}
                 {activeTrack.og_filename && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
-                    File: {activeTrack.og_filename}
+                    OG File - {activeTrack.og_filename}
                   </span>
                 )}
               </motion.div>
 
               {/* Description */}
               {activeTrack.notes && (
-                <motion.p
-                  className="text-lg text-gray-400 mt-4 text-center"
+                <motion.div
+                  className={cn(
+                    "text-gray-400 mt-4 text-center",
+                    getDescriptionFontSize(activeTrack.notes),
+                    needsScrolling(activeTrack.notes)
+                      ? "max-h-[150px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none]"
+                      : ""
+                  )}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
@@ -275,8 +304,8 @@ export default function SongPopUp({
                     ease: [0.2, 0, 0, 0.5],
                   }}
                 >
-                  {activeTrack.notes}
-                </motion.p>
+                  <p>{activeTrack.notes}</p>
+                </motion.div>
               )}
             </div>
           </motion.div>
