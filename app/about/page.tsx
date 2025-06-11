@@ -71,7 +71,7 @@ export default function AboutPage() {
           <section className="mb-12">
             <div className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-6 animate-fadeIn">
               <h2 className="text-2xl sm:text-3xl font-semibold text-teal-400 mb-4">
-                Joji’s Musical Journey
+                Joji’s Journey
               </h2>
               <p className="text-gray-300 leading-relaxed">
                 Joji, born George Kusunoki Miller, first gained fame through his
