@@ -68,6 +68,12 @@ export default function SongPopUp({
       .join(" ");
   };
 
+  // Capitalize first letter (e.g., "released" → "Released")
+  const capitalizeFirstLetter = (str: string) => {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   // Adjust font size based on description length
   const getDescriptionFontSize = (text: string) => {
     if (text.length > 200) return "text-sm";
@@ -204,7 +210,7 @@ export default function SongPopUp({
                     layoutId={`play-button-${activeTrack.id}`}
                     onClick={() => handlePlayPause(activeTrack)}
                     className={cn(
-                      "px-6 py-3 rounded-full font-semibold text-white flex items-center gap-2",
+                      "px-6 py-3 rounded-full font-semibold text-white flex items-center gap-2 cursor-pointer",
                       {
                         "bg-blue-600 hover:bg-blue-700":
                           currentTrack?.id === activeTrack.id && isPlaying,
@@ -260,7 +266,7 @@ export default function SongPopUp({
                 )}
                 {activeTrack.category && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
-                    {activeTrack.category}
+                    {capitalizeFirstLetter(activeTrack.category)}
                   </span>
                 )}
                 {activeTrack.type && (
