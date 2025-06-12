@@ -254,6 +254,11 @@ export default function SongPopUp({
                   ease: [0.2, 0, 0, 0.5],
                 }}
               >
+                {(era_title || activeTrack.era_id) && (
+                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
+                    {era_title || formatEraTitle(activeTrack.era_id)}
+                  </span>
+                )}
                 {formatDate(activeTrack.file_date) && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
                     {formatDate(activeTrack.file_date)}
@@ -290,11 +295,7 @@ export default function SongPopUp({
                     {activeTrack.quality}
                   </span>
                 )}
-                {(era_title || activeTrack.era_id) && (
-                  <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
-                    {era_title || formatEraTitle(activeTrack.era_id)}
-                  </span>
-                )}
+
                 {activeTrack.og_filename && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
                     OG File - {activeTrack.og_filename}
