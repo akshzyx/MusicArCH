@@ -6,6 +6,7 @@ import { Release } from "@/lib/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faPause, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface Props {
   activeTrack: Release | null;
@@ -133,7 +134,7 @@ export default function SongPopUp({
                 className="relative w-full max-w-[300px] h-48 mx-auto mt-6 shadow-sm"
                 transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 0.5] }}
               >
-                <img
+                <Image
                   width={300}
                   height={192}
                   src={
