@@ -295,7 +295,6 @@ export default function SongPopUp({
                     {activeTrack.quality}
                   </span>
                 )}
-
                 {activeTrack.og_filename && (
                   <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-semibold text-gray-300">
                     OG File - {activeTrack.og_filename}
