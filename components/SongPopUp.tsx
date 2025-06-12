@@ -75,9 +75,6 @@ export default function SongPopUp({
     return "text-lg";
   };
 
-  // Check if description needs scrolling
-  const needsScrolling = (text: string) => text.length > 300;
-
   return (
     <>
       <AnimatePresence>
@@ -103,7 +100,7 @@ export default function SongPopUp({
           <motion.div
             layoutId={`card-${activeTrack.id}-${id}`}
             ref={popupRef}
-            className="relative w-full max-w-[500px] h-full md:h-fit md:max-h-[90vh] flex flex-col bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl overflow-hidden"
+            className="relative w-full max-w-[500px] h-full md:h-fit md:max-h-[90vh] flex flex-col bg-gradient-to-b from-gray-900 to-gray-950 rounded-3xl"
             initial={{ scale: 0.9, opacity: 0, filter: "blur(4px)" }}
             animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
             exit={{ scale: 0.9, opacity: 0, filter: "blur(4px)" }}
@@ -123,7 +120,7 @@ export default function SongPopUp({
               <FontAwesomeIcon icon={faTimes} size="lg" />
             </motion.button>
 
-            <div className="p-8 flex flex-col gap-4">
+            <div className="p-8 flex flex-col gap-4 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {/* Poster */}
               <motion.div
                 layoutId={`image-${activeTrack.id}`}
@@ -208,9 +205,13 @@ export default function SongPopUp({
                     onClick={() => handlePlayPause(activeTrack)}
                     className={cn(
                       "px-6 py-3 rounded-full font-semibold text-white flex items-center gap-2",
-                      currentTrack?.id === activeTrack.id && isPlaying
-                        ? "bg-blue-600 hover:bg-blue-700"
-                        : "bg-blue-500 hover:bg-blue-600"
+                      {
+                        "bg-blue-600 hover:bg-blue-700":
+                          currentTrack?.id === activeTrack.id && isPlaying,
+                        "bg-blue-500 hover:bg-blue-600": !(
+                          currentTrack?.id === activeTrack.id && isPlaying
+                        ),
+                      }
                     )}
                     initial={{ scale: 0.9 }}
                     animate={{ scale: 1 }}
@@ -237,7 +238,7 @@ export default function SongPopUp({
 
               {/* Metadata */}
               <motion.div
-                className="flex flex-wrap justify-center gap-3"
+                className="flex flex-wrap justify-center gap-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
@@ -300,10 +301,7 @@ export default function SongPopUp({
                 <motion.div
                   className={cn(
                     "text-gray-400 mt-4 text-center",
-                    getDescriptionFontSize(activeTrack.notes),
-                    needsScrolling(activeTrack.notes)
-                      ? "max-h-[150px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none]"
-                      : ""
+                    getDescriptionFontSize(activeTrack.notes)
                   )}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
