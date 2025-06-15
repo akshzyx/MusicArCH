@@ -1,4 +1,4 @@
-"use client"; // Mark as Client Component
+"use client";
 
 import Link from "next/link";
 

@@ -1,4 +1,4 @@
-"use client"; // Must be the first line
+"use client";
 
 import { ReactNode } from "react";
 import { AudioProvider } from "@/lib/AudioContext";

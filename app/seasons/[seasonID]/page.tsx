@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import Image from "next/image";
 
-// Suppress the unused variable warning for Season type
 /* eslint-disable @typescript-eslint/no-unused-vars */
 type Video = {
   id: string;
@@ -107,9 +106,7 @@ async function SeasonContent({ seasonID }: { seasonID: string }) {
   // Preserve exact line breaks and paragraphs from Supabase
   const processDescription = (desc: string | null) => {
     if (!desc) return [];
-    // Split into paragraphs using double line breaks, keep single line breaks as <br />
     return desc.split("\n\n").map((paragraph) => {
-      // Replace single \n with <br /> within each paragraph
       return paragraph
         .split("\n")
         .filter((line) => line.trim().length > 0)

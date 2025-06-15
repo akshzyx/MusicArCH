@@ -1,6 +1,6 @@
-// app/eras/page.tsx
+
 import { Metadata } from "next";
-import HomeClient from "@/components/HomeClient"; // Import the client component
+import HomeClient from "@/components/HomeClient";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {

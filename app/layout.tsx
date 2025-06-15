@@ -37,8 +37,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </div>
             <ClientWrapper>
               {children}
-              <Analytics /> {/* Add Analytics here */}
-              <SpeedInsights /> {/* Add SpeedInsights here */}
+              <Analytics />
+              <SpeedInsights />
             </ClientWrapper>
           </AudioProvider>
         </body>

@@ -32,7 +32,6 @@ export function TrackDetails({ track, onClose }: TrackDetailsProps) {
 
   const handleFavorite = () => {
     setIsFavorited(!isFavorited);
-    // Add logic to save favorite to Supabase or local state if implemented
   };
 
   return (
