@@ -55,10 +55,3 @@ JojiArCH is built by fans, for fans. Want to help?
 - 💡 **Suggest features**: Email `tres.suing503@passfwd.com`.
 
 ---
-
-## Quick Start (Development)
-
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/akshzyx/MusicArch.git
-   ```
