@@ -6,6 +6,8 @@ _A fan-made archive celebrating Joji's musical evolution through his iconic eras
 
 🌐 **Live Site**: [JojiArCH](https://jojiarch.vercel.app)
 
+![JojiArCH](https://github.com/user-attachments/assets/853b6f71-8614-4a95-9887-d6f61379fa34)
+
 ---
 
 ## About JojiArCH
