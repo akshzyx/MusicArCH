@@ -53,7 +53,7 @@ Born George Kusunoki Miller, Joji transitioned from internet comedy (Filthy Fran
 
 JojiArCH is built by fans, for fans. Want to help?
 
-- 🐛 **Report bugs**: Open a [GitHub Issue](https://github.com/akshzyx/MusicArch/issues).
-- 💡 **Suggest features**: Email `work.groove816@passfwd.com`.
+- 🐛 **Report bugs or suggest features**: Open a [GitHub Issue](https://github.com/akshzyx/MusicArch/issues).
+- 💡 **Email**: `work.groove816@passfwd.com`.
 
 ---
