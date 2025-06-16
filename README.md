@@ -49,6 +49,15 @@ George Kusunoki Miller, aka **Joji**, emerged from the ashes of _Filthy Frank_ a
 
 ## 🚀 Getting Started
 
+Follow these steps to set up and deploy JojiArCH locally or to a hosting platform like Vercel:
+
+### 🧬 Clone the Repository
+
+```bash
+git clone https://github.com/akshzyx/MusicArCH.git
+cd MusicArCH
+```
+
 ### 📦 Install Dependencies
 
 Ensure [Node.js](https://nodejs.org/) is installed, then:
