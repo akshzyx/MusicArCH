@@ -57,3 +57,42 @@ JojiArCH is built by fans, for fans. Want to help?
 - 💡 **Email**: `work.groove816@passfwd.com`.
 
 ---
+
+## Data Structures used for Supabase
+
+### Release Table (for tracks)
+
+| Field         | Type          | Description                                       |
+| ------------- | ------------- | ------------------------------------------------- |
+| `id`          | `number`      | Unique identifier for the release.                |
+| `era_id`      | `string`      | Identifier linking to the associated era.         |
+| `title`       | `string`      | Track title.                                      |
+| `duration`    | `string`      | Duration of the track (e.g., "3:45").             |
+| `file`        | `string`      | File path or URL for the track.                   |
+| `cover_image` | `string`      | URL or path to the cover image.                   |
+| `og_filename` | `string?`     | Original filename (optional).                     |
+| `file_date`   | `string?`     | Date associated with the file (optional).         |
+| `leak_date`   | `string?`     | Date the track was leaked (optional).             |
+| `aka`         | `string?`     | Alternate name or alias for the track (optional). |
+| `category`    | `string?`     | Category of the release.                          |
+| `type`        | `string?`     | Type of release (optional).                       |
+| `track_type`  | `string?`     | Type of track (optional).                         |
+| `credit`      | `string?`     | Credits for the track (optional).                 |
+| `multi_files` | `JsonFolder?` | JSON object for multiple files (optional).        |
+| `available`   | `string?`     | Availability status (optional).                   |
+| `quality`     | `string?`     | Quality of the track (optional).                  |
+| `notes`       | `string?`     | Additional notes about the release (optional).    |
+
+### Era Table (for albums)
+
+| Field         | Type      | Description                                          |
+| ------------- | --------- | ---------------------------------------------------- |
+| `id`          | `string`  | Unique identifier for the era.                       |
+| `title`       | `string`  | Title of the era.                                    |
+| `description` | `string?` | Description of the era (optional).                   |
+| `cover_image` | `string`  | URL or path to the cover image for the era.          |
+| `start_date`  | `string?` | Start date of the era (optional).                    |
+| `end_date`    | `string?` | End date of the era (optional).                      |
+| `album_rank`  | `number`  | Rank or order of the era (e.g., for sorting albums). |
+
+---
