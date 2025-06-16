@@ -1,98 +1,169 @@
 # JojiArCH 🎵
 
-_A fan-made archive celebrating Joji's musical evolution through his iconic eras._
-
-<!-- [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fakshzyx%2FMusicArch)   -->
+_A fan-curated archive chronicling Joji's musical evolution through distinct creative eras._
 
 🌐 **Live Site**: [JojiArCH](https://jojiarch.vercel.app)
 
-![JojiArCH](https://github.com/user-attachments/assets/853b6f71-8614-4a95-9887-d6f61379fa34)
+![JojiArCH Banner](https://github.com/user-attachments/assets/853b6f71-8614-4a95-9887-d6f61379fa34)
 
 ---
 
-## About JojiArCH
+## 📝 About
 
-JojiArCH is a dedicated archive documenting Joji’s musical journey—from his lo-fi beginnings to his rise as a global R&B/pop artist. Explore his discography through curated eras, unreleased tracks, and behind-the-scenes insights.
+**JojiArCH** is a passion project that documents Joji’s journey from lo-fi SoundCloud drops to chart-topping releases. With carefully categorized eras, unreleased gems, and exclusive insights, it serves as an immersive destination for fans and collectors alike.
 
-### Mission
+### 🎯 Mission
 
-To preserve Joji’s artistic legacy and provide fans with an immersive, organized experience of his work.
-
----
-
-## Features ✨
-
-- **Era-Based Navigation**: Explore Joji’s music through distinct creative phases.
-- **Comprehensive Tracklists**: Released songs, unreleased gems, stems, and sessions.
-- **Audio Player**: Stream tracks directly on the site.
-- **Community Contributions**: Suggest edits or additions (coming soon!).
+To preserve Joji’s artistic legacy and deliver a well-structured, fan-first musical archive.
 
 ---
 
-## Joji’s Musical Journey
+## ✨ Features
 
-Born George Kusunoki Miller, Joji transitioned from internet comedy (Filthy Frank) to music in 2017 with _In Tongues_. Key milestones:
-
-- 🎶 **Ballads 1 (2018)**: First Asian artist to top Billboard’s R&B/Hip-Hop chart (_Slow Dancing in the Dark_).
-- 🍯 **Nectar (2020)**: Genre-blending masterpiece (_Run_, _Gimme Love_).
-- 🔄 **Smithereens (2022)**: Raw emotional depth (_Glimpse of Us_).
+- **Era-Based Navigation** – Explore Joji’s discography by distinct creative periods
+- **Full Tracklists** – Covers released songs, leaks, stems, and sessions
+- **Built-in Audio Player** – Stream music directly from the website
+- **Community Collaboration** – Edits and suggestions coming soon!
 
 ---
 
-## Tech Stack ⚙️
+## 🎤 Joji: A Musical Evolution
+
+George Kusunoki Miller, aka **Joji**, emerged from the ashes of _Filthy Frank_ and became a critically acclaimed artist in 2017 with _In Tongues_. Major milestones include:
+
+- 🎶 **Ballads 1 (2018)** — First Asian artist to top Billboard’s R&B/Hip-Hop chart (_Slow Dancing in the Dark_)
+- 🍯 **Nectar (2020)** — Lush, genre-fluid, and emotionally layered (_Run_, _Gimme Love_)
+- 🔄 **Smithereens (2022)** — Raw and minimalistic, led by breakout hit (_Glimpse of Us_)
+
+---
+
+## ⚙️ Tech Stack
 
 - **Frontend**: Next.js, React, TypeScript
 - **Styling**: Tailwind CSS
-- **Authentication**: Clerk
+- **Auth**: Clerk
 - **Database**: Supabase
 - **Hosting**: Vercel
 
 ---
 
-## Contribute 🤝
+## 🚀 Getting Started
 
-JojiArCH is built by fans, for fans. Want to help?
+### 📦 Install Dependencies
 
-- 🐛 **Report bugs or suggest features**: Open a [GitHub Issue](https://github.com/akshzyx/MusicArch/issues).
-- 💡 **Email**: `work.groove816@passfwd.com`.
+Ensure [Node.js](https://nodejs.org/) is installed, then:
+
+```bash
+npm install
+```
 
 ---
 
-## Data Structures used for Supabase
+### 🔧 Environment Variables
 
-### Release Table (for tracks)
+Create a `.env.local` file in the root directory and configure:
 
-| Field         | Type          | Description                                       |
-| ------------- | ------------- | ------------------------------------------------- |
-| `id`          | `number`      | Unique identifier for the release.                |
-| `era_id`      | `string`      | Identifier linking to the associated era.         |
-| `title`       | `string`      | Track title.                                      |
-| `duration`    | `string`      | Duration of the track (e.g., "3:45").             |
-| `file`        | `string`      | File path or URL for the track.                   |
-| `cover_image` | `string`      | URL or path to the cover image.                   |
-| `og_filename` | `string?`     | Original filename (optional).                     |
-| `file_date`   | `string?`     | Date associated with the file (optional).         |
-| `leak_date`   | `string?`     | Date the track was leaked (optional).             |
-| `aka`         | `string?`     | Alternate name or alias for the track (optional). |
-| `category`    | `string?`     | Category of the release.                          |
-| `type`        | `string?`     | Type of release (optional).                       |
-| `track_type`  | `string?`     | Type of track (optional).                         |
-| `credit`      | `string?`     | Credits for the track (optional).                 |
-| `multi_files` | `JsonFolder?` | JSON object for multiple files (optional).        |
-| `available`   | `string?`     | Availability status (optional).                   |
-| `quality`     | `string?`     | Quality of the track (optional).                  |
-| `notes`       | `string?`     | Additional notes about the release (optional).    |
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
-### Era Table (for albums)
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key
+CLERK_SECRET_KEY=your-clerk-secret-key
 
-| Field         | Type      | Description                                          |
-| ------------- | --------- | ---------------------------------------------------- |
-| `id`          | `string`  | Unique identifier for the era.                       |
-| `title`       | `string`  | Title of the era.                                    |
-| `description` | `string?` | Description of the era (optional).                   |
-| `cover_image` | `string`  | URL or path to the cover image for the era.          |
-| `start_date`  | `string?` | Start date of the era (optional).                    |
-| `end_date`    | `string?` | End date of the era (optional).                      |
-| `album_rank`  | `number`  | Rank or order of the era (e.g., for sorting albums). |
+# Clerk Redirects
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
+
+# Webhooks
+CLERK_WEBHOOK_SECRET=your-webhook-secret
+
+# GitHub API
+NEXT_PUBLIC_GITHUB_TOKEN=ghp_your_token_here
+```
+
+🔑 Get your credentials from:
+
+- [Supabase Dashboard](https://app.supabase.com/)
+- [Clerk Dashboard](https://clerk.dev/)
+- [GitHub Tokens](https://github.com/settings/tokens)
+
+---
+
+### 🗂️ Supabase Schema
+
+#### 📁 `eras` Table
+
+| Field         | Type    | Description          |
+| ------------- | ------- | -------------------- |
+| `id`          | string  | Unique era ID        |
+| `title`       | string  | Era name             |
+| `description` | string? | Optional description |
+| `cover_image` | string  | Cover image URL      |
+| `start_date`  | string? | Optional start date  |
+| `end_date`    | string? | Optional end date    |
+| `album_rank`  | number  | Sort order           |
+
+#### 🎵 `releases` Table
+
+| Field         | Type        | Description                                                                   |
+| ------------- | ----------- | ----------------------------------------------------------------------------- |
+| `id`          | number      | Track ID                                                                      |
+| `era_id`      | string      | References `eras` table                                                       |
+| `title`       | string      | Track title                                                                   |
+| `duration`    | string      | Format: `mm:ss`                                                               |
+| `file`        | string      | Audio file URL/path                                                           |
+| `cover_image` | string      | Cover image URL                                                               |
+| `og_filename` | string?     | Original filename                                                             |
+| `file_date`   | string?     | Date the file originated                                                      |
+| `leak_date`   | string?     | Leak date                                                                     |
+| `aka`         | string?     | Alternate name/title                                                          |
+| `category`    | string?     | Available options like `released` \| `unreleased` \| `stems`                  |
+| `type`        | string?     | Demo, session, snippet, etc.                                                  |
+| `track_type`  | string?     | Optional sub-classification                                                   |
+| `credit`      | string?     | Composer/producer/label                                                       |
+| `multi_files` | JsonFolder? | For multi-track/stem folders                                                  |
+| `available`   | string?     | Available options like `Confirmed` \| `Partial` \| `Snippet` \| etc...        |
+| `quality`     | string?     | Available options like `High Quality` \| `Lossless` \| `CD Quality` \| etc... |
+| `notes`       | string?     | Additional notes                                                              |
+
+---
+
+### ▶️ Run Locally
+
+```bash
+npm run dev
+```
+
+Then visit: [http://localhost:3000](http://localhost:3000)
+
+---
+
+### ☁️ Deploy with Vercel
+
+1. Push your repo to GitHub
+2. Go to [Vercel](https://vercel.com/) and import the project
+3. In **Settings → Environment Variables**, add all vars from `.env.local`
+4. Click **Deploy** to get your live app link
+
+---
+
+## 🧪 Contributing
+
+We welcome feedback and collaboration!
+
+- 🐞 Found a bug? Suggest improvements? [Open an issue](https://github.com/akshzyx/MusicArCH/issues)
+- 💌 Contact: [work.groove816@passfwd.com](mailto:work.groove816@passfwd.com)
+
+---
+
+## ❤️ Built By Fans
+
+JojiArCH is a community-driven, non-commercial tribute. No monetization, no affiliation — just pure appreciation for Joji’s art.
 
 ---
