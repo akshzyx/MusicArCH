@@ -21,33 +21,33 @@ type Season = {
 };
 
 // SeasonCard component (styled to match EraCard, with improved UI for video count and year)
-function SeasonCard({ season }: { season: Season }) {
-  return (
-    <div className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn">
-      <Link
-        href={`/seasons/${season.id}`} // Adjust to your season route
-        className="flex flex-col gap-2 w-full group"
-      >
-        <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
-          {season.season_name}
-        </h4>
-        <p className="text-gray-400 text-sm line-clamp-2">
-          {season.description}
-        </p>
-        <div className="flex gap-2 mt-1">
-          <span className="inline-block bg-gray-700 text-teal-400 text-xs font-medium px-2 py-1 rounded-full">
-            {season.videoCount ?? 0} Video{season.videoCount !== 1 ? "s" : ""}
-          </span>
-          {season.year && (
-            <span className="inline-block bg-gray-700 text-teal-400 text-xs font-medium px-2 py-1 rounded-full">
-              Year: {season.year}
-            </span>
-          )}
-        </div>
-      </Link>
-    </div>
-  );
-}
+// function SeasonCard({ season }: { season: Season }) {
+//   return (
+//     <div className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn">
+//       <Link
+//         href={`/seasons/${season.id}`} // Adjust to your season route
+//         className="flex flex-col gap-2 w-full group"
+//       >
+//         <h4 className="text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
+//           {season.season_name}
+//         </h4>
+//         <p className="text-gray-400 text-sm line-clamp-2">
+//           {season.description}
+//         </p>
+//         <div className="flex gap-2 mt-1">
+//           <span className="inline-block bg-gray-700 text-teal-400 text-xs font-medium px-2 py-1 rounded-full">
+//             {season.videoCount ?? 0} Video{season.videoCount !== 1 ? "s" : ""}
+//           </span>
+//           {season.year && (
+//             <span className="inline-block bg-gray-700 text-teal-400 text-xs font-medium px-2 py-1 rounded-full">
+//               Year: {season.year}
+//             </span>
+//           )}
+//         </div>
+//       </Link>
+//     </div>
+//   );
+// }
 
 // Utility function to get 3 random items from an array
 function getRandomItems<T>(array: T[], count: number): T[] {
@@ -176,7 +176,17 @@ export default function Home() {
           <h2 className="text-3xl font-bold mb-6 text-center text-white">
             Comedic Seasons
           </h2>
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
+          <div className="flex justify-center items-center">
+            <div className="bg-gray-800/50 backdrop-blur-md rounded-xl shadow-xl p-4 w-full max-w-sm transition-all duration-200 hover:bg-gray-900/50 animate-fadeIn flex flex-col justify-center items-center gap-2">
+              <p className="text-lg font-semibold text-white/80">
+                Coming Soon...
+              </p>
+              <p className="text-sm font-medium text-gray-400">
+                Entire archive of The Filthy Frank Show!
+              </p>
+            </div>
+          </div>
+          {/* <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
             {data.seasons?.slice(0, 3).map((season: Season) => (
               <SeasonCard key={season.id} season={season} />
             ))}
@@ -189,7 +199,7 @@ export default function Home() {
               </h4>
               <span className="text-teal-400 group-hover:text-teal-300">→</span>
             </Link>
-          </div>
+          </div> */}
         </section>
 
         {/* Francis of the Filth Section */}

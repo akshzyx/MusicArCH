@@ -76,26 +76,34 @@ export default function AboutPage() {
               <p className="text-gray-300 leading-relaxed">
                 Joji, born George Kusunoki Miller, first gained fame through his
                 YouTube channels DizastaMusic, TVFilthyFrank, and TooDamnFilthy,
-                where he created *The Filthy Frank Show* starting in 2011. As
-                Filthy Frank, he portrayed oddball characters, delivering shock
-                humor, rants, skits, and comedy hip-hop under his Pink Guy
-                alias. His viral “Harlem Shake” video in 2013 popularized the
-                meme, amassing millions of views. As Pink Guy, he released
-                comedic projects like *Pink Guy* (2014), *Pink Season* (2017),
-                which hit number 70 on the Billboard 200, and *Pink Season: The
-                Prophecy* (2017).
+                where he created{" "}
+                <span className="font-bold">The Filthy Frank Show</span>{" "}
+                starting in 2011. As Filthy Frank, he portrayed oddball
+                characters, delivering shock humor, rants, skits, and comedy
+                hip-hop under his Pink Guy alias. His viral “Harlem Shake” video
+                in 2013 popularized the meme, amassing millions of views. As
+                Pink Guy, he released comedic projects like{" "}
+                <span className="font-bold">Pink Guy</span> (2014),{" "}
+                <span className="font-bold">Pink Season</span> (2017), which hit
+                number 70 on the Billboard 200, and{" "}
+                <span className="font-bold">Pink Season: The Prophecy</span>{" "}
+                (2017).
               </p>
               <p className="text-gray-300 leading-relaxed mt-4">
                 In 2017, Miller retired Filthy Frank due to health concerns and
-                a desire to pursue serious music, releasing his debut EP *In
-                Tongues* as Joji. This marked his shift to lo-fi, R&B, and
-                alternative pop, with emotional lyrics exploring love and loss.
-                His discography includes early SoundCloud singles like “Thom”
-                and “You Suck Charlie” (2015), the unreleased *Chloe Burbank:
-                Volume 1*, and critically acclaimed albums: *Ballads 1* (2018)
-                with “Slow Dancing in the Dark,” *Nectar* (2020) with
-                “Sanctuary,” and *Smithereens* (2022) with “Glimpse of Us,” his
-                highest-charting single.
+                a desire to pursue serious music, releasing his debut EP{" "}
+                <span className="font-bold">In Tongues</span> as Joji. This
+                marked his shift to lo-fi, R&B, and alternative pop, with
+                emotional lyrics exploring love and loss. His discography
+                includes early SoundCloud singles like “Thom” and “You Suck
+                Charlie” (2015), the unreleased{" "}
+                <span className="font-bold">Chloe Burbank: Volume 1</span>, and
+                critically acclaimed albums:{" "}
+                <span className="font-bold">Ballads 1</span> (2018) with “Slow
+                Dancing in the Dark,” <span className="font-bold">Nectar</span>{" "}
+                (2020) with “Sanctuary,” and{" "}
+                <span className="font-bold">Smithereens</span> (2022) with
+                “Glimpse of Us,” his highest-charting single.
               </p>
               <p className="text-gray-300 leading-relaxed mt-4">
                 JojiArCH organizes his career into eras, from his comedic
@@ -223,11 +231,11 @@ export default function AboutPage() {
                     Explore Musical Eras
                   </button>
                 </Link>
-                <Link href="/seasons">
+                {/* <Link href="/seasons">
                   <button className="bg-teal-400 text-white rounded-full px-6 py-3 hover:bg-teal-500 transition-colors">
                     Explore Comedic Seasons
                   </button>
-                </Link>
+                </Link> */}
               </div>
             </div>
           </section>
