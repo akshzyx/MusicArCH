@@ -187,13 +187,13 @@ export default function TrackList({
         "TV Tracks",
       ];
       const availableOrder = [
-        "Confirmed",
+        "Full",
+        "OG File",
         "Partial",
         "Snippet",
-        "Full",
         "Rumored",
-        "OG File",
         "Tagged",
+        "Confirmed",
       ];
       const qualityOrder = [
         "High Quality",
@@ -330,7 +330,6 @@ export default function TrackList({
         return `${baseStyles} bg-gray-700 text-gray-200`;
       case "available":
         switch (value) {
-          case "Confirmed":
           case "Full":
           case "OG File":
             return `${baseStyles} bg-green-900 text-green-300`;
@@ -341,6 +340,7 @@ export default function TrackList({
             return `${baseStyles} bg-red-900 text-red-300`;
           case "Tagged":
             return `${baseStyles} bg-blue-900 text-blue-300`;
+          case "Confirmed":
           default:
             return `${baseStyles} bg-gray-700 text-gray-200`;
         }
@@ -600,21 +600,21 @@ export default function TrackList({
     ];
 
     const availableOrder = [
-      "Confirmed",
+      "Full",
+      "OG File",
       "Partial",
       "Snippet",
-      "Full",
       "Rumored",
-      "OG File",
       "Tagged",
+      "Confirmed",
     ];
 
     const qualityOrder = [
-      "High Quality",
-      "Recording",
       "Lossless",
+      "High Quality",
       "Low Quality",
       "CD Quality",
+      "Recording",
       "Not Available",
     ];
 

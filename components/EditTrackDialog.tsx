@@ -62,13 +62,13 @@ export default function EditTrackDialog({
   const [trackType, setTrackType] = useState("");
   const [trackTrackType, setTrackTrackType] = useState("");
   const [trackAvailable, setTrackAvailable] = useState<
-    | "Confirmed"
+    | "Full"
+    | "OG File"
     | "Partial"
     | "Snippet"
-    | "Full"
     | "Rumored"
-    | "OG File"
     | "Tagged"
+    | "Confirmed"
     | undefined
   >(undefined);
   const [trackQuality, setTrackQuality] = useState<
@@ -762,26 +762,26 @@ export default function EditTrackDialog({
                         e.target.value === ""
                           ? undefined
                           : (e.target.value as
-                              | "Confirmed"
-                              | "Partial"
-                              | "Snippet"
-                              | "Full"
-                              | "Rumored"
-                              | "OG File"
-                              | "Tagged")
+                            | "Full"
+                            | "OG File"
+                            | "Partial"
+                            | "Snippet"
+                            | "Rumored"
+                            | "Tagged"
+                            | "Confirmed")
                       )
                     }
                     className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="">Select availability</option>
-                    <option value="Confirmed">Confirmed</option>
+                    <option value="Full">Full</option>
+                    <option value="OG File">OG File</option>
                     <option value="Partial">Partial</option>
                     <option value="Snippet">Snippet</option>
-                    <option value="Full">Full</option>
                     <option value="Rumored">Rumored</option>
-                    <option value="OG File">OG File</option>
                     <option value="Tagged">Tagged</option>
+                    <option value="Confirmed">Confirmed</option>
                   </select>
                 </div>
                 <div>

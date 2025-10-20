@@ -54,20 +54,20 @@ interface TrackFormData {
     | "TV Tracks"
     | "";
   available:
-    | "Confirmed"
+    | "Full"
+    | "OG File"
     | "Partial"
     | "Snippet"
-    | "Full"
     | "Rumored"
-    | "OG File"
+    | "Confirmed"
     | "";
   quality:
-    | "Not Available"
-    | "High Quality"
-    | "Recording"
     | "Lossless"
-    | "Low Quality"
+    | "High Quality"
     | "CD Quality"
+    | "Low Quality"
+    | "Recording"
+    | "Not Available"
     | "";
   notes: string;
   isLoadingDuration?: boolean;
@@ -533,12 +533,12 @@ export default function UploadForm() {
             releaseCategory !== "released" &&
             track.available !== "" &&
             [
-              "Confirmed",
+              "Full",
+              "OG File",
               "Partial",
               "Snippet",
-              "Full",
               "Rumored",
-              "OG File",
+              "Confirmed",
             ].includes(track.available)
               ? track.available
               : undefined,
@@ -980,13 +980,13 @@ export default function UploadForm() {
                       <option value="" disabled>
                         Select availability
                       </option>
-                      <option value="Confirmed">Confirmed</option>
+                      <option value="Full">Full</option>
+                      <option value="OG File">OG File</option>
                       <option value="Partial">Partial</option>
                       <option value="Snippet">Snippet</option>
-                      <option value="Full">Full</option>
                       <option value="Rumored">Rumored</option>
-                      <option value="OG File">OG File</option>
                       <option value="Tagged">Tagged</option>
+                      <option value="Confirmed">Confirmed</option>
                     </select>
                   </div>
                   <div>

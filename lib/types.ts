@@ -27,19 +27,19 @@ export interface Release {
   credit?: string;
   multi_files?: JsonFolder;
   available?:
-    | "Confirmed"
+    | "Full"
+    | "OG File"
     | "Partial"
     | "Snippet"
-    | "Full"
     | "Rumored"
-    | "OG File";
+    | "Confirmed";
   quality?:
-    | "Not Available"
-    | "High Quality"
-    | "Recording"
     | "Lossless"
+    | "High Quality"
     | "Low Quality"
-    | "CD Quality";
+    | "CD Quality"
+    | "Recording"
+    | "Not Available";
   notes?: string;
 }
 
