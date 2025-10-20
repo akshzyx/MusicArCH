@@ -141,6 +141,27 @@ NEXT_PUBLIC_GITHUB_TOKEN=ghp_your_token_here
 | `quality`     | string?     | Available options like `High Quality` \| `Lossless` \| `CD Quality` \| etc... |
 | `notes`       | string?     | Additional notes                                                              |
 
+#### 💬 `testimonials` Table
+
+| Field         | Type        | Description                                      |
+| ------------- | ----------- | ------------------------------------------------ |
+| `id`          | UUID        | Unique identifier (generated automatically)      |
+| `quote`       | TEXT        | Testimonial content                              |
+| `name`        | TEXT        | Title or short description                       |
+| `designation` | TEXT        | Attribution (e.g., Joji, Pink Guy, Filthy Frank) |
+| `image_url`   | TEXT        | URL to testimonial image                         |
+| `created_at`  | TIMESTAMPTZ | Timestamp of creation (default: now)             |
+| `updated_at`  | TIMESTAMPTZ | Timestamp of last update (default: now)          |
+| `is_active`   | BOOLEAN     | Display control (default: `true`)                |
+| `sort_order`  | INTEGER     | Display order for testimonials                   |
+
+##### ✅ Policies & Indexes
+
+- **RLS Enabled**
+- **Admin Policy**: Full CRUD for logged-in users
+- **Public Policy**: Read-only access to active testimonials
+- **Indexes**: On `sort_order` and `is_active`
+
 ---
 
 ### ▶️ Run Locally
