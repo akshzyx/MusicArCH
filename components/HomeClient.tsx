@@ -13,6 +13,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Timeline } from "@/components/ui/timeline";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export default function HomeClient() {
   const [data, setData] = useState<{ eras: Era[]; releases: Release[] }>({
@@ -118,7 +119,7 @@ export default function HomeClient() {
       content: (
         <div className="flex items-start gap-3">
           {release.cover_image && (
-            <img
+            <Image
               src={release.cover_image}
               alt={`${release.title} cover`}
               className="h-12 w-12 rounded-md object-cover shadow-md"
@@ -164,7 +165,7 @@ export default function HomeClient() {
               <p className="text-sm text-neutral-400 mt-2 max-w-lg">
                 {viewMode === "grid"
                   ? "Explore the collection of musical eras, showcasing distinct periods of creativity and style."
-                  : "View the release history in a chronological timeline, highlighting key moments."}
+                  : "View the release history in a chronological timeline."}
               </p>
             </div>
             <Button

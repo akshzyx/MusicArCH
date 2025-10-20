@@ -42,7 +42,7 @@ export const Timeline = ({ data }: { data: TimelineEntry[] }) => {
               <div className="h-6 absolute left-3 md:left-3 w-6 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-teal-600 transition-colors duration-200">
                 <div className="h-2 w-2 rounded-full bg-neutral-700 border border-neutral-600 group-hover:bg-white group-hover:border-teal-500 p-1 transition-all duration-200" />
               </div>
-              <h3 className="hidden md:block text-sm md:pl-10 md:text-sm font-medium text-neutral-400 group-hover:text-teal-300 transition-colors duration-200">
+              <h3 className="hidden md:block text-sm md:pl-11 md:text-sm font-medium text-neutral-400 group-hover:text-teal-300 transition-colors duration-200">
                 {item.title}
               </h3>
             </div>
@@ -62,7 +62,7 @@ export const Timeline = ({ data }: { data: TimelineEntry[] }) => {
           style={{
             height: height + "px",
           }}
-          className="absolute md:left-5 left-5 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-600 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
+          className="absolute md:left-5.5 left-5.5 top-0 overflow-hidden w-[2px] bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-neutral-600 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
         >
           <motion.div
             style={{
