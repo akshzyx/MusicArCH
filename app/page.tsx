@@ -6,7 +6,7 @@ import { Era } from "@/lib/types";
 import { getCachedData, refetchData } from "@/lib/dataCache";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AnimatedTestimonialsDemo } from "@/components/Testimonials";
+import { TestimonialsClient } from "@/components/Testimonials"; // ✅ NEW IMPORT
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -147,7 +147,8 @@ export default function Home() {
       <div className="max-w-7xl mx-auto pt-4 px-4 sm:px-6 md:px-8">
         {/* Animated Testimonials Section */}
         <div className="mb-8">
-          <AnimatedTestimonialsDemo />
+          <TestimonialsClient autoplay={true} />{" "}
+          {/* ✅ REPLACED AnimatedTestimonialsDemo */}
         </div>
 
         {/* Explore Songs Section */}
@@ -214,7 +215,7 @@ export default function Home() {
               adventures of Francis and his bizarre universe. Packed with the
               irreverent humor and surreal storytelling of{" "}
               <i>The Filthy Frank Show</i>, this book is a must-read for fans of
-              Joji’s comedic legacy.
+              Joji&apos;s comedic legacy.
             </p>
             <Link
               href="/FrancisoftheFilthbyGeorgeMiller.pdf"

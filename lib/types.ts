@@ -52,3 +52,15 @@ export interface Era {
   end_date?: string;
   album_rank: number;
 }
+
+export interface Testimonial {
+  id: string;
+  quote: string;
+  name: string;
+  designation: string;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  sort_order: number;
+}
