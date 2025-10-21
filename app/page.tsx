@@ -6,7 +6,7 @@ import { Era } from "@/lib/types";
 import { getCachedData, refetchData } from "@/lib/dataCache";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TestimonialsClient } from "@/components/Testimonials"; // ✅ NEW IMPORT
+import { TestimonialsClient } from "@/components/Testimonials";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
