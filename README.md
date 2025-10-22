@@ -196,4 +196,4 @@ We welcome feedback and collaboration!
 
 JojiArCH is a community-driven, non-commercial tribute. No monetization, no affiliation — just pure appreciation for Joji’s art.
 
----
+<p align="center"><img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/footers/gray0_ctp_on_line.svg?sanitize=true" /></p>

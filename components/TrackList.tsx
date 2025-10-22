@@ -516,7 +516,7 @@ export default function TrackList({
           {isPlayable && (
             <button
               onClick={() => handleDownload(file.url, key)}
-              className="ml-3 text-blue-400 hover:text-blue-300 transition-colors p-1"
+              className="ml-3 text-gray-400 hover:text-teal-400 transition-colors p-1"
               title="Download Track"
             >
               <FontAwesomeIcon icon={faDownload} size="sm" />
@@ -887,7 +887,7 @@ export default function TrackList({
                               e.stopPropagation(); // Prevent popup from opening
                               handleDownload(track.file, track.title);
                             }}
-                            className="ml-3 text-blue-400 hover:text-blue-300 transition-colors p-1"
+                            className="ml-3 text-gray-400 hover:text-teal-400 transition-colors p-1"
                             title="Download Track"
                           >
                             <FontAwesomeIcon icon={faDownload} size="sm" />
@@ -1090,7 +1090,7 @@ export default function TrackList({
                       e.stopPropagation(); // Prevent popup from opening
                       handleDownload(track.file, track.title);
                     }}
-                    className="ml-3 text-blue-400 hover:text-blue-300 transition-colors p-1"
+                    className="ml-3 text-gray-400 hover:text-teal-400 transition-colors p-1"
                     title="Download Track"
                   >
                     <FontAwesomeIcon icon={faDownload} size="sm" />
